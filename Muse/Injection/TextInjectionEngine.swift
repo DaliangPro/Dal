@@ -230,11 +230,14 @@ final class TextInjectionEngine: @unchecked Sendable {
 
     /// 自绘渲染、AX 树不暴露焦点元素的应用（微信 4.x/QQ/钉钉/企业微信等腾讯系与 IM 类）：
     /// 焦点检测必然失败，但用户主动呼出语音输入时几乎必然停在输入框——
-    /// 对这些 app 跳过检测直接注入，否则永远无法上屏（2026-07 修微信不注入）
+    /// 对这些 app 跳过检测直接注入，否则永远无法上屏（2026-07 修微信不注入）。
+    /// Meta Muse（com.meta.endo）是 WebKit 页面，输入框外层容器声明为 role=button，
+    /// 真实可编辑元素被 WebKit 折叠，焦点只报告该 AXButton（2026-10-03 实测）。
     private static let axOpaqueBundleIDs: Set<String> = [
         "com.tencent.qq",
         "com.tencent.WeWorkMac",
         "com.alibaba.DingTalkMac",
+        "com.meta.endo",
     ]
 
     static func isAXOpaqueApp(_ bundleID: String?) -> Bool {
