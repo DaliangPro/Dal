@@ -169,6 +169,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                 Spacer(minLength: 8)
                 SettingsTextButton(L("词库设置", "Options"), controlSize: .compact) { showsVocabularySettings = true }
             }
+            learningResult
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .sheet(isPresented: $showsVocabularySettings) {
@@ -182,7 +183,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                     VStack(alignment: .leading, spacing: 12) {
                         providerStatusCard
                         migrationCard
-                        Text(L("自动记词在直出或润色上屏后的约 20 秒内观察支持的标准输入框；不会观察网页输入框，也不会把继续追加的文字当作纠错。直出只记词，不学习表达习惯。", "Word learning observes supported standard fields for about 20 seconds after Direct or Polish output. Web fields and appended text are excluded. Direct learns words only, not writing style."))
+                        Text(L("自动记词在直出或润色上屏后的约 20 秒内观察支持的安全输入框。GPT 桌面端需支持安全的文字范围读取；其他网页输入框不观察。继续追加不算纠错，直出只记词，不学习表达习惯。最近的学习结果显示在本页底部。", "Word learning observes supported safe fields for about 20 seconds after Direct or Polish output. GPT desktop requires safe text-range access; other web fields are excluded. Appended text is ignored. Direct learns words only. The latest result appears at the bottom of this page."))
                             .font(TF.settingsFontCaption).foregroundStyle(TF.settingsTextSecondary)
                         SettingsTextButton(L("导出词库", "Export vocabulary")) { exportTerminology() }
                     }
@@ -208,8 +209,11 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
             }
         } message: { Text(L("删除后将不再应用这条替换。", "This replacement will no longer apply.")) }
         .task { if loadsStoredVocabulary { await reload() } }
-        .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidFinish)) { _ in
-            Task { await reload() }
+        .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidFinish)) { note in
+            if let feedback = note.object as? AutomaticLearningFeedback {
+                AutomaticLearningStatus.shared.update(feedback)
+                if feedback.didPersist, loadsStoredVocabulary { Task { await reload() } }
+            }
         }
         .sheet(item: $editorDraft) { draft in
             TerminologyEntryEditorSheet(
@@ -249,6 +253,23 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                   let notice = note.object as? AliyunVocabularySyncNotice else { return }
             aliyunVocabularySyncNotice = notice
         }
+    }
+
+    private var learningResult: some View {
+        HStack(alignment: .top, spacing: 6) {
+            let feedback = AutomaticLearningStatus.shared.latest
+            Image(systemName: feedback?.didPersist == true ? "checkmark.circle" : "info.circle")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
+                     ?? L("改词后的学习结果会显示在这里", "Learning results will appear here after an edit"))
+                if let feedback, feedback.didPersist, !feedback.detail.isEmpty, feedback.detail != feedback.message {
+                    Text(feedback.detail).lineLimit(2).textSelection(.enabled)
+                }
+            }
+        }
+        .font(TF.settingsFontCaption)
+        .foregroundStyle(TF.settingsTextSecondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

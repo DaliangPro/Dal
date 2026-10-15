@@ -430,10 +430,9 @@ final class TerminologyRepositoryTests: XCTestCase {
         var modified = builtIn
         modified.canonicalText = "Open AI"
         XCTAssertThrowsError(try TerminologyRepository.upsert(modified, context: fixture.context))
-        XCTAssertThrowsError(try TerminologyRepository.upsert(
-            TerminologyEntry(canonicalText: "OpenAI"),
-            context: fixture.context
-        ))
+        var disguisedBuiltIn = builtIn
+        disguisedBuiltIn.origin = .manual
+        XCTAssertThrowsError(try TerminologyRepository.upsert(disguisedBuiltIn, context: fixture.context))
         var aliasModifiedDocument = TerminologyRepository.load(context: fixture.context)
         let aliasModifiedIndex = try XCTUnwrap(aliasModifiedDocument.entries.firstIndex {
             $0.id == builtIn.id
@@ -462,6 +461,36 @@ final class TerminologyRepositoryTests: XCTestCase {
         }).isEnabled)
         XCTAssertFalse(TerminologyRepository.projections(context: fixture.context)
             .hotwords.contains("OpenAI"))
+    }
+
+    func testUserCanEditAndDeleteAliasesForBuiltInWordWithoutFalseConflicts() throws {
+        let fixture = try TerminologyStorageFixture()
+        defer { fixture.cleanup() }
+        try HotwordStorage.saveBuiltin(["Claude"], context: fixture.context)
+        try SnippetStorage.saveBuiltin([(trigger: "Claud", value: "Claude")], context: fixture.context)
+        _ = try TerminologyRepository.migrateIfNeeded(context: fixture.context)
+        let builtIn = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first {
+            $0.origin == .builtIn && $0.canonicalText == "Claude"
+        })
+        var personal = TerminologyEntry(
+            canonicalText: "Claude", aliases: [TerminologyAlias(text: "cloud"), TerminologyAlias(text: "Claud")]
+        )
+        try TerminologyRepository.upsert(personal, context: fixture.context)
+        var loaded = TerminologyRepository.load(context: fixture.context)
+        XCTAssertEqual(loaded.entries.first { $0.id == builtIn.id }, builtIn)
+        XCTAssertTrue(loaded.conflicts.isEmpty)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloud"], "Claude")
+        personal.aliases.append(TerminologyAlias(text: "cloude"))
+        try TerminologyRepository.upsert(personal, context: fixture.context)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloude"], "Claude")
+        try TerminologyRepository.remove(id: personal.id, context: fixture.context)
+        loaded = TerminologyRepository.load(context: fixture.context)
+        XCTAssertEqual(loaded.entries.first { $0.id == builtIn.id }, builtIn)
+        XCTAssertFalse(loaded.entries.contains { $0.origin != .builtIn && $0.canonicalText == "Claude" })
+        let projection = TerminologyRepository.projections(context: fixture.context)
+        XCTAssertNil(projection.corrections["cloud"])
+        XCTAssertNil(projection.corrections["cloude"])
+        XCTAssertEqual(projection.corrections["Claud"], "Claude")
     }
 
     func testBatchEvidenceReplacementWritesOnceAndReplacesPreviousCandidates() throws {

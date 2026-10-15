@@ -234,7 +234,7 @@ enum TerminologyDocumentNormalizer {
             let key = TerminologyText.entryIdentityKey(
                 canonicalText: entry.canonicalText,
                 scope: entry.scope
-            )
+            ) + (entry.origin == .builtIn ? "|builtin" : "|user")
             if let index = positions[key] {
                 result[index] = merge(result[index], entry)
             } else {
@@ -376,7 +376,7 @@ enum TerminologyDocumentNormalizer {
     ) -> [TerminologyConflict] {
         struct Bucket {
             var aliases = Set<String>()
-            var candidates: [UUID: TerminologyConflictCandidate] = [:]
+            var candidates: [String: TerminologyConflictCandidate] = [:]
         }
 
         var canonicalOwners: [String: TerminologyEntry] = [:]
@@ -400,14 +400,15 @@ enum TerminologyDocumentNormalizer {
                 let bucketKey = keyPrefix + aliasKey
                 var bucket = buckets[bucketKey, default: Bucket()]
                 bucket.aliases.insert(alias.text)
-                bucket.candidates[entry.id] = TerminologyConflictCandidate(
+                bucket.candidates[TerminologyText.normalizedKey(entry.canonicalText)] = TerminologyConflictCandidate(
                     entryID: entry.id,
                     canonicalText: entry.canonicalText,
                     origin: entry.origin
                 )
                 if let canonicalOwner = canonicalOwners[keyPrefix + aliasKey],
-                   canonicalOwner.id != entry.id {
-                    bucket.candidates[canonicalOwner.id] = TerminologyConflictCandidate(
+                   TerminologyText.normalizedKey(canonicalOwner.canonicalText)
+                    != TerminologyText.normalizedKey(entry.canonicalText) {
+                    bucket.candidates[TerminologyText.normalizedKey(canonicalOwner.canonicalText)] = TerminologyConflictCandidate(
                         entryID: canonicalOwner.id,
                         canonicalText: canonicalOwner.canonicalText,
                         origin: canonicalOwner.origin

@@ -78,6 +78,7 @@ final class AppState {
     /// 服务端偶发在切句时让尚未确认的上一句从新帧中消失（09-29 实测火山 partial 28→4 字，
     /// 结束时才回归）。此处暂存已显示的那句，仅用于 HUD，不参与注入。
     @ObservationIgnored private var heldLiveText = ""
+    @ObservationIgnored private var pendingLearningFeedback: AutomaticLearningFeedback?
 
     // MARK: Update Check
 
@@ -288,21 +289,22 @@ final class AppState {
         scheduleAutoHide(for: .error, delay: .seconds(1.8))
     }
 
-    /// 自动学习发生在文字已经插入、用户完成修改之后。只在 HUD 空闲时给出
-    /// 一次轻提示，避免打断下一次正在进行的录音或润色。
-    func showVoicePolishAutomaticLearningNotice() {
-        guard barPhase == .hidden || barPhase == .done else { return }
-        feedbackMessage = L(
-            "已记住这次修改，可在个人词汇中管理",
-            "Edit remembered — manage it in Personal Vocabulary"
-        )
+    /// 忙碌时保留最近结果，当前录音或输出结束后再显示，不覆盖进行中的交互。
+    func showAutomaticLearningFeedback(_ feedback: AutomaticLearningFeedback) {
+        guard barPhase == .hidden || barPhase == .done else {
+            pendingLearningFeedback = feedback
+            return
+        }
+        pendingLearningFeedback = nil
+        feedbackMessage = feedback.message
         resetVoicePolishProcessingState()
         barPhase = .done
         onShowPanel?()
-        scheduleAutoHide(for: .done, delay: .seconds(2.4))
+        scheduleAutoHide(for: .done, delay: .seconds(2.8))
     }
 
     func cancel() {
+        pendingLearningFeedback = nil
         barPhase = .hidden
         segments = []
         resetLiveTranscriptTracking()
@@ -420,7 +422,11 @@ final class AppState {
                 copyFallbackWasCopied = false
                 onCopyFallbackVisibilityChange?(false)
             }
-            onHidePanel?()
+            if let feedback = pendingLearningFeedback {
+                showAutomaticLearningFeedback(feedback)
+            } else {
+                onHidePanel?()
+            }
         }
     }
 }

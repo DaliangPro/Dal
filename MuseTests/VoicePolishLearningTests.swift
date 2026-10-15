@@ -2,6 +2,122 @@ import XCTest
 @testable import Muse
 
 final class VoicePolishLearningTests: XCTestCase {
+    func testCloudCorrectionAddsUserAliasWithoutChangingBuiltInClaude() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture(builtIn: ["Claude"])
+        defer { fixture.cleanup() }
+        let builtIn = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first {
+            $0.origin == .builtIn && $0.canonicalText == "Claude"
+        })
+        await fixture.insertDirectHistory(id: "gpt-cloud", text: "cloud.")
+        let feedback = await fixture.monitor.recordCorrectionFeedback(
+            originalText: "cloud.", correctedText: "Claude", historyID: "gpt-cloud",
+            historyStore: fixture.historyStore
+        )
+        guard case .learned(let candidates, let hasConflict) = feedback else {
+            return XCTFail("应成功学习用户提供的 cloud. → Claude 例子")
+        }
+        XCTAssertEqual(candidates, [TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")])
+        XCTAssertFalse(hasConflict)
+        XCTAssertTrue(try XCTUnwrap(feedback).message.contains("Claude"))
+        let document = TerminologyRepository.load(context: fixture.context)
+        XCTAssertEqual(document.entries.first { $0.id == builtIn.id }, builtIn)
+        let personal = try XCTUnwrap(document.entries.first { $0.origin == .confirmedCorrection })
+        XCTAssertEqual(personal.canonicalText, "Claude")
+        XCTAssertEqual(personal.aliases.first?.sourceRecordIDs, ["gpt-cloud"])
+        XCTAssertTrue(document.conflicts.isEmpty)
+        let session = RecognitionSession(historyStore: fixture.historyStore)
+        let result = await session.postProcessForTesting(
+            rawText: "cloud.",
+            transcript: RecognitionTranscript(
+                confirmedSegments: ["cloud."], partialText: "", authoritativeText: "cloud.", isFinal: true
+            ), mode: .direct, vocabularyContext: fixture.context
+        )
+        XCTAssertEqual(result?.finalText, "Claude.", "后续直出纠词，标点沿用原文")
+        let coordinator = TerminologyHistoryTransactionCoordinator(context: fixture.context)
+        try await coordinator.undoCorrection(historyStore: fixture.historyStore, historyID: "gpt-cloud")
+        let afterUndo = TerminologyRepository.load(context: fixture.context)
+        XCTAssertEqual(afterUndo.entries.first { $0.id == builtIn.id }, builtIn)
+        XCTAssertFalse(afterUndo.entries.contains { $0.origin == .confirmedCorrection })
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
+    func testUnextractableEditCanBeFollowedBySuccessfulWordLearning() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "intermediate-edit", text: "cloud.")
+        let intermediate = await fixture.monitor.recordCorrectionFeedback(
+            originalText: "cloud.", correctedText: "cloud!", historyID: "intermediate-edit",
+            historyStore: fixture.historyStore
+        )
+        XCTAssertEqual(intermediate, .noTerms)
+        let before = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(before.isEmpty)
+        let final = await fixture.monitor.recordCorrectionFeedback(
+            originalText: "cloud.", correctedText: "Claude", historyID: "intermediate-edit",
+            historyStore: fixture.historyStore
+        )
+        XCTAssertEqual(final?.didPersist, true)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloud"], "Claude")
+    }
+
+    func testLearningSaveFailureReportsFailureWithoutCreatingHistoryEvidence() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "cannot-save", text: "cloud.")
+        try Data("{".utf8).write(to: TerminologyRepository.fileURL(in: fixture.context))
+        let feedback = await fixture.monitor.recordCorrectionFeedback(
+            originalText: "cloud.", correctedText: "Claude", historyID: "cannot-save",
+            historyStore: fixture.historyStore
+        )
+        XCTAssertEqual(feedback, .failed)
+        XCTAssertEqual(feedback?.didPersist, false)
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+    }
+
+    func testGPTWebCaptureRequiresExplicitSafeEditableField() {
+        for bundle in ["com.openai.codex", "com.openai.chat"] {
+            for role in ["AXTextArea", "AXTextField"] {
+                XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+                    role: role, subrole: nil, editable: true, protectedContent: false,
+                    hasWebAncestor: true, applicationBundleIdentifier: bundle
+                ))
+            }
+            for protected in [true, nil] as [Bool?] {
+                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+                    role: "AXTextArea", subrole: nil, editable: true, protectedContent: protected,
+                    hasWebAncestor: true, applicationBundleIdentifier: bundle
+                ))
+            }
+            for editable in [false, nil] as [Bool?] {
+                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+                    role: "AXTextArea", subrole: nil, editable: editable, protectedContent: false,
+                    hasWebAncestor: true, applicationBundleIdentifier: bundle
+                ))
+            }
+            for role in ["AXButton", "AXWebArea", "AXComboBox"] {
+                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+                    role: role, subrole: nil, editable: true, protectedContent: false,
+                    hasWebAncestor: true, applicationBundleIdentifier: bundle
+                ))
+            }
+            XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+                role: "AXTextField", subrole: "AXSecureTextField", editable: true, protectedContent: false,
+                hasWebAncestor: false, applicationBundleIdentifier: bundle
+            ))
+        }
+        for bundle in ["com.apple.Safari", "com.google.Chrome", "com.example.other", nil] as [String?] {
+            XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+                role: "AXTextArea", subrole: "AXTextArea", editable: true, protectedContent: false,
+                hasWebAncestor: true, applicationBundleIdentifier: bundle
+            ))
+        }
+        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+            role: "AXTextArea", subrole: "AXTextArea", editable: true, protectedContent: false,
+            hasWebAncestor: false, applicationBundleIdentifier: "com.apple.TextEdit"
+        ))
+    }
+
     func testAutomaticLearningOnlyObservesEnabledModesAfterSuccessfulInsertion() throws {
         let fixture = try AutomaticTerminologyLearningFixture()
         defer { fixture.cleanup() }
@@ -277,7 +393,7 @@ private struct AutomaticTerminologyLearningFixture {
     let historyStore: HistoryStore
     let monitor: PostInjectionEditLearningMonitor
 
-    init() throws {
+    init(builtIn: [String] = []) throws {
         directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("MuseDirectLearningTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -287,7 +403,7 @@ private struct AutomaticTerminologyLearningFixture {
             supportDirectory: directory, userDefaults: defaults, fileManager: .default,
             hotwordsDidChange: {}, revealFile: { _ in }
         )
-        try HotwordStorage.saveBuiltin([], context: context)
+        try HotwordStorage.saveBuiltin(builtIn, context: context)
         try SnippetStorage.saveBuiltin([], context: context)
         _ = try TerminologyRepository.migrateIfNeeded(context: context)
         VoicePolishSettings.setPersonalizationEnabled(true, defaults: defaults)

@@ -25,6 +25,11 @@ struct PostInjectionEditLearningTarget: @unchecked Sendable {
     }
 }
 
+enum PostInjectionLearningCapture {
+    case target(PostInjectionEditLearningTarget)
+    case unavailable(AutomaticLearningFeedback)
+}
+
 /// 直出与润色上屏后的自动纠正学习；直出只学习术语。
 ///
 /// 仅观察标准 AX 输入框中“本次插入范围”附近的短窗口，最长 20 秒；连续稳定
@@ -71,36 +76,36 @@ actor PostInjectionEditLearningMonitor {
     static func capture(
         injectedText: String,
         historyID: String
-    ) -> PostInjectionEditLearningTarget? {
-        guard AXIsProcessTrusted(), !injectedText.isEmpty else { return nil }
+    ) -> PostInjectionLearningCapture {
+        guard AXIsProcessTrusted(), !injectedText.isEmpty else { return .unavailable(.unavailable) }
         let systemWide = AXUIElementCreateSystemWide()
         guard let focused = elementAttribute(
             systemWide,
             kAXFocusedUIElementAttribute as CFString
-        ) else { return nil }
+        ) else { return .unavailable(.unavailable) }
 
         let role = stringAttribute(focused, kAXRoleAttribute as CFString)
         let subrole = stringAttribute(focused, kAXSubroleAttribute as CFString)
         let editable = boolAttribute(focused, "AXEditable" as CFString)
         let protected = boolAttribute(focused, "AXProtectedContent" as CFString)
-        guard WritingContextCapture.safetyForTesting(
-            role: role,
-            subrole: subrole,
-            editable: editable,
-            protectedContent: protected
-        ) == .safe,
-        !hasWebAreaAncestor(focused),
-        let selectedRange = cfRangeAttribute(
+        var ownerPID: pid_t = 0
+        let owner = AXUIElementGetPid(focused, &ownerPID) == .success
+            ? NSRunningApplication(processIdentifier: ownerPID)?.bundleIdentifier : nil
+        guard supportsCapture(
+            role: role, subrole: subrole, editable: editable, protectedContent: protected,
+            hasWebAncestor: hasWebAreaAncestor(focused), applicationBundleIdentifier: owner
+        ) else { return .unavailable(.unsafeField) }
+        guard let selectedRange = cfRangeAttribute(
             focused,
             kAXSelectedTextRangeAttribute as CFString
         ),
-        selectedRange.length == 0 else { return nil }
+        selectedRange.length == 0 else { return .unavailable(.rangeUnavailable) }
 
         let insertedLength = (injectedText as NSString).length
         let insertionStart = selectedRange.location - insertedLength
         guard insertedLength > 0, insertionStart >= 0,
               let characterCount = numberOfCharacters(in: focused),
-              selectedRange.location <= characterCount else { return nil }
+              selectedRange.location <= characterCount else { return .unavailable(.rangeUnavailable) }
 
         let prefixStart = max(0, insertionStart - anchorLength)
         let prefixLength = insertionStart - prefixStart
@@ -109,16 +114,16 @@ actor PostInjectionEditLearningMonitor {
         guard let initialWindow = string(
             in: focused,
             range: CFRange(location: prefixStart, length: verificationLength)
-        ) else { return nil }
+        ) else { return .unavailable(.rangeUnavailable) }
 
         let value = initialWindow as NSString
         guard value.length == verificationLength,
               value.substring(with: NSRange(
                 location: prefixLength,
                 length: insertedLength
-              )) == injectedText else { return nil }
+              )) == injectedText else { return .unavailable(.rangeUnavailable) }
 
-        return PostInjectionEditLearningTarget(
+        return .target(PostInjectionEditLearningTarget(
             historyID: historyID,
             element: focused,
             originalText: injectedText,
@@ -128,7 +133,28 @@ actor PostInjectionEditLearningMonitor {
                 location: prefixLength + insertedLength,
                 length: suffixLength
             ))
-        )
+        ))
+    }
+
+    /// 仅为用户指定的 GPT/Codex 桌面端放行网页型输入框，必须明确可编辑且非保护内容。
+    /// 范围读取和插入正文的逐字校验仍由 capture 执行，不读取整份网页或聊天记录。
+    static func supportsCapture(
+        role: String?, subrole: String?, editable: Bool?, protectedContent: Bool?,
+        hasWebAncestor: Bool, applicationBundleIdentifier: String?
+    ) -> Bool {
+        guard protectedContent == false, subrole != "AXSecureTextField" else { return false }
+        let supportedDesktop = ["com.openai.codex", "com.openai.chat"].contains(applicationBundleIdentifier ?? "")
+        if hasWebAncestor || (supportedDesktop && subrole == nil) {
+            return supportedDesktop && editable == true
+                && (role == "AXTextField" || role == "AXTextArea")
+        }
+        return WritingContextCapture.safetyForTesting(
+            role: role, subrole: subrole, editable: editable, protectedContent: protectedContent
+        ) == .safe
+    }
+
+    static func report(_ feedback: AutomaticLearningFeedback) {
+        NotificationCenter.default.post(name: .voicePolishAutomaticLearningDidFinish, object: feedback)
     }
 
     func start(
@@ -158,6 +184,7 @@ actor PostInjectionEditLearningMonitor {
         }
 
         var lastCandidate: String?
+        var lastAttemptedCandidate: String?
         var stableSamples = 0
         for _ in 0..<Self.maximumPollCount {
             guard !Task.isCancelled else { return }
@@ -175,28 +202,16 @@ actor PostInjectionEditLearningMonitor {
                 lastCandidate = candidate
                 stableSamples = 1
             }
-            guard stableSamples >= Self.stableSampleCount else { continue }
-            await learn(candidate, for: target, historyStore: historyStore)
-            return
-        }
-    }
-
-    private func learn(
-        _ correctedText: String,
-        for target: PostInjectionEditLearningTarget,
-        historyStore: HistoryStore
-    ) async {
-        let didRecord = await recordCorrection(
-            originalText: target.originalText,
-            correctedText: correctedText,
-            historyID: target.historyID,
-            historyStore: historyStore
-        )
-        if didRecord {
-            NotificationCenter.default.post(
-                name: .voicePolishAutomaticLearningDidFinish,
-                object: nil
+            guard stableSamples >= Self.stableSampleCount, candidate != lastAttemptedCandidate else { continue }
+            lastAttemptedCandidate = candidate
+            let feedback = await recordCorrectionFeedback(
+                originalText: target.originalText, correctedText: candidate,
+                historyID: target.historyID, historyStore: historyStore
             )
+            if let feedback {
+                Self.report(feedback)
+                if case .learned = feedback { return }
+            }
         }
     }
 
@@ -209,20 +224,32 @@ actor PostInjectionEditLearningMonitor {
         historyID: String,
         historyStore: HistoryStore
     ) async -> Bool {
+        await recordCorrectionFeedback(
+            originalText: originalText, correctedText: correctedText,
+            historyID: historyID, historyStore: historyStore
+        )?.didPersist ?? false
+    }
+
+    func recordCorrectionFeedback(
+        originalText: String,
+        correctedText: String,
+        historyID: String,
+        historyStore: HistoryStore
+    ) async -> AutomaticLearningFeedback? {
         let defaults = settingsContext.userDefaults
         let terminologyEnabled = VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
         let history: HistoryRecord
         do {
             guard let record = try await historyStore.fetchOrThrow(ids: [historyID]).first else {
-                return false
+                return .failed
             }
             history = record
         } catch {
             AppLogger.log("[Muse] 自动纠正学习读取历史失败: \(error.localizedDescription)")
-            return false
+            return .failed
         }
         let isVoicePolish = history.status.hasPrefix("voice_polish_")
-        guard isVoicePolish || history.supportsDirectTerminologyLearning else { return false }
+        guard isVoicePolish || history.supportsDirectTerminologyLearning else { return .failed }
         let styleEnabled = isVoicePolish
             && VoicePolishSettings.personalizationEnabled(defaults: defaults)
         let candidates = terminologyEnabled
@@ -232,7 +259,9 @@ actor PostInjectionEditLearningMonitor {
             )
             : []
         let learnsTerminology = terminologyEnabled && !candidates.isEmpty
-        guard styleEnabled || learnsTerminology else { return false }
+        guard styleEnabled || learnsTerminology else {
+            return terminologyEnabled ? .noTerms : nil
+        }
 
         do {
             _ = try await coordinator.confirmCorrection(
@@ -246,10 +275,14 @@ actor PostInjectionEditLearningMonitor {
                 learnStyle: styleEnabled,
                 learnTerminology: learnsTerminology
             )
-            return true
+            guard learnsTerminology else { return .styleOnly }
+            let saved = TerminologyRepository.load(context: settingsContext)
+            let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
+            let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }
+            return .learned(candidates, hasConflict: hasConflict)
         } catch {
             AppLogger.log("[Muse] 自动纠正学习未写入: \(error.localizedDescription)")
-            return false
+            return .failed
         }
     }
 

@@ -153,14 +153,7 @@ enum TerminologyRepository {
         if entry.origin == .builtIn
             || document.entries.contains(where: {
                 $0.origin == .builtIn
-                    && ($0.id == entry.id
-                        || TerminologyText.entryIdentityKey(
-                            canonicalText: $0.canonicalText,
-                            scope: $0.scope
-                        ) == TerminologyText.entryIdentityKey(
-                            canonicalText: entry.canonicalText,
-                            scope: entry.scope
-                        ))
+                    && $0.id == entry.id
             }) {
             throw TerminologyRepositoryError.builtInReadOnly
         }
@@ -254,7 +247,8 @@ enum TerminologyRepository {
         try save(document, context: context)
         let saved = load(context: context)
         guard let entry = document.entries.first(where: {
-            TerminologyText.entryIdentityKey(canonicalText: $0.canonicalText, scope: $0.scope)
+            $0.origin != .builtIn
+                && TerminologyText.entryIdentityKey(canonicalText: $0.canonicalText, scope: $0.scope)
                 == TerminologyText.entryIdentityKey(canonicalText: canonical, scope: normalizedScope)
         }) else { throw TerminologyRepositoryError.invalidEntry }
         return saved.entries.first(where: { $0.id == entry.id }) ?? entry
@@ -304,11 +298,11 @@ enum TerminologyRepository {
                 scope: originalEntry.scope
             )
             if let entryIndex = restored.entries.firstIndex(where: {
-                $0.id == originalEntry.id
+                $0.origin != .builtIn && ($0.id == originalEntry.id
                     || TerminologyText.entryIdentityKey(
                         canonicalText: $0.canonicalText,
                         scope: $0.scope
-                    ) == identityKey
+                    ) == identityKey)
             }) {
                 for originalAlias in originalEntry.aliases {
                     let aliasKey = TerminologyText.aliasStorageKey(originalAlias.text)
@@ -526,7 +520,8 @@ enum TerminologyRepository {
         let aliasKey = TerminologyText.aliasStorageKey(alias)
         let now = Date()
         if let entryIndex = document.entries.firstIndex(where: {
-            TerminologyText.entryIdentityKey(canonicalText: $0.canonicalText, scope: $0.scope)
+            $0.origin != .builtIn
+                && TerminologyText.entryIdentityKey(canonicalText: $0.canonicalText, scope: $0.scope)
                 == canonicalKey
         }) {
             if let aliasIndex = document.entries[entryIndex].aliases.firstIndex(where: {

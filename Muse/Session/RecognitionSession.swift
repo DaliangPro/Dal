@@ -1091,14 +1091,20 @@ actor RecognitionSession {
         guard isStillCurrent(sessionID, stage: "post-injection") else { return false }
         onASREvent?(.finalized(text: llmResult.finalText, injection: injectionOutcome))
         let editLearningTarget: PostInjectionEditLearningTarget?
+        var editLearningFeedback: AutomaticLearningFeedback?
         if PostInjectionEditLearningMonitor.shouldObserve(
             kind: currentMode.kind,
             injection: injectionOutcome
         ) {
-            editLearningTarget = PostInjectionEditLearningMonitor.capture(
+            switch PostInjectionEditLearningMonitor.capture(
                 injectedText: llmResult.finalText,
                 historyID: historyID
-            )
+            ) {
+            case .target(let target): editLearningTarget = target
+            case .unavailable(let feedback):
+                editLearningTarget = nil
+                if VoicePolishSettings.terminologyLearningEnabled() { editLearningFeedback = feedback }
+            }
         } else {
             editLearningTarget = nil
         }
@@ -1123,6 +1129,7 @@ actor RecognitionSession {
                 historyStore: historyStore
             )
         }
+        if let editLearningFeedback { PostInjectionEditLearningMonitor.report(editLearningFeedback) }
         guard isStillCurrent(sessionID, stage: "history save") else { return false }
         return true
     }

@@ -4,6 +4,51 @@ import XCTest
 
 @MainActor
 final class AppStateTests: XCTestCase {
+    func testLearningFeedbackShowsSpecificSuccessAndFailure() {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        let success = AutomaticLearningFeedback.learned(
+            [TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")], hasConflict: false
+        )
+        state.showAutomaticLearningFeedback(success)
+        XCTAssertEqual(state.barPhase, .done)
+        XCTAssertEqual(state.feedbackMessage, success.message)
+        XCTAssertTrue(state.feedbackMessage.contains("Claude"))
+        state.showAutomaticLearningFeedback(.failed)
+        XCTAssertEqual(state.feedbackMessage, AutomaticLearningFeedback.failed.message)
+        XCTAssertFalse(AutomaticLearningFeedback.failed.didPersist)
+        state.cancel()
+    }
+
+    func testLearningFeedbackWaitsForCurrentRecordingToFinish() async throws {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        state.startRecording()
+        state.markRecordingReady()
+        let start = state.recordingStartDate
+        state.showAutomaticLearningFeedback(.noTerms)
+        XCTAssertEqual(state.barPhase, .recording)
+        XCTAssertEqual(state.recordingStartDate, start)
+        state.stopRecording()
+        XCTAssertEqual(state.barPhase, .processing)
+        state.finalize(text: "新的一次输入", outcome: .inserted)
+        let deadline = ContinuousClock.now + .seconds(3)
+        while state.feedbackMessage != AutomaticLearningFeedback.noTerms.message, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(state.barPhase, .done)
+        XCTAssertEqual(state.feedbackMessage, AutomaticLearningFeedback.noTerms.message)
+        state.cancel()
+    }
+
+    func testLatestLearningResultRetainsReasonForVocabularyPage() {
+        let status = AutomaticLearningStatus()
+        status.update(.rangeUnavailable)
+        XCTAssertEqual(status.latest, .rangeUnavailable)
+        let learned = AutomaticLearningFeedback.learned(
+            [TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")], hasConflict: false
+        )
+        status.update(learned)
+        XCTAssertEqual(status.latest?.detail, "cloud → Claude")
+    }
 
     private func withChineseAppLanguage(_ action: () -> Void) {
         let savedLanguage = UserDefaults.standard.string(forKey: DefaultsKeys.language)
