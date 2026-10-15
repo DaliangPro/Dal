@@ -75,7 +75,7 @@ final class VoicePolishLearningTests: XCTestCase {
         XCTAssertTrue(corrections.isEmpty)
     }
 
-    func testGPTWebCaptureRequiresExplicitSafeEditableField() {
+    func testGPTWebCaptureRejectsUnsafeFieldsAndOtherApps() {
         for bundle in ["com.openai.codex", "com.openai.chat"] {
             for role in ["AXTextArea", "AXTextField"] {
                 XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
@@ -83,13 +83,13 @@ final class VoicePolishLearningTests: XCTestCase {
                     hasWebAncestor: true, applicationBundleIdentifier: bundle
                 ))
             }
-            for protected in [true, nil] as [Bool?] {
+            for protected in [true] {
                 XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
                     role: "AXTextArea", subrole: nil, editable: true, protectedContent: protected,
                     hasWebAncestor: true, applicationBundleIdentifier: bundle
                 ))
             }
-            for editable in [false, nil] as [Bool?] {
+            for editable in [false] {
                 XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
                     role: "AXTextArea", subrole: nil, editable: editable, protectedContent: false,
                     hasWebAncestor: true, applicationBundleIdentifier: bundle
@@ -116,6 +116,14 @@ final class VoicePolishLearningTests: XCTestCase {
             role: "AXTextArea", subrole: "AXTextArea", editable: true, protectedContent: false,
             hasWebAncestor: false, applicationBundleIdentifier: "com.apple.TextEdit"
         ))
+        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+            role: "AXTextArea", subrole: nil, editable: nil, protectedContent: nil,
+            hasWebAncestor: true, applicationBundleIdentifier: "com.openai.codex"
+        ), "标准文本控件不支持可选属性时，仍须继续做插入范围校验")
+        XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+            role: "AXTextArea", subrole: nil, editable: nil, protectedContent: nil,
+            hasWebAncestor: true, applicationBundleIdentifier: "com.openai.codex", metadataReadable: false
+        ), "不支持可选属性与 IPC 读取失败必须区分，后者拒绝读取正文")
     }
 
     func testAutomaticLearningOnlyObservesEnabledModesAfterSuccessfulInsertion() throws {
