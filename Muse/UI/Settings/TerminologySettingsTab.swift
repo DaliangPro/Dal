@@ -976,10 +976,6 @@ private extension TerminologySettingsTab {
 
     @MainActor
     func reload() async {
-        legacySnippets = SnippetStorage.load().filter {
-            !SnippetStorage.isDraftTrigger($0.trigger)
-                && !TerminologyMigration.isEligibleTerminologySnippet(trigger: $0.trigger, value: $0.value)
-        }
         switch TerminologyRepository.loadResult() {
         case .corrupt(let url, let error):
             document = nil
@@ -990,6 +986,17 @@ private extension TerminologySettingsTab {
             document = TerminologyRepository.load()
             corruptFileURL = nil
             loadErrorMessage = ""
+        }
+
+        do {
+            let manifest = try TerminologyMigration.loadManifest()
+            legacySnippets = VocabularySnippetGrouping.standaloneReplacements(
+                in: SnippetStorage.load(), terms: document?.entries ?? [],
+                ownedCorrections: manifest.ownedCorrections
+            )
+        } catch {
+            loadErrorMessage = error.localizedDescription
+            return
         }
 
         do {
@@ -1049,6 +1056,7 @@ private extension TerminologySettingsTab {
             statusMessage = document?.conflicts.isEmpty == false
                 ? L("已保存；冲突写法已暂停自动替换", "Saved; conflicting aliases are paused")
                 : L("术语已保存", "Term saved")
+            Task { await reload() }
         } catch {
             editorError = error.localizedDescription
         }
@@ -1059,6 +1067,7 @@ private extension TerminologySettingsTab {
             try TerminologyRepository.setEnabled(enabled, id: entry.id)
             document = TerminologyRepository.load()
             statusMessage = enabled ? L("术语已启用", "Term enabled") : L("术语已停用", "Term disabled")
+            Task { await reload() }
         } catch {
             loadErrorMessage = error.localizedDescription
         }
@@ -1074,6 +1083,7 @@ private extension TerminologySettingsTab {
             }
             document = TerminologyRepository.load()
             statusMessage = L("术语已删除", "Term deleted")
+            Task { await reload() }
         } catch {
             loadErrorMessage = error.localizedDescription
         }

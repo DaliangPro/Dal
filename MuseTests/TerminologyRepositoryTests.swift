@@ -3,6 +3,44 @@ import XCTest
 @testable import Muse
 
 final class TerminologyRepositoryTests: XCTestCase {
+    func testDeletingMainPunctuatedTermRemovesItsCopiesAndDoesNotReappearOnNextSave() throws {
+        let fixture = try TerminologyStorageFixture()
+        defer { fixture.cleanup() }
+        try fixture.seedEmptyBuiltIns()
+        _ = try TerminologyRepository.migrateIfNeeded(context: fixture.context)
+        let targets = ["Agents", "Skill"].map { word in
+            TerminologyEntry(canonicalText: "\(word).md", aliases: [TerminologyAlias(text: "\(word) 点 MD。")])
+        }
+        for entry in targets { try TerminologyRepository.upsert(entry, context: fixture.context) }
+        let snippets = SnippetStorage.load(context: fixture.context)
+        XCTAssertEqual(snippets.count, 2)
+        XCTAssertTrue(snippets.allSatisfy {
+            !TerminologyMigration.isEligibleTerminologySnippet(trigger: $0.trigger, value: $0.value)
+        }, "句末标点使兼容副本落入旧 UI 的独立固定替换分支")
+        let manifest = try TerminologyMigration.loadManifest(context: fixture.context)
+        XCTAssertTrue(VocabularySnippetGrouping.standaloneReplacements(
+            in: snippets, terms: TerminologyRepository.load(context: fixture.context).entries,
+            ownedCorrections: manifest.ownedCorrections
+        ).isEmpty)
+
+        // 复现旧入口删除副本后，下次保存主词库又把它补回。
+        try SnippetStorage.save([], context: fixture.context)
+        try TerminologyRepository.save(TerminologyRepository.load(context: fixture.context), context: fixture.context)
+        XCTAssertEqual(SnippetStorage.load(context: fixture.context).count, 2)
+
+        for entry in targets { try TerminologyRepository.remove(id: entry.id, context: fixture.context) }
+        try TerminologyRepository.upsert(TerminologyEntry(canonicalText: "UnrelatedTerm"), context: fixture.context)
+        let loaded = TerminologyRepository.load(context: fixture.context)
+        for entry in targets {
+            XCTAssertFalse(loaded.entries.contains { $0.canonicalText == entry.canonicalText })
+            XCTAssertFalse(HotwordStorage.load(context: fixture.context).contains(entry.canonicalText))
+            XCTAssertFalse(SnippetStorage.load(context: fixture.context).contains { $0.value == entry.canonicalText })
+            XCTAssertFalse(PersonalLexiconStorage.load(context: fixture.context).entries.contains {
+                $0.canonical == entry.canonicalText
+            })
+        }
+    }
+
     func testProjectionCorrectsTypelessAliasVariantsAndOmitsAmbiguousAlias() {
         let typeless = TerminologyEntry(
             canonicalText: "Typeless",
@@ -954,7 +992,7 @@ private final class TerminologyStorageFixture {
     }
 
     func cleanup() {
-        try? FileManager.default.removeItem(at: directory)
+        try? FileManager.default.trashItem(at: directory, resultingItemURL: nil)
         context.userDefaults.removePersistentDomain(forName: suiteName)
     }
 }
