@@ -165,7 +165,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                 Toggle(L("自动记住我改正的词", "Remember corrected words"), isOn: $automaticallyLearnTerms)
                     .toggleStyle(.switch)
                     .font(TF.settingsFontCaption)
-                    .help(L("润色上屏后短时观察支持的输入框，把明确的词语修改记入词库。", "Remembers word corrections shortly after polishing in supported text fields."))
+                    .help(L("直出或润色上屏后短时观察支持的输入框，把明确的词语修改记入词库。", "Remembers word corrections shortly after Direct or Polish output in supported text fields."))
                 Spacer(minLength: 8)
                 SettingsTextButton(L("词库设置", "Options"), controlSize: .compact) { showsVocabularySettings = true }
             }
@@ -182,7 +182,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                     VStack(alignment: .leading, spacing: 12) {
                         providerStatusCard
                         migrationCard
-                        Text(L("自动记词仅在润色上屏后的约 20 秒内观察支持的标准输入框；不会观察网页输入框，也不会把继续追加的文字当作纠错。", "Word learning observes supported standard fields for about 20 seconds after polishing. Web fields and appended text are excluded."))
+                        Text(L("自动记词在直出或润色上屏后的约 20 秒内观察支持的标准输入框；不会观察网页输入框，也不会把继续追加的文字当作纠错。直出只记词，不学习表达习惯。", "Word learning observes supported standard fields for about 20 seconds after Direct or Polish output. Web fields and appended text are excluded. Direct learns words only, not writing style."))
                             .font(TF.settingsFontCaption).foregroundStyle(TF.settingsTextSecondary)
                         SettingsTextButton(L("导出词库", "Export vocabulary")) { exportTerminology() }
                     }

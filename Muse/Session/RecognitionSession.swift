@@ -1091,10 +1091,10 @@ actor RecognitionSession {
         guard isStillCurrent(sessionID, stage: "post-injection") else { return false }
         onASREvent?(.finalized(text: llmResult.finalText, injection: injectionOutcome))
         let editLearningTarget: PostInjectionEditLearningTarget?
-        if currentMode.kind == .voicePolish,
-           case .inserted = injectionOutcome,
-           VoicePolishSettings.personalizationEnabled()
-                || VoicePolishSettings.terminologyLearningEnabled() {
+        if PostInjectionEditLearningMonitor.shouldObserve(
+            kind: currentMode.kind,
+            injection: injectionOutcome
+        ) {
             editLearningTarget = PostInjectionEditLearningMonitor.capture(
                 injectedText: llmResult.finalText,
                 historyID: historyID

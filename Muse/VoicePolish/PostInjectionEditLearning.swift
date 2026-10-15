@@ -8,7 +8,7 @@ extension Notification.Name {
     )
 }
 
-/// 一次 Voice Polish 注入后的短时、有限范围观察目标。
+/// 一次直出或润色注入后的短时、有限范围观察目标。
 ///
 /// 只保留本次成稿、前后少量锚点和 AX 元素引用，不保存目标输入框全文。
 /// 目标 App 不支持安全范围读取时不会创建该对象。
@@ -25,7 +25,7 @@ struct PostInjectionEditLearningTarget: @unchecked Sendable {
     }
 }
 
-/// Voice Polish 成稿后的自动纠正学习。
+/// 直出与润色上屏后的自动纠正学习；直出只学习术语。
 ///
 /// 仅观察标准 AX 输入框中“本次插入范围”附近的短窗口，最长 20 秒；连续稳定
 /// 2 秒才确认修改。纯追加新内容不视为纠正，避免用户继续输入时产生误学习。
@@ -49,6 +49,23 @@ actor PostInjectionEditLearningMonitor {
     ) {
         self.coordinator = coordinator
         self.settingsContext = settingsContext
+    }
+
+    static func shouldObserve(
+        kind: ProcessingKind,
+        injection: InjectionOutcome,
+        defaults: UserDefaults = .standard
+    ) -> Bool {
+        guard case .inserted = injection else { return false }
+        switch kind {
+        case .direct:
+            return VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
+        case .voicePolish:
+            return VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
+                || VoicePolishSettings.personalizationEnabled(defaults: defaults)
+        default:
+            return false
+        }
     }
 
     static func capture(
@@ -193,8 +210,21 @@ actor PostInjectionEditLearningMonitor {
         historyStore: HistoryStore
     ) async -> Bool {
         let defaults = settingsContext.userDefaults
-        let styleEnabled = VoicePolishSettings.personalizationEnabled(defaults: defaults)
         let terminologyEnabled = VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
+        let history: HistoryRecord
+        do {
+            guard let record = try await historyStore.fetchOrThrow(ids: [historyID]).first else {
+                return false
+            }
+            history = record
+        } catch {
+            AppLogger.log("[Muse] 自动纠正学习读取历史失败: \(error.localizedDescription)")
+            return false
+        }
+        let isVoicePolish = history.status.hasPrefix("voice_polish_")
+        guard isVoicePolish || history.supportsDirectTerminologyLearning else { return false }
+        let styleEnabled = isVoicePolish
+            && VoicePolishSettings.personalizationEnabled(defaults: defaults)
         let candidates = terminologyEnabled
             ? TerminologyCorrectionExtractor.candidates(
                 generatedText: originalText,
@@ -218,7 +248,7 @@ actor PostInjectionEditLearningMonitor {
             )
             return true
         } catch {
-            AppLogger.log("[VoicePolish] 自动纠正学习未写入: \(error.localizedDescription)")
+            AppLogger.log("[Muse] 自动纠正学习未写入: \(error.localizedDescription)")
             return false
         }
     }

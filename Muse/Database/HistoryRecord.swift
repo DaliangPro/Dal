@@ -17,17 +17,26 @@ struct HistoryRecord: Identifiable, Hashable, Sendable {
     var processingModeDisplayName: String? {
         guard let processingMode,
               !processingMode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        let directAliases = Set([
-            ProcessingMode.direct.name,
-            "正常输出", "Normal Output", "直出", "Direct", "Direct Output", "直出模式"
-        ])
-        if directAliases.contains(processingMode) {
+        if Self.directModeNames.contains(processingMode) {
             if status.hasPrefix("voice_polish_") {
                 return L("轻度润色", "Light Polish")
             }
             return L("直出", "Direct")
         }
         return processingMode
+    }
+
+    /// 仅成功上屏的原样直出可以学习术语，复制兜底与其他模式不参与。
+    var supportsDirectTerminologyLearning: Bool {
+        guard let processingMode,
+              Self.directModeNames.contains(processingMode),
+              processedText == nil else { return false }
+        return status == "completed" || status == "stream_recovered"
+    }
+
+    private static var directModeNames: Set<String> {
+        [ProcessingMode.direct.name,
+         "正常输出", "Normal Output", "直出", "Direct", "Direct Output", "直出模式"]
     }
 
     init(

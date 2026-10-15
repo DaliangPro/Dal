@@ -2,6 +2,102 @@ import XCTest
 @testable import Muse
 
 final class VoicePolishLearningTests: XCTestCase {
+    func testAutomaticLearningOnlyObservesEnabledModesAfterSuccessfulInsertion() throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        let defaults = fixture.context.userDefaults
+        VoicePolishSettings.setTerminologyLearningEnabled(false, defaults: defaults)
+        VoicePolishSettings.setPersonalizationEnabled(true, defaults: defaults)
+        XCTAssertFalse(PostInjectionEditLearningMonitor.shouldObserve(
+            kind: .direct, injection: .inserted, defaults: defaults
+        ))
+        XCTAssertTrue(PostInjectionEditLearningMonitor.shouldObserve(
+            kind: .voicePolish, injection: .inserted, defaults: defaults
+        ))
+
+        VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
+        for kind in [ProcessingKind.direct, .voicePolish] {
+            XCTAssertTrue(PostInjectionEditLearningMonitor.shouldObserve(
+                kind: kind, injection: .inserted, defaults: defaults
+            ))
+            for outcome in [InjectionOutcome.copiedToClipboard, .copiedToClipboardPermissionMissing,
+                            .noFocusedInput(copiedToClipboard: true), .noFocusedInput(copiedToClipboard: false)] {
+                XCTAssertFalse(PostInjectionEditLearningMonitor.shouldObserve(
+                    kind: kind, injection: outcome, defaults: defaults
+                ))
+            }
+        }
+        for kind in [ProcessingKind.smartDirect, .translate, .promptOptimize, .command, .custom] {
+            XCTAssertFalse(PostInjectionEditLearningMonitor.shouldObserve(
+                kind: kind, injection: .inserted, defaults: defaults
+            ))
+        }
+    }
+
+    func testDirectCorrectionLearnsTerminologyForNextDirectWithoutLearningStyle() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        let original = "我正在用 Type less 写这段话"
+        let corrected = "我正在用 Typeless 写这段话"
+        for status in ["completed", "stream_recovered"] {
+            let historyID = "direct-\(status)"
+            await fixture.insertDirectHistory(id: historyID, text: original, status: status)
+            let didRecord = await fixture.monitor.recordCorrection(
+                originalText: original, correctedText: corrected,
+                historyID: historyID, historyStore: fixture.historyStore
+            )
+            XCTAssertTrue(didRecord, status)
+        }
+
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(corrections.count, 2)
+        XCTAssertTrue(corrections.allSatisfy { !$0.learnStyle && $0.learnTerminology })
+        XCTAssertTrue(corrections.allSatisfy { $0.correctedText == corrected })
+        let histories = await fixture.historyStore.fetchAll()
+        XCTAssertTrue(histories.allSatisfy { $0.rawText == original && $0.finalText == original })
+
+        let session = RecognitionSession(historyStore: fixture.historyStore)
+        let result = await session.postProcessForTesting(
+            rawText: original,
+            transcript: RecognitionTranscript(
+                confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true
+            ),
+            mode: .direct,
+            vocabularyContext: fixture.context
+        )
+        XCTAssertEqual(result?.finalText, corrected)
+        XCTAssertNil(result?.processedText, "直出沿用本地词库，不调用润色")
+    }
+
+    func testDirectCorrectionDoesNotLearnWhenTerminologySwitchIsOff() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        VoicePolishSettings.setTerminologyLearningEnabled(false, defaults: fixture.context.userDefaults)
+        await fixture.insertDirectHistory(id: "direct-disabled", text: "我使用 Type less。")
+        let didRecord = await fixture.monitor.recordCorrection(
+            originalText: "我使用 Type less。", correctedText: "我使用 Typeless。",
+            historyID: "direct-disabled", historyStore: fixture.historyStore
+        )
+        XCTAssertFalse(didRecord)
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+        XCTAssertTrue(TerminologyRepository.projections(context: fixture.context).corrections.isEmpty)
+    }
+
+    func testDirectPureAppendDoesNotCreateTerminologyOrStyleSamples() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "direct-append", text: "这段文字已经完成。")
+        let didRecord = await fixture.monitor.recordCorrection(
+            originalText: "这段文字已经完成。", correctedText: "这段文字已经完成。我继续输入新的内容。",
+            historyID: "direct-append", historyStore: fixture.historyStore
+        )
+        XCTAssertFalse(didRecord)
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+        XCTAssertTrue(TerminologyRepository.projections(context: fixture.context).corrections.isEmpty)
+    }
+
     func testPostInjectionLearningExtractsInternalCorrection() {
         let candidate = PostInjectionEditLearningMonitor.extractCandidate(
             original: "我正在用 Type less 写这段话",
@@ -171,5 +267,47 @@ final class VoicePolishLearningTests: XCTestCase {
             ),
             qualityMode: .balanced
         )
+    }
+}
+
+private struct AutomaticTerminologyLearningFixture {
+    let directory: URL
+    let suiteName: String
+    let context: VocabularyStorageContext
+    let historyStore: HistoryStore
+    let monitor: PostInjectionEditLearningMonitor
+
+    init() throws {
+        directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MuseDirectLearningTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        suiteName = "MuseDirectLearningTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        context = VocabularyStorageContext(
+            supportDirectory: directory, userDefaults: defaults, fileManager: .default,
+            hotwordsDidChange: {}, revealFile: { _ in }
+        )
+        try HotwordStorage.saveBuiltin([], context: context)
+        try SnippetStorage.saveBuiltin([], context: context)
+        _ = try TerminologyRepository.migrateIfNeeded(context: context)
+        VoicePolishSettings.setPersonalizationEnabled(true, defaults: defaults)
+        VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
+        historyStore = HistoryStore(path: directory.appendingPathComponent("history.db").path)
+        monitor = PostInjectionEditLearningMonitor(
+            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context
+        )
+    }
+
+    func insertDirectHistory(id: String, text: String, status: String = "completed") async {
+        await historyStore.insert(HistoryRecord(
+            id: id, createdAt: Date(), durationSeconds: 2,
+            rawText: text, processingMode: "直出", processedText: nil,
+            finalText: text, status: status, characterCount: text.count
+        ))
+    }
+
+    func cleanup() {
+        context.userDefaults.removePersistentDomain(forName: suiteName)
+        try? FileManager.default.trashItem(at: directory, resultingItemURL: nil)
     }
 }
