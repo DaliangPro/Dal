@@ -1145,6 +1145,11 @@ private struct VocabularyExport: Encodable {
     let replacements: [Replacement]
 }
 
+private struct TerminologyAliasInput: Identifiable {
+    let id = UUID()
+    var text: String
+}
+
 private struct TerminologyEntryEditorSheet: View {
     let entry: TerminologyEntry?
     let requiresAlias: Bool
@@ -1154,9 +1159,10 @@ private struct TerminologyEntryEditorSheet: View {
     let onSave: (TerminologyEntry) -> Void
 
     @State private var canonicalText: String
-    @State private var aliasesText: String
+    @State private var aliasInputs: [TerminologyAliasInput]
     @State private var scopeKind: TerminologyScope.Kind
     @State private var applicationBundleID: String
+    @FocusState private var focusedAliasID: UUID?
 
     init(
         entry: TerminologyEntry?,
@@ -1173,7 +1179,8 @@ private struct TerminologyEntryEditorSheet: View {
         self.onCancel = onCancel
         self.onSave = onSave
         _canonicalText = State(initialValue: entry?.canonicalText ?? "")
-        _aliasesText = State(initialValue: entry?.aliases.map(\.text).joined(separator: "\n") ?? "")
+        let aliases = entry?.aliases.map { TerminologyAliasInput(text: $0.text) } ?? []
+        _aliasInputs = State(initialValue: aliases.isEmpty ? [TerminologyAliasInput(text: "")] : aliases)
         _scopeKind = State(initialValue: entry?.scope.kind ?? .global)
         _applicationBundleID = State(initialValue: entry?.scope.applicationBundleIdentifier ?? "")
     }
@@ -1190,11 +1197,7 @@ private struct TerminologyEntryEditorSheet: View {
                 text: $canonicalText
             )
 
-            terminologyField(
-                title: L("原文字 / 常见错法", "Original / mishearing"),
-                hint: L("每行一种写法；可填写词语或完整句子", "One form per line; words or complete sentences"),
-                text: $aliasesText
-            )
+            aliasFields
 
             if allowsScope {
             VStack(alignment: .leading, spacing: 6) {
@@ -1249,12 +1252,87 @@ private struct TerminologyEntryEditorSheet: View {
                     onSave(makeEntry())
                 }
                 .disabled(!canSave)
-                .keyboardShortcut(.defaultAction)
             }
         }
         .padding(18)
         .frame(width: 480)
         .background(TF.settingsCanvas)
+    }
+
+    private var aliasesText: String {
+        aliasInputs.map(\.text).joined(separator: "\n")
+    }
+
+    private var aliasFields: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L("原文字 / 常见错法", "Original / mishearing"))
+                .font(TF.settingsFontCaption)
+                .foregroundStyle(TF.settingsTextTertiary)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach($aliasInputs) { $input in
+                            HStack(spacing: 8) {
+                                TextField(L("填写一种常见错法", "Enter one mishearing"), text: $input.text, axis: .vertical)
+                                    .lineLimit(1...2)
+                                    .textFieldStyle(.roundedBorder)
+                                    .accessibilityLabel(L("常见错法", "Mishearing"))
+                                    .focused($focusedAliasID, equals: input.id)
+                                    .onSubmit { addAlias() }
+                                    .onChange(of: input.text) { _, text in
+                                        splitPastedAliases(text, inputID: input.id)
+                                    }
+                                Button { removeAlias(input.id) } label: {
+                                    Image(systemName: "minus.circle")
+                                        .foregroundStyle(TF.settingsTextTertiary)
+                                }
+                                .buttonStyle(.plain)
+                                .help(L("移除这条错法", "Remove this mishearing"))
+                                .accessibilityLabel(L("移除这条错法", "Remove this mishearing"))
+                            }
+                            .frame(minHeight: 28)
+                            .id(input.id)
+                        }
+                    }
+                    .padding(.trailing, 12)
+                }
+                .frame(height: min(CGFloat(aliasInputs.count) * 36 - 8, 172))
+                .onChange(of: focusedAliasID) { _, id in
+                    if let id { proxy.scrollTo(id) }
+                }
+            }
+            SettingsTextButton(L("＋ 添加错法", "+ Add mishearing"), controlSize: .compact, onCanvas: true) {
+                addAlias()
+            }
+            Text(L("每条填写一种错法，都会纠正为上方的正确写法。", "Each mishearing is corrected to the form above."))
+                .font(TF.settingsFontCaption)
+                .foregroundStyle(TF.settingsTextTertiary)
+        }
+    }
+
+    private func addAlias() {
+        let input = TerminologyAliasInput(text: "")
+        aliasInputs.append(input)
+        DispatchQueue.main.async { focusedAliasID = input.id }
+    }
+
+    private func removeAlias(_ id: UUID) {
+        guard let index = aliasInputs.firstIndex(where: { $0.id == id }) else { return }
+        if aliasInputs.count == 1 {
+            aliasInputs[0].text = ""
+        } else {
+            aliasInputs.remove(at: index)
+        }
+    }
+
+    /// 保留原先按行粘贴多个错法的能力，并将其展开为独立输入行。
+    private func splitPastedAliases(_ text: String, inputID: UUID) {
+        guard text.rangeOfCharacter(from: .newlines) != nil,
+              let index = aliasInputs.firstIndex(where: { $0.id == inputID }) else { return }
+        let values = splitAliases(text)
+        aliasInputs[index].text = values.first ?? ""
+        let added = values.dropFirst().map { TerminologyAliasInput(text: $0) }
+        aliasInputs.insert(contentsOf: added, at: index + 1)
     }
 
     private var canSave: Bool {
