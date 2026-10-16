@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import Observation
 
 enum AutomaticLearningFeedback: Sendable, Equatable {
@@ -30,11 +30,10 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
     var message: String {
         switch self {
         case .learned(let candidates, let hasConflict):
-            if hasConflict { return L("已保存改词，冲突词暂不替换", "Correction saved; conflicting forms paused") }
-            let word = candidates.first?.canonical.prefix(24) ?? ""
-            return candidates.count == 1
-                ? L("已记住：\(word)", "Remembered: \(word)")
-                : L("已记住 \(candidates.count) 个词", "Remembered \(candidates.count) words")
+            let pairs = candidates.map { "\($0.alias) → \($0.canonical)" }.joined(separator: "；")
+            return hasConflict
+                ? L("已保存：\(pairs)（冲突待确认）", "Saved: \(pairs) (conflict pending)")
+                : L("已记住：\(pairs)", "Remembered: \(pairs)")
         case .styleOnly: return L("已学习这次表达修改", "Writing edit remembered")
         case .noTerms: return L("已检测修改，未提取到词条", "Edit detected; no word pair found")
         case .failed: return L("改词保存失败，请到词库重试", "Word could not be saved; check Vocabulary")
@@ -52,6 +51,32 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
         case .rangeResponseInvalid: return L("输入框返回的文字范围异常，未开始记词", "Text-range response is invalid; learning did not start")
         case .learningWindowTooLarge: return L("本次文字超出记词观察范围", "Output exceeds the word-learning window")
         }
+    }
+
+    /// 悬浮条显示一组真实对应关系；完整列表由词库最近结果展示。
+    /// 超长词分别缩略两端，避免整行裁切后只剩“已记住”或错词。
+    var hudMessage: String {
+        guard case .learned(let candidates, let conflict) = self, let first = candidates.first else { return message }
+        let prefix = conflict ? L("已保存：", "Saved: ") : L("已记住：", "Remembered: ")
+        let count = candidates.count > 1 ? L("（共 \(candidates.count) 组）", " (\(candidates.count) pairs)") : ""
+        let suffix = count + (conflict ? L("（冲突待确认）", " (conflict pending)") : "")
+        let full = prefix + first.alias + " → " + first.canonical + suffix
+        let available = TF.barWidth - 84
+        guard Self.width(full) > available else { return full }
+        let wordBudget = max(12, (available - Self.width(prefix + " → " + suffix)) / 2)
+        return prefix + Self.fitting(first.alias, width: wordBudget) + " → "
+            + Self.fitting(first.canonical, width: wordBudget) + suffix
+    }
+
+    private static func width(_ text: String) -> CGFloat {
+        ceil((text as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width)
+    }
+
+    private static func fitting(_ text: String, width: CGFloat) -> String {
+        guard Self.width(text) > width else { return text }
+        var prefix = text
+        while !prefix.isEmpty, Self.width(prefix + "…") > width { prefix.removeLast() }
+        return prefix + "…"
     }
 
     var detail: String {

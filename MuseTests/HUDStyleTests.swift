@@ -80,4 +80,39 @@ final class HUDStyleTests: XCTestCase {
         if #available(macOS 26.0, *), view is NSGlassEffectView { return true }
         return view.subviews.contains { containsMaterial(in: $0) }
     }
+
+    @MainActor
+    func testLearningPairsFitRenderedHUD() throws {
+        let single = [TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")]
+        let multiple = single + [TerminologyCorrectionCandidate(alias: "Type less", canonical: "Typeless")]
+        let long = [TerminologyCorrectionCandidate(
+            alias: String(repeating: "识别错词", count: 16), canonical: String(repeating: "正确写法", count: 16)
+        )]
+        let examples: [(String, AutomaticLearningFeedback)] = [
+            ("single", .learned(single, hasConflict: false)),
+            ("multiple", .learned(multiple, hasConflict: false)),
+            ("long", .learned(long, hasConflict: false)),
+            ("conflict", .learned(single, hasConflict: true))
+        ]
+        for (name, feedback) in examples {
+            let state = DemoState()
+            state.feedbackMessage = feedback.hudMessage
+            state.barPhase = .done
+            let textWidth = (feedback.hudMessage as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width
+            XCTAssertLessThanOrEqual(textWidth + 84, TF.barWidth, "\(name)：两端文字不能超出 HUD 面板")
+            let renderer = ImageRenderer(content: FloatingBarView(state: state, styleOverride: .ink)
+                .frame(width: 576, height: 120)
+                .background(Color.white)
+                .transaction { $0.disablesAnimations = true })
+            renderer.scale = 2
+            let image = try XCTUnwrap(renderer.cgImage)
+            if let path = ProcessInfo.processInfo.environment["MUSE_LEARNING_FEEDBACK_PREVIEW_DIR"] {
+                let directory = URL(fileURLWithPath: path)
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                let png = try XCTUnwrap(NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]))
+                try png.write(to: directory.appendingPathComponent(name + ".png"))
+            }
+            state.stop()
+        }
+    }
 }

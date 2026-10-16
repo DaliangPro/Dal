@@ -296,7 +296,7 @@ final class AppState {
             return
         }
         pendingLearningFeedback = nil
-        feedbackMessage = feedback.message
+        feedbackMessage = feedback.hudMessage
         resetVoicePolishProcessingState()
         barPhase = .done
         onShowPanel?()

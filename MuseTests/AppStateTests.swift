@@ -13,6 +13,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.barPhase, .done)
         XCTAssertEqual(state.feedbackMessage, success.message)
         XCTAssertTrue(state.feedbackMessage.contains("Claude"))
+        XCTAssertTrue(state.feedbackMessage.contains("cloud → Claude"))
         state.showAutomaticLearningFeedback(.failed)
         XCTAssertEqual(state.feedbackMessage, AutomaticLearningFeedback.failed.message)
         XCTAssertFalse(AutomaticLearningFeedback.failed.didPersist)
@@ -48,6 +49,34 @@ final class AppStateTests: XCTestCase {
         )
         status.update(learned)
         XCTAssertEqual(status.latest?.detail, "cloud → Claude")
+    }
+
+    func testLearningFeedbackRetainsPairsForMultipleLongAndConflictingCorrections() {
+        withChineseAppLanguage {
+            let pairs = [
+                TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude"),
+                TerminologyCorrectionCandidate(alias: "Type less", canonical: "Typeless")
+            ]
+            for conflict in [false, true] {
+                let feedback = AutomaticLearningFeedback.learned(pairs, hasConflict: conflict)
+                XCTAssertTrue(feedback.message.contains("cloud → Claude"))
+                XCTAssertTrue(feedback.message.contains("Type less → Typeless"))
+                XCTAssertTrue(feedback.hudMessage.contains("cloud → Claude"))
+                XCTAssertTrue(feedback.hudMessage.contains("2"))
+                XCTAssertEqual(feedback.hudMessage.contains("冲突"), conflict)
+            }
+            let alias = String(repeating: "识别错词", count: 16)
+            let canonical = String(repeating: "正确写法", count: 16)
+            let feedback = AutomaticLearningFeedback.learned([
+                TerminologyCorrectionCandidate(alias: alias, canonical: canonical)
+            ], hasConflict: false)
+            XCTAssertTrue(feedback.message.contains(alias + " → " + canonical))
+            XCTAssertTrue(feedback.hudMessage.contains("识别错词"))
+            XCTAssertTrue(feedback.hudMessage.contains("正确写法"))
+            XCTAssertTrue(feedback.hudMessage.contains("… → "))
+            let width = (feedback.hudMessage as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width
+            XCTAssertLessThanOrEqual(width + 84, TF.barWidth)
+        }
     }
 
     private func withChineseAppLanguage(_ action: () -> Void) {

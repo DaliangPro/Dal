@@ -262,9 +262,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
             VStack(alignment: .leading, spacing: 2) {
                 Text(feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
                      ?? L("改词后的学习结果会显示在这里", "Learning results will appear here after an edit"))
-                if let feedback, feedback.didPersist, !feedback.detail.isEmpty, feedback.detail != feedback.message {
-                    Text(feedback.detail).lineLimit(2).textSelection(.enabled)
-                }
+                    .textSelection(.enabled)
             }
         }
         .font(TF.settingsFontCaption)
