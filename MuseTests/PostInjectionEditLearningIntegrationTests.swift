@@ -21,9 +21,18 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
     }
 
     func testSessionSlowClipboardNativeEditAutomaticallyLearnsAndCorrectsNextOutput() async throws {
+        try await verifyNativeSession(reportsCount: true)
+    }
+
+    func testSessionWithoutCharacterCountAutomaticallyLearnsAndCorrectsNextOutput() async throws {
+        try await verifyNativeSession(reportsCount: false)
+    }
+
+    private func verifyNativeSession(reportsCount: Bool) async throws {
         let fixture = try LearningChainFixture()
         defer { fixture.cleanup() }
         let editor = LearningNativeEditor()
+        let learningField = reportsCount ? editor.field : editor.fieldWithoutCount
         let injection = LearningClipboardInjection(editor: editor)
         let session = RecognitionSession(
             audioEngine: LearningChainAudio(), injectionEngine: injection, historyStore: fixture.history,
@@ -39,7 +48,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
                     subrole: editor.view.accessibilitySubrole()?.rawValue,
                     editable: editor.view.isEditable, protectedContent: nil
                 )
-                return supported ? .field(editor.field) : .unavailable(.unsafeField)
+                return supported ? .field(learningField) : .unavailable(.unsafeField)
             } },
             vocabularyContext: fixture.context
         )
@@ -169,6 +178,21 @@ private final class LearningNativeEditor {
                 let text = self.view.accessibilityString(for: NSRange(location: range.location, length: range.length))
                 if text == self.view.string, !(text ?? "").isEmpty { self.hasVerifiedOriginal = true }
                 return text
+            } }
+        )
+    }
+
+    nonisolated var fieldWithoutCount: PostInjectionLearningField {
+        let native = field
+        return PostInjectionLearningField(
+            isAvailable: native.isAvailable, selectedRange: native.selectedRange, characterCount: { nil },
+            readRange: { range in await MainActor.run {
+                guard range.location >= 0, range.length >= 0,
+                      range.location + range.length <= self.view.accessibilityNumberOfCharacters() else { return .outOfBounds }
+                self.rangeReads += 1
+                guard let text = self.view.accessibilityString(for: NSRange(location: range.location, length: range.length)) else { return .unavailable }
+                if text == self.view.string, !text.isEmpty { self.hasVerifiedOriginal = true }
+                return .text(text)
             } }
         )
     }

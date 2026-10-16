@@ -13,6 +13,12 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
     case unsupportedField
     case fieldUnresponsive
     case rangeUnavailable
+    case selectionUnavailable
+    case selectionActive
+    case insertionUnverified
+    case rangeUnsupported
+    case rangeResponseInvalid
+    case learningWindowTooLarge
 
     var didPersist: Bool {
         switch self {
@@ -39,6 +45,12 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
         case .unsupportedField: return L("此输入框未提供可读取的文字", "This field does not expose readable text")
         case .fieldUnresponsive: return L("暂时无法读取输入框，请重试", "Text field could not be reached; try again")
         case .rangeUnavailable: return L("无法读取本次文字，未开始记词", "Inserted text could not be read; learning did not start")
+        case .selectionUnavailable: return L("无法获取光标位置，未开始记词", "Caret position is unavailable; learning did not start")
+        case .selectionActive: return L("文字仍被选中，未开始记词", "Text remains selected; learning did not start")
+        case .insertionUnverified: return L("未能核对本次上屏文字，未开始记词", "Output could not be verified; learning did not start")
+        case .rangeUnsupported: return L("此输入框不提供文字范围读取，无法自动记词", "This field does not expose text-range access")
+        case .rangeResponseInvalid: return L("输入框返回的文字范围异常，未开始记词", "Text-range response is invalid; learning did not start")
+        case .learningWindowTooLarge: return L("本次文字超出记词观察范围", "Output exceeds the word-learning window")
         }
     }
 

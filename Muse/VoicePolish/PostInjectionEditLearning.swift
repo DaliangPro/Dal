@@ -16,7 +16,37 @@ struct PostInjectionLearningField: Sendable {
     let isAvailable: @Sendable () async -> Bool
     let selectedRange: @Sendable () async -> CFRange?
     let characterCount: @Sendable () async -> Int?
-    let stringForRange: @Sendable (CFRange) async -> String?
+    let readRange: @Sendable (CFRange) async -> PostInjectionRangeRead
+
+    init(
+        isAvailable: @escaping @Sendable () async -> Bool,
+        selectedRange: @escaping @Sendable () async -> CFRange?,
+        characterCount: @escaping @Sendable () async -> Int?,
+        readRange: @escaping @Sendable (CFRange) async -> PostInjectionRangeRead
+    ) {
+        self.isAvailable = isAvailable
+        self.selectedRange = selectedRange
+        self.characterCount = characterCount
+        self.readRange = readRange
+    }
+
+    init(
+        isAvailable: @escaping @Sendable () async -> Bool,
+        selectedRange: @escaping @Sendable () async -> CFRange?,
+        characterCount: @escaping @Sendable () async -> Int?,
+        stringForRange: @escaping @Sendable (CFRange) async -> String?
+    ) {
+        self.init(isAvailable: isAvailable, selectedRange: selectedRange, characterCount: characterCount,
+                  readRange: { range in
+            guard let text = await stringForRange(range) else { return .unavailable }
+            return .text(text)
+        })
+    }
+}
+
+enum PostInjectionCaptureResult: Sendable {
+    case captured(PostInjectionEditLearningTarget)
+    case failure(PostInjectionCaptureFailure)
 }
 
 struct PostInjectionEditLearningTarget: Sendable {
@@ -97,7 +127,7 @@ actor PostInjectionEditLearningMonitor {
             isAvailable: { await field.isAvailable() },
             selectedRange: { await field.read { cfRangeAttribute($0, kAXSelectedTextRangeAttribute as CFString) } },
             characterCount: { await field.read { numberOfCharacters(in: $0) } },
-            stringForRange: { range in await field.read { string(in: $0, range: range) } }
+            readRange: { range in await field.read { readRange(in: $0, range: range) } }
         ))
     }
 
@@ -105,46 +135,70 @@ actor PostInjectionEditLearningMonitor {
     static func capture(
         injectedText: String, historyID: String, field: PostInjectionLearningField
     ) async -> PostInjectionEditLearningTarget? {
-        guard (1...maximumWindowLength).contains((injectedText as NSString).length) else { return nil }
-        for attempt in 0..<20 {
-            guard !Task.isCancelled, await field.isAvailable() else { return nil }
-            if let target = await captureVisibleText(injectedText: injectedText, historyID: historyID, field: field) {
-                return target
-            }
-            if attempt < 19 { try? await Task.sleep(for: .milliseconds(60)) }
-        }
+        if case .captured(let target) = await captureResult(
+            injectedText: injectedText, historyID: historyID, field: field
+        ) { return target }
         return nil
+    }
+
+    static func captureResult(
+        injectedText: String, historyID: String, field: PostInjectionLearningField,
+        maximumAttempts: Int = 30, retryDelay: Duration = .milliseconds(100)
+    ) async -> PostInjectionCaptureResult {
+        guard (1...maximumWindowLength).contains(injectedText.utf16.count) else { return .failure(.windowTooLarge) }
+        var lastFailure = PostInjectionCaptureFailure.insertionPending
+        let attempts = min(30, max(1, maximumAttempts))
+        let deadline = ContinuousClock.now + .seconds(3)
+        for attempt in 0..<attempts {
+            if ContinuousClock.now >= deadline { break }
+            guard !Task.isCancelled, await field.isAvailable() else { return .failure(.focusChanged) }
+            let result = await captureVisibleText(injectedText: injectedText, historyID: historyID, field: field)
+            switch result {
+            case .captured: return result
+            case .failure(let failure):
+                lastFailure = failure
+                if !failure.canRetry { return result }
+            }
+            if attempt + 1 < attempts { try? await Task.sleep(for: retryDelay) }
+        }
+        return .failure(lastFailure)
     }
 
     private static func captureVisibleText(
         injectedText: String, historyID: String, field: PostInjectionLearningField
-    ) async -> PostInjectionEditLearningTarget? {
-        guard let selectedRange = await field.selectedRange(), selectedRange.length == 0 else { return nil }
+    ) async -> PostInjectionCaptureResult {
+        guard let selectedRange = await field.selectedRange(), selectedRange.location >= 0,
+              selectedRange.location != NSNotFound,
+              selectedRange.length >= 0 else { return .failure(.selectionUnavailable) }
+        guard selectedRange.length == 0 else { return .failure(.selectionActive) }
 
         let insertedLength = (injectedText as NSString).length
         let insertionStart = selectedRange.location - insertedLength
-        guard insertedLength > 0, insertionStart >= 0,
-              let characterCount = await field.characterCount(),
-              selectedRange.location <= characterCount else { return nil }
+        guard insertedLength > 0, insertionStart >= 0 else { return .failure(.insertionPending) }
 
         let prefixStart = max(0, insertionStart - anchorLength)
         let prefixLength = insertionStart - prefixStart
-        let suffixLength = min(anchorLength, characterCount - selectedRange.location)
-        let verificationLength = prefixLength + insertedLength + suffixLength
-        guard verificationLength <= maximumWindowLength,
-              let initialWindow = await field.stringForRange(
-            CFRange(location: prefixStart, length: verificationLength)
-        ) else { return nil }
+        let maximumLength = min(maximumWindowLength, prefixLength + insertedLength + anchorLength)
+        let window = await PostInjectionBoundedWindow.read(
+            field: field, start: prefixStart, minimumEnd: selectedRange.location,
+            maximumLength: maximumLength, reportedCount: await field.characterCount()
+        )
+        let initialWindow: String
+        switch window {
+        case .window(let text, _): initialWindow = text
+        case .failure(let reason): return .failure(reason)
+        }
 
         let value = initialWindow as NSString
-        guard value.length == verificationLength,
+        guard value.length >= prefixLength + insertedLength,
               value.substring(with: NSRange(
                 location: prefixLength,
                 length: insertedLength
-              )) == injectedText,
-              await field.isAvailable() else { return nil }
+              )) == injectedText else { return .failure(.textMismatch) }
+        guard await field.isAvailable() else { return .failure(.focusChanged) }
+        let suffixLength = value.length - prefixLength - insertedLength
 
-        return PostInjectionEditLearningTarget(
+        return .captured(PostInjectionEditLearningTarget(
             historyID: historyID,
             field: field,
             originalText: injectedText,
@@ -154,7 +208,7 @@ actor PostInjectionEditLearningMonitor {
                 location: prefixLength + insertedLength,
                 length: suffixLength
             ))
-        )
+        ))
     }
 
     /// 全局按输入框能力判断，不按 APP 或网页来源设置白名单。
@@ -241,10 +295,15 @@ actor PostInjectionEditLearningMonitor {
             }
             return
         }
-        guard let target = await Self.capture(injectedText: injectedText, historyID: historyID, field: field) else {
+        let result = await Self.captureResult(injectedText: injectedText, historyID: historyID, field: field)
+        guard case .captured(let target) = result else {
+            if case .failure(let failure) = result {
+                DebugFileLogger.log("learning.capture failure=\(failure.rawValue) units=\(injectedText.utf16.count)")
+            }
             if !Task.isCancelled,
-               VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults) {
-                Self.report(.rangeUnavailable)
+               VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults),
+               case .failure(let failure) = result, let feedback = failure.feedback {
+                Self.report(feedback)
             }
             return
         }
@@ -359,24 +418,21 @@ actor PostInjectionEditLearningMonitor {
     static func currentCandidate(
         for target: PostInjectionEditLearningTarget
     ) async -> String? {
-        guard await target.field.isAvailable(),
-              let characterCount = await target.field.characterCount(),
-              target.windowStart >= 0,
-              target.windowStart <= characterCount else { return nil }
+        guard await target.field.isAvailable(), target.windowStart >= 0 else { return nil }
         let prefixLength = (target.prefix as NSString).length
         let suffixLength = (target.suffix as NSString).length
-        let requestedLength = min(
-            characterCount - target.windowStart,
+        let maximumLength = min(
             prefixLength + target.maximumCandidateLength + suffixLength,
             maximumWindowLength
         )
-        guard requestedLength >= prefixLength + suffixLength,
-              !target.suffix.isEmpty || requestedLength == characterCount - target.windowStart,
-              let window = await target.field.stringForRange(
-                CFRange(location: target.windowStart, length: requestedLength)
-              ),
-              (window as NSString).length == requestedLength,
-              await target.field.isAvailable() else { return nil }
+        let count = await target.field.characterCount()
+        let result = await PostInjectionBoundedWindow.read(
+            field: target.field, start: target.windowStart,
+            minimumEnd: target.windowStart + prefixLength + 1, maximumLength: maximumLength,
+            reportedCount: count
+        )
+        guard case .window(let window, let complete) = result,
+              complete || !target.suffix.isEmpty else { return nil }
 
         // 注入发生在输入框末尾时没有外部 suffix 锚点。此时不能使用编辑后的
         // 光标位置作为成稿终点：用户替换中间术语后，光标通常停在术语后面，
@@ -494,19 +550,22 @@ actor PostInjectionEditLearningMonitor {
         return number.intValue
     }
 
-    private static func string(in element: AXUIElement, range: CFRange) -> String? {
-        guard range.location >= 0, (0...maximumWindowLength).contains(range.length) else { return nil }
+    private static func readRange(in element: AXUIElement, range: CFRange) -> PostInjectionRangeRead {
+        guard range.location >= 0, (0...maximumWindowLength).contains(range.length),
+              range.location <= Int.max - range.length else { return .outOfBounds }
         var mutableRange = range
-        guard let parameter = AXValueCreate(.cfRange, &mutableRange) else { return nil }
+        guard let parameter = AXValueCreate(.cfRange, &mutableRange) else { return .unavailable }
         var value: CFTypeRef?
-        guard AXUIElementCopyParameterizedAttributeValue(
+        let error = AXUIElementCopyParameterizedAttributeValue(
             element,
             kAXStringForRangeParameterizedAttribute as CFString,
             parameter,
             &value
-        ) == .success else { return nil }
-        guard let text = value as? String, (text as NSString).length == range.length else { return nil }
-        return text
+        )
+        if error == .illegalArgument { return .outOfBounds }
+        if error == .parameterizedAttributeUnsupported || error == .attributeUnsupported { return .unsupported }
+        guard error == .success, let text = value as? String else { return .unavailable }
+        return .text(text)
     }
 
     private static func cfRangeAttribute(
