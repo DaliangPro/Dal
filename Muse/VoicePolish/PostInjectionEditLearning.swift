@@ -28,7 +28,10 @@ struct PostInjectionEditLearningTarget: Sendable {
     let suffix: String
 
     var maximumCandidateLength: Int {
-        min(4_096, max((originalText as NSString).length * 2 + 128, 512))
+        min(
+            PostInjectionEditLearningMonitor.maximumWindowLength - (prefix as NSString).length - (suffix as NSString).length,
+            max((originalText as NSString).length * 2 + 128, 512)
+        )
     }
 }
 
@@ -49,6 +52,7 @@ actor PostInjectionEditLearningMonitor {
     private static let stableSampleCount = 4
     private static let maximumPollCount = 40
     private static let maximumConcurrentTargets = 3
+    static let maximumWindowLength = 4_096
 
     private var tasks: [String: Task<Void, Never>] = [:]
     private var insertionOrder: [String] = []
@@ -82,17 +86,13 @@ actor PostInjectionEditLearningMonitor {
 
     static func focusedField() async -> PostInjectionLearningFieldCapture {
         guard AXIsProcessTrusted() else { return .unavailable(.unavailable) }
-        let systemWide = AXUIElementCreateSystemWide()
-        guard let focused = elementAttribute(
-            systemWide,
-            kAXFocusedUIElementAttribute as CFString
-        ) else { return .unavailable(.unavailable) }
+        guard let focused = focusedElement() else { return .unavailable(.unavailable) }
 
         var ownerPID: pid_t = 0
         guard AXUIElementGetPid(focused, &ownerPID) == .success else { return .unavailable(.unavailable) }
         AXUIElementSetMessagingTimeout(focused, 0.2)
         let field = AccessibilityLearningField(element: focused, ownerPID: ownerPID)
-        guard await field.isSafe() else { return .unavailable(.unsafeField) }
+        if let reason = await field.rejectionReason() { return .unavailable(reason) }
         return .field(PostInjectionLearningField(
             isAvailable: { await field.isAvailable() },
             selectedRange: { await field.read { cfRangeAttribute($0, kAXSelectedTextRangeAttribute as CFString) } },
@@ -105,6 +105,7 @@ actor PostInjectionEditLearningMonitor {
     static func capture(
         injectedText: String, historyID: String, field: PostInjectionLearningField
     ) async -> PostInjectionEditLearningTarget? {
+        guard (1...maximumWindowLength).contains((injectedText as NSString).length) else { return nil }
         for attempt in 0..<20 {
             guard !Task.isCancelled, await field.isAvailable() else { return nil }
             if let target = await captureVisibleText(injectedText: injectedText, historyID: historyID, field: field) {
@@ -130,7 +131,8 @@ actor PostInjectionEditLearningMonitor {
         let prefixLength = insertionStart - prefixStart
         let suffixLength = min(anchorLength, characterCount - selectedRange.location)
         let verificationLength = prefixLength + insertedLength + suffixLength
-        guard let initialWindow = await field.stringForRange(
+        guard verificationLength <= maximumWindowLength,
+              let initialWindow = await field.stringForRange(
             CFRange(location: prefixStart, length: verificationLength)
         ) else { return nil }
 
@@ -139,7 +141,8 @@ actor PostInjectionEditLearningMonitor {
               value.substring(with: NSRange(
                 location: prefixLength,
                 length: insertedLength
-              )) == injectedText else { return nil }
+              )) == injectedText,
+              await field.isAvailable() else { return nil }
 
         return PostInjectionEditLearningTarget(
             historyID: historyID,
@@ -154,24 +157,53 @@ actor PostInjectionEditLearningMonitor {
         )
     }
 
-    /// 仅为用户指定的 GPT/Codex 桌面端放行网页型标准文本控件。
+    /// 全局按输入框能力判断，不按 APP 或网页来源设置白名单。
     /// Subrole 是可选属性，AXProtectedContent/AXEditable 并非所有标准控件提供；
     /// 属性不支持不能当成密码框。明确保护、只读、未知角色或读取出错仍拒绝。
     /// 范围读取和插入正文的逐字校验仍由 capture 执行，不读取整份网页或聊天记录。
     static func supportsCapture(
         role: String?, subrole: String?, editable: Bool?, protectedContent: Bool?,
-        hasWebAncestor: Bool, applicationBundleIdentifier: String?, metadataReadable: Bool = true
+        metadataReadable: Bool = true
     ) -> Bool {
-        guard metadataReadable, protectedContent != true, subrole != "AXSecureTextField",
-              editable != false else { return false }
-        let supportedDesktop = ["com.openai.codex", "com.openai.chat"].contains(applicationBundleIdentifier ?? "")
-        guard !hasWebAncestor || supportedDesktop else { return false }
-        return role == "AXTextField" || role == "AXTextArea"
-            || (!hasWebAncestor && role == "AXComboBox" && editable == true)
+        rejectionReason(
+            role: role, subrole: subrole, editable: editable,
+            protectedContent: protectedContent, metadataReadable: metadataReadable
+        ) == nil
+    }
+
+    static func rejectionReason(
+        role: String?, subrole: String?, editable: Bool?, protectedContent: Bool?,
+        metadataReadable: Bool = true
+    ) -> AutomaticLearningFeedback? {
+        if protectedContent == true || subrole == "AXSecureTextField" { return .protectedField }
+        if editable == false { return .readOnlyField }
+        guard metadataReadable else { return .fieldUnresponsive }
+        guard role == "AXTextField" || role == "AXTextArea"
+            || (role == "AXComboBox" && editable == true) else { return .unsupportedField }
+        return nil
     }
 
     static func report(_ feedback: AutomaticLearningFeedback) {
         NotificationCenter.default.post(name: .voicePolishAutomaticLearningDidFinish, object: feedback)
+    }
+
+    /// 系统焦点优先，兼容焦点宿主不是前台应用的浮动面板。
+    /// 系统未返回焦点时才查询当前应用，不扫描窗口、后代或其他应用。
+    static func resolveFocusedElement<Element>(
+        system: () -> Element?, application: () -> Element?
+    ) -> Element? {
+        system() ?? application()
+    }
+
+    private static func focusedElement() -> AXUIElement? {
+        resolveFocusedElement(system: {
+            elementAttribute(AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute as CFString)
+        }, application: {
+            guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+            let applicationElement = AXUIElementCreateApplication(app.processIdentifier)
+            AXUIElementSetMessagingTimeout(applicationElement, 0.2)
+            return elementAttribute(applicationElement, kAXFocusedUIElementAttribute as CFString)
+        })
     }
 
     func start(
@@ -327,18 +359,24 @@ actor PostInjectionEditLearningMonitor {
     static func currentCandidate(
         for target: PostInjectionEditLearningTarget
     ) async -> String? {
-        guard let characterCount = await target.field.characterCount(),
+        guard await target.field.isAvailable(),
+              let characterCount = await target.field.characterCount(),
+              target.windowStart >= 0,
               target.windowStart <= characterCount else { return nil }
         let prefixLength = (target.prefix as NSString).length
         let suffixLength = (target.suffix as NSString).length
         let requestedLength = min(
             characterCount - target.windowStart,
-            prefixLength + target.maximumCandidateLength + suffixLength
+            prefixLength + target.maximumCandidateLength + suffixLength,
+            maximumWindowLength
         )
         guard requestedLength >= prefixLength + suffixLength,
+              !target.suffix.isEmpty || requestedLength == characterCount - target.windowStart,
               let window = await target.field.stringForRange(
                 CFRange(location: target.windowStart, length: requestedLength)
-              ) else { return nil }
+              ),
+              (window as NSString).length == requestedLength,
+              await target.field.isAvailable() else { return nil }
 
         // 注入发生在输入框末尾时没有外部 suffix 锚点。此时不能使用编辑后的
         // 光标位置作为成稿终点：用户替换中间术语后，光标通常停在术语后面，
@@ -410,28 +448,24 @@ actor PostInjectionEditLearningMonitor {
             return operation(element)
         }
 
-        func isSafe() async -> Bool {
+        func rejectionReason() async -> AutomaticLearningFeedback? {
             await read { element in
                 var readable = true
                 let role = optionalAttribute(element, kAXRoleAttribute as CFString, readable: &readable) as String?
                 let subrole = optionalAttribute(element, kAXSubroleAttribute as CFString, readable: &readable) as String?
                 let editable = optionalAttribute(element, "AXEditable" as CFString, readable: &readable) as Bool?
                 let protected = optionalAttribute(element, "AXProtectedContent" as CFString, readable: &readable) as Bool?
-                return supportsCapture(
+                return PostInjectionEditLearningMonitor.rejectionReason(
                     role: role, subrole: subrole, editable: editable, protectedContent: protected,
-                    hasWebAncestor: hasWebAreaAncestor(element),
-                    applicationBundleIdentifier: NSRunningApplication(processIdentifier: ownerPID)?.bundleIdentifier,
                     metadataReadable: readable
                 )
             }
         }
 
         func isAvailable() async -> Bool {
-            guard await isSafe() else { return false }
+            guard await rejectionReason() == nil else { return false }
             return await read { element in
-                guard let focused = elementAttribute(
-                    AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute as CFString
-                ) else { return false }
+                guard let focused = focusedElement() else { return false }
                 return CFEqual(element, focused)
             }
         }
@@ -461,7 +495,7 @@ actor PostInjectionEditLearningMonitor {
     }
 
     private static func string(in element: AXUIElement, range: CFRange) -> String? {
-        guard range.location >= 0, range.length >= 0 else { return nil }
+        guard range.location >= 0, (0...maximumWindowLength).contains(range.length) else { return nil }
         var mutableRange = range
         guard let parameter = AXValueCreate(.cfRange, &mutableRange) else { return nil }
         var value: CFTypeRef?
@@ -471,18 +505,8 @@ actor PostInjectionEditLearningMonitor {
             parameter,
             &value
         ) == .success else { return nil }
-        return value as? String
-    }
-
-    private static func stringAttribute(
-        _ element: AXUIElement,
-        _ attribute: CFString
-    ) -> String? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else {
-            return nil
-        }
-        return value as? String
+        guard let text = value as? String, (text as NSString).length == range.length else { return nil }
+        return text
     }
 
     private static func cfRangeAttribute(
@@ -510,15 +534,4 @@ actor PostInjectionEditLearningMonitor {
         return (value as! AXUIElement)
     }
 
-    private static func hasWebAreaAncestor(_ element: AXUIElement) -> Bool {
-        var current: AXUIElement? = element
-        for _ in 0..<6 {
-            guard let value = current else { return false }
-            if stringAttribute(value, kAXRoleAttribute as CFString) == "AXWebArea" {
-                return true
-            }
-            current = elementAttribute(value, kAXParentAttribute as CFString)
-        }
-        return false
-    }
 }

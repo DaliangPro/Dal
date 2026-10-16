@@ -183,7 +183,7 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                     VStack(alignment: .leading, spacing: 12) {
                         providerStatusCard
                         migrationCard
-                        Text(L("自动记词在直出或润色上屏后的约 20 秒内观察支持的安全输入框。GPT 桌面端需支持安全的文字范围读取；其他网页输入框不观察。继续追加不算纠错，直出只记词，不学习表达习惯。最近的学习结果显示在本页底部。", "Word learning observes supported safe fields for about 20 seconds after Direct or Polish output. GPT desktop requires safe text-range access; other web fields are excluded. Appended text is ignored. Direct learns words only. The latest result appears at the bottom of this page."))
+                        Text(L("自动记词不按 APP 限制，支持能安全读取本次文字的标准输入框，包括网页输入框。直出或润色上屏后约 20 秒内观察修改，只读本次文字附近的小段内容；离开输入框即停止。密码、受保护或只读内容不观察；应用未提供文字读取能力时会说明原因。继续追加不算纠错，直出只记词，不学习表达习惯。", "Word learning works across apps and standard web fields that expose safe text-range access. It observes edits for about 20 seconds after Direct or Polish output, reading only a small window around this output, and stops on focus loss. Protected, password, or read-only content is excluded; unavailable text access is reported. Appended text is ignored. Direct learns words only."))
                             .font(TF.settingsFontCaption).foregroundStyle(TF.settingsTextSecondary)
                         SettingsTextButton(L("导出词库", "Export vocabulary")) { exportTerminology() }
                     }

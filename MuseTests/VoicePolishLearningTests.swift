@@ -75,55 +75,63 @@ final class VoicePolishLearningTests: XCTestCase {
         XCTAssertTrue(corrections.isEmpty)
     }
 
-    func testGPTWebCaptureRejectsUnsafeFieldsAndOtherApps() {
-        for bundle in ["com.openai.codex", "com.openai.chat"] {
-            for role in ["AXTextArea", "AXTextField"] {
+    func testCapturePolicyUsesFieldCapabilitiesWithoutApplicationOrWebWhitelist() {
+        for role in ["AXTextArea", "AXTextField"] {
+            for editable in [true, nil] as [Bool?] {
                 XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
-                    role: role, subrole: nil, editable: true, protectedContent: false,
-                    hasWebAncestor: true, applicationBundleIdentifier: bundle
-                ))
+                    role: role, subrole: nil, editable: editable, protectedContent: nil
+                ), "同一套能力策略适用于原生、网页和未知来源 APP，不需要应用标识")
             }
-            for protected in [true] {
-                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-                    role: "AXTextArea", subrole: nil, editable: true, protectedContent: protected,
-                    hasWebAncestor: true, applicationBundleIdentifier: bundle
-                ))
-            }
-            for editable in [false] {
-                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-                    role: "AXTextArea", subrole: nil, editable: editable, protectedContent: false,
-                    hasWebAncestor: true, applicationBundleIdentifier: bundle
-                ))
-            }
-            for role in ["AXButton", "AXWebArea", "AXComboBox"] {
-                XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-                    role: role, subrole: nil, editable: true, protectedContent: false,
-                    hasWebAncestor: true, applicationBundleIdentifier: bundle
-                ))
-            }
-            XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-                role: "AXTextField", subrole: "AXSecureTextField", editable: true, protectedContent: false,
-                hasWebAncestor: false, applicationBundleIdentifier: bundle
-            ))
-        }
-        for bundle in ["com.apple.Safari", "com.google.Chrome", "com.example.other", nil] as [String?] {
-            XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-                role: "AXTextArea", subrole: "AXTextArea", editable: true, protectedContent: false,
-                hasWebAncestor: true, applicationBundleIdentifier: bundle
-            ))
         }
         XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
-            role: "AXTextArea", subrole: "AXTextArea", editable: true, protectedContent: false,
-            hasWebAncestor: false, applicationBundleIdentifier: "com.apple.TextEdit"
-        ))
-        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
-            role: "AXTextArea", subrole: nil, editable: nil, protectedContent: nil,
-            hasWebAncestor: true, applicationBundleIdentifier: "com.openai.codex"
-        ), "标准文本控件不支持可选属性时，仍须继续做插入范围校验")
-        XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
-            role: "AXTextArea", subrole: nil, editable: nil, protectedContent: nil,
-            hasWebAncestor: true, applicationBundleIdentifier: "com.openai.codex", metadataReadable: false
-        ), "不支持可选属性与 IPC 读取失败必须区分，后者拒绝读取正文")
+            role: "AXComboBox", subrole: nil, editable: true, protectedContent: false
+        ), "可编辑组合框仍需通过后续本次插入范围校验")
+    }
+
+    func testCaptureRejectionDistinguishesProtectedReadOnlyUnsupportedAndReadErrors() {
+        XCTAssertEqual(PostInjectionEditLearningMonitor.rejectionReason(
+            role: "AXTextField", subrole: "AXSecureTextField", editable: true, protectedContent: nil
+        ), .protectedField)
+        XCTAssertEqual(PostInjectionEditLearningMonitor.rejectionReason(
+            role: "AXTextArea", subrole: nil, editable: true, protectedContent: true
+        ), .protectedField)
+        XCTAssertEqual(PostInjectionEditLearningMonitor.rejectionReason(
+            role: "AXTextArea", subrole: nil, editable: false, protectedContent: nil
+        ), .readOnlyField)
+        for role in ["AXButton", "AXWebArea", "AXStaticText", "AXGroup", "AXComboBox", nil] as [String?] {
+            XCTAssertEqual(PostInjectionEditLearningMonitor.rejectionReason(
+                role: role, subrole: nil, editable: nil, protectedContent: nil
+            ), .unsupportedField)
+        }
+        XCTAssertEqual(PostInjectionEditLearningMonitor.rejectionReason(
+            role: "AXTextArea", subrole: nil, editable: nil, protectedContent: nil, metadataReadable: false
+        ), .fieldUnresponsive, "可选属性不支持与 IPC 读取失败必须区分，后者拒绝读取正文")
+        for feedback in [AutomaticLearningFeedback.protectedField, .readOnlyField, .unsupportedField,
+                         .fieldUnresponsive, .rangeUnavailable] {
+            XCTAssertFalse(feedback.didPersist)
+            XCTAssertFalse(feedback.message.isEmpty)
+        }
+    }
+
+    func testSystemFocusWinsAndApplicationFallbackOnlyRunsWhenSystemFocusIsAbsent() {
+        var applicationQueries = 0
+        let panel = PostInjectionEditLearningMonitor.resolveFocusedElement(
+            system: { "浮动面板输入框" },
+            application: { applicationQueries += 1; return "前台应用里的其他输入框" }
+        )
+        XCTAssertEqual(panel, "浮动面板输入框")
+        XCTAssertEqual(applicationQueries, 0, "系统有键盘焦点时不能改读前台应用")
+
+        let fallback = PostInjectionEditLearningMonitor.resolveFocusedElement(
+            system: { nil as String? },
+            application: { applicationQueries += 1; return "当前应用的焦点输入框" }
+        )
+        XCTAssertEqual(fallback, "当前应用的焦点输入框")
+        XCTAssertEqual(applicationQueries, 1)
+        let absent = PostInjectionEditLearningMonitor.resolveFocusedElement(
+            system: { nil as String? }, application: { nil }
+        )
+        XCTAssertNil(absent)
     }
 
     func testAutomaticLearningOnlyObservesEnabledModesAfterSuccessfulInsertion() throws {

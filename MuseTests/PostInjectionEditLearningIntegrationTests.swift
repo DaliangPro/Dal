@@ -11,14 +11,12 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         XCTAssertNil(editor.accessibilitySubrole(), "原生普通文本框本来就可以不提供 Subrole")
         XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
             role: editor.accessibilityRole()?.rawValue, subrole: editor.accessibilitySubrole()?.rawValue,
-            editable: nil, protectedContent: nil, hasWebAncestor: false,
-            applicationBundleIdentifier: "pro.example.editor"
+            editable: nil, protectedContent: nil
         ))
         let password = NSSecureTextField()
         XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
             role: password.accessibilityRole()?.rawValue, subrole: password.accessibilitySubrole()?.rawValue,
-            editable: nil, protectedContent: nil, hasWebAncestor: false,
-            applicationBundleIdentifier: "pro.example.editor"
+            editable: nil, protectedContent: nil
         ))
     }
 
@@ -39,8 +37,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
                 let supported = PostInjectionEditLearningMonitor.supportsCapture(
                     role: editor.view.accessibilityRole()?.rawValue,
                     subrole: editor.view.accessibilitySubrole()?.rawValue,
-                    editable: editor.view.isEditable, protectedContent: nil,
-                    hasWebAncestor: false, applicationBundleIdentifier: "pro.example.editor"
+                    editable: editor.view.isEditable, protectedContent: nil
                 )
                 return supported ? .field(editor.field) : .unavailable(.unsafeField)
             } },

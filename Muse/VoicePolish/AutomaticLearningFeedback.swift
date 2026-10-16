@@ -8,6 +8,10 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
     case failed
     case unavailable
     case unsafeField
+    case protectedField
+    case readOnlyField
+    case unsupportedField
+    case fieldUnresponsive
     case rangeUnavailable
 
     var didPersist: Bool {
@@ -30,6 +34,10 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
         case .failed: return L("改词保存失败，请到词库重试", "Word could not be saved; check Vocabulary")
         case .unavailable: return L("此输入框暂不支持自动记词", "Automatic word learning is unavailable here")
         case .unsafeField: return L("此输入框未通过记词安全检查", "This field does not meet word-learning safety checks")
+        case .protectedField: return L("密码或受保护输入框不自动记词", "Protected fields do not learn words automatically")
+        case .readOnlyField: return L("只读内容不自动记词", "Read-only content does not learn words automatically")
+        case .unsupportedField: return L("此输入框未提供可读取的文字", "This field does not expose readable text")
+        case .fieldUnresponsive: return L("暂时无法读取输入框，请重试", "Text field could not be reached; try again")
         case .rangeUnavailable: return L("无法读取本次文字，未开始记词", "Inserted text could not be read; learning did not start")
         }
     }
