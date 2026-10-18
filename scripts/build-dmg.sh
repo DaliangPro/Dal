@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && /bin/pwd -P)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && /bin/pwd -P)"
 APP_NAME="Muse"
-APP_VERSION="${APP_VERSION:-2.1.1}"
+APP_VERSION="${APP_VERSION:-2.1.2}"
 case "$APP_VERSION" in
     ''|.*|*.|*..*|*[!0-9.]*)
         echo "APP_VERSION must be numeric dot-separated" >&2

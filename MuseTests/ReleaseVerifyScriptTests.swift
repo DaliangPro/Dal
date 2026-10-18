@@ -12,11 +12,11 @@ final class ReleaseVerifyScriptTests: XCTestCase {
         }
     }
 
-    func testReleaseCandidateDefaultsAndNotesTargetVersionTwoOneOne() throws {
+    func testReleaseCandidateDefaultsAndNotesTargetVersionTwoOneTwo() throws {
         let expectedDefaults = [
-            ("scripts/package-app.sh", #"APP_VERSION="${APP_VERSION:-2.1.1}""#),
-            ("scripts/build-dmg.sh", #"APP_VERSION="${APP_VERSION:-2.1.1}""#),
-            ("scripts/test_app_bundle.sh", #"EXPECTED_VERSION="${APP_VERSION:-2.1.1}""#),
+            ("scripts/package-app.sh", #"APP_VERSION="${APP_VERSION:-2.1.2}""#),
+            ("scripts/build-dmg.sh", #"APP_VERSION="${APP_VERSION:-2.1.2}""#),
+            ("scripts/test_app_bundle.sh", #"EXPECTED_VERSION="${APP_VERSION:-2.1.2}""#),
         ]
 
         for (path, expectedDefault) in expectedDefaults {
@@ -24,13 +24,13 @@ final class ReleaseVerifyScriptTests: XCTestCase {
                 contentsOf: repositoryRoot.appendingPathComponent(path),
                 encoding: .utf8
             )
-            XCTAssertTrue(content.contains(expectedDefault), "\(path) 应默认构建 2.1.1")
+            XCTAssertTrue(content.contains(expectedDefault), "\(path) 应默认构建 2.1.2")
         }
 
         let notesURL = repositoryRoot
-            .appendingPathComponent("docs/2026-09-29-Muse-v2.1.1-发布说明.md")
+            .appendingPathComponent("docs/2026-10-18-Muse-v2.1.2-发布说明.md")
         let notes = try String(contentsOf: notesURL, encoding: .utf8)
-        XCTAssertTrue(notes.contains("# Muse 2.1.1"))
+        XCTAssertTrue(notes.contains("# Muse 2.1.2"))
         XCTAssertTrue(notes.contains("自动更新仍保持关闭"))
     }
 
