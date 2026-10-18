@@ -138,22 +138,4 @@ final class SettingsInformationArchitectureTests: XCTestCase {
         }
     }
 
-    func testDeletingConfirmedTermCanTombstoneEveryDiscoveryPair() {
-        let entry = TerminologyEntry(
-            canonicalText: "Typeless",
-            aliases: [
-                TerminologyAlias(text: "泰普莱斯", source: .confirmedCorrection),
-                TerminologyAlias(text: "Type-less", source: .confirmedCorrection)
-            ],
-            origin: .confirmedCorrection
-        )
-
-        XCTAssertEqual(
-            TerminologyDiscoveryIdentity.ids(for: entry),
-            [
-                TerminologyDiscoveryIdentity.id(alias: "泰普莱斯", canonical: "Typeless"),
-                TerminologyDiscoveryIdentity.id(alias: "Type-less", canonical: "Typeless")
-            ]
-        )
-    }
 }

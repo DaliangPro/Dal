@@ -446,7 +446,7 @@ enum TerminologyRepository {
     }
 
     /// “我的术语 / 内置术语 / 冲突”三个 Repository 区域的一次性一致快照。
-    /// “待确认发现”来自 TerminologyCorrectionExtractor，“固定替换”继续来自 SnippetStorage。
+    /// 纠正候选由 TerminologyCorrectionExtractor 生成，固定替换继续来自 SnippetStorage。
     static func snapshot(
         applicationBundleIdentifier: String? = nil,
         context: VocabularyStorageContext = .production
