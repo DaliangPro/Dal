@@ -86,7 +86,8 @@ class PublishReleaseTests(unittest.TestCase):
         return dict(version="2.1.2", commit="abc", marker="owned", sha256="digest", build="1")
 
     def draft(self):
-        return dict(target_commitish="abc", draft=True, prerelease=False, body="owned", assets=[])
+        return dict(target_commitish="abc", draft=True, prerelease=False, body="owned", assets=[
+            {"name": "Muse-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
 
     def test_create_download_verify_ci_then_publish_in_that_order(self):
         calls = []
@@ -106,6 +107,17 @@ class PublishReleaseTests(unittest.TestCase):
             release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
         self.assertEqual(gh.call_count, 1)
         self.assertEqual(gh.call_args.args[:2], ("release", "edit"))
+
+    def test_interrupted_upload_only_adds_missing_asset_without_overwriting(self):
+        partial = dict(self.draft(), assets=[{"name": "Muse-v2.1.2.dmg"}])
+        with patch.object(release, "release_for", side_effect=[partial, self.draft()]), \
+                patch.object(release, "gh") as gh, patch.object(release, "download_verified"), \
+                patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
+                patch.object(release, "wait_ci"):
+            release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
+        self.assertEqual(gh.call_args_list[0].args,
+                         ("release", "upload", "v2.1.2", "/fixture/SHA256SUMS.txt"))
+        self.assertEqual(gh.call_args_list[1].args[:2], ("release", "edit"))
 
     def test_unowned_or_wrong_source_draft_is_never_modified(self):
         for draft in (dict(self.draft(), body="someone else"), dict(self.draft(), target_commitish="other")):

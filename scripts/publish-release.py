@@ -67,7 +67,7 @@ def release_for(tag):
 
 def wait_ci(commit, event, timeout=2700):
     deadline = time.monotonic() + timeout
-    previous = None
+    previous = object()
     while True:
         branch = ("--branch", "main") if event == "push" else ()
         runs = json.loads(gh("run", "list", "--workflow", "ci.yml", "--commit", commit,
@@ -177,6 +177,15 @@ def publish_draft(state, output, notes_file):
         require(not existing["prerelease"], "拒绝把预发布版本误作正式版本")
         if existing["draft"]:
             require(state["marker"] in existing["body"], "已有草稿不属于本次发布，拒绝覆盖")
+            expected = {f"Muse-v{state['version']}.dmg", "SHA256SUMS.txt"}
+            present = {item["name"] for item in existing["assets"]}
+            require(present <= expected, "已有草稿含未知附件，拒绝接管")
+            missing = expected - present
+            if missing:
+                # 只补齐本次草稿中缺少的文件；不覆盖已存在附件，随后完整下载复验。
+                gh("release", "upload", tag, *(str(output / name) for name in sorted(missing)))
+                existing = release_for(tag)
+                require(existing is not None and existing["draft"], "补齐附件后草稿状态变化，请核对后继续")
     else:
         gh("release", "create", tag, str(output / f"Muse-v{state['version']}.dmg"),
            str(output / "SHA256SUMS.txt"), "--draft", "--target", state["commit"],
@@ -289,6 +298,7 @@ def perform(args):
         (attempt / "SHA256SUMS.txt").write_text(f"{digest}  {image.name}\n")
         verify_assets(attempt, args.version, commit, digest, args.build)
         require(command("git", "rev-parse", "HEAD") == commit, "构建期间源码发生变化")
+        require(not command("git", "diff", "--name-only", "HEAD"), "构建期间出现未提交修改，候选不晋升")
         state = dict(version=args.version, build=args.build, commit=commit, ci_run=ci_id,
                      sha256=digest, notes_sha256=sha256(notes), smoke_sha256=sha256(smoke),
                      marker=f"<!-- muse-manual-release:{uuid.uuid4()} -->")
