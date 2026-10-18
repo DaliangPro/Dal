@@ -89,11 +89,11 @@ class PublishReleaseTests(unittest.TestCase):
         return dict(target_commitish="abc", draft=True, prerelease=False, body="owned", assets=[
             {"name": "Muse-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
 
-    def test_create_download_verify_ci_then_publish_in_that_order(self):
+    def test_create_verify_ci_then_publish_in_that_order(self):
         calls = []
         with patch.object(release, "release_for", side_effect=[None, self.draft()]), \
                 patch.object(release, "gh", side_effect=lambda *args: calls.append(args[:2])), \
-                patch.object(release, "download_verified", side_effect=lambda *args: calls.append(("verify",))), \
+                patch.object(release, "verify_uploaded", side_effect=lambda *args: calls.append(("verify",))), \
                 patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
                 patch.object(release, "wait_ci", side_effect=lambda *args: calls.append(("ci",))):
             release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
@@ -101,7 +101,7 @@ class PublishReleaseTests(unittest.TestCase):
 
     def test_resume_owned_draft_does_not_upload_again(self):
         with patch.object(release, "release_for", return_value=self.draft()), \
-                patch.object(release, "gh") as gh, patch.object(release, "download_verified"), \
+                patch.object(release, "gh") as gh, patch.object(release, "verify_uploaded"), \
                 patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
                 patch.object(release, "wait_ci"):
             release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
@@ -111,7 +111,7 @@ class PublishReleaseTests(unittest.TestCase):
     def test_interrupted_upload_only_adds_missing_asset_without_overwriting(self):
         partial = dict(self.draft(), assets=[{"name": "Muse-v2.1.2.dmg"}])
         with patch.object(release, "release_for", side_effect=[partial, self.draft()]), \
-                patch.object(release, "gh") as gh, patch.object(release, "download_verified"), \
+                patch.object(release, "gh") as gh, patch.object(release, "verify_uploaded"), \
                 patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
                 patch.object(release, "wait_ci"):
             release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
@@ -126,12 +126,12 @@ class PublishReleaseTests(unittest.TestCase):
                 release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
             gh.assert_not_called()
 
-    def test_signature_failure_main_drift_or_ci_failure_prevents_publication(self):
-        for failure in ("signature", "drift", "ci"):
+    def test_asset_failure_main_drift_or_ci_failure_prevents_publication(self):
+        for failure in ("asset", "drift", "ci"):
             with self.subTest(failure=failure), patch.object(release, "release_for", return_value=self.draft()), \
                     patch.object(release, "gh") as gh, \
-                    patch.object(release, "download_verified", side_effect=(
-                        release.ReleaseError("签名不匹配") if failure == "signature" else None)), \
+                    patch.object(release, "verify_uploaded", side_effect=(
+                        release.ReleaseError("附件不匹配") if failure == "asset" else None)), \
                     patch.object(release, "api", return_value={"object": {"sha": "other" if failure == "drift" else "abc"}}), \
                     patch.object(release, "wait_ci", side_effect=release.ReleaseError("CI 失败")), \
                     self.assertRaises(release.ReleaseError):
@@ -140,12 +140,130 @@ class PublishReleaseTests(unittest.TestCase):
 
     def test_already_public_is_verified_but_not_republished(self):
         with patch.object(release, "release_for", return_value=dict(self.draft(), draft=False)), \
-                patch.object(release, "gh") as gh, patch.object(release, "download_verified") as verify, \
+                patch.object(release, "gh") as gh, patch.object(release, "verify_uploaded") as verify, \
                 patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
                 patch.object(release, "wait_ci"):
             release.publish_draft(self.state(), Path("/fixture"), Path("/notes"))
         verify.assert_called_once()
         gh.assert_not_called()
+
+    def candidate(self, directory):
+        image = directory / "Muse-v2.1.2.dmg"
+        image.write_bytes(b"verified local image")
+        digest = release.sha256(image)
+        (directory / "SHA256SUMS.txt").write_text(f"{digest}  {image.name}\n")
+        assets = [dict(name=path.name, size=path.stat().st_size, digest=f"sha256:{release.sha256(path)}")
+                  for path in (image, directory / "SHA256SUMS.txt")]
+        return dict(self.draft(), target_commitish="a" * 40, assets=assets), digest
+
+    def test_matching_server_fingerprints_skip_download_and_remount(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            draft, digest = self.candidate(path)
+            with patch.object(release, "command", return_value=""), \
+                    patch.object(release, "download_verified") as download, \
+                    patch.object(release, "verify_dmg") as mount:
+                release.verify_uploaded(draft, path, "2.1.2", "a" * 40, digest, "1")
+            download.assert_not_called()
+            mount.assert_not_called()
+            self.assertEqual(sorted(item.name for item in path.iterdir()),
+                             ["Muse-v2.1.2.dmg", "SHA256SUMS.txt"])
+
+    def test_missing_or_abnormal_metadata_falls_back_with_local_fingerprint(self):
+        for name in ("Muse-v2.1.2.dmg", "SHA256SUMS.txt"):
+            for change in ({"digest": None}, {"digest": "malformed"},
+                           {"digest": "sha256:" + "0" * 64}, {"size": 0}):
+                with self.subTest(name=name, change=change), tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp)
+                    draft, digest = self.candidate(path)
+                    next(item for item in draft["assets"] if item["name"] == name).update(change)
+                    with patch.object(release, "command", return_value=""), \
+                            patch.object(release, "download_verified", return_value="a" * 40) as download:
+                        release.verify_uploaded(draft, path, "2.1.2", "a" * 40, digest, "1")
+                    download.assert_called_once()
+                    args = download.call_args.args
+                    self.assertEqual(args[1].parent, path)
+                    self.assertEqual(args[2:], ("2.1.2", digest, "1"))
+
+    def test_fallback_rejects_actual_bytes_different_from_local_candidate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            draft, digest = self.candidate(path)
+            draft["assets"][0].pop("digest")
+
+            def download(*args):
+                destination = Path(args[-1])
+                image = destination / "Muse-v2.1.2.dmg"
+                image.write_bytes(b"wrong uploaded image")
+                (destination / "SHA256SUMS.txt").write_text(f"{release.sha256(image)}  {image.name}\n")
+
+            with patch.object(release, "command", return_value=""), \
+                    patch.object(release, "gh", side_effect=download), \
+                    patch.object(release, "verify_dmg") as mount, self.assertRaises(release.ReleaseError):
+                release.verify_uploaded(draft, path, "2.1.2", "a" * 40, digest, "1")
+            mount.assert_not_called()
+
+    def test_fallback_with_correct_bytes_still_checks_signature_and_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            draft, digest = self.candidate(path)
+            draft["assets"][0]["digest"] = None
+
+            def download(*args):
+                destination = Path(args[-1])
+                for name in ("Muse-v2.1.2.dmg", "SHA256SUMS.txt"):
+                    (destination / name).write_bytes((path / name).read_bytes())
+
+            with patch.object(release, "command", return_value=""), \
+                    patch.object(release, "gh", side_effect=download) as gh, \
+                    patch.object(release, "verify_dmg") as mount:
+                release.verify_uploaded(draft, path, "2.1.2", "a" * 40, digest, "1")
+            gh.assert_called_once()
+            mount.assert_called_once()
+            self.assertEqual(mount.call_args.args[1:], ("2.1.2", "a" * 40, "1"))
+
+    def test_unknown_duplicate_assets_or_source_drift_fail_before_download(self):
+        for failure in ("unknown", "duplicate", "source", "tag"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp)
+                draft, digest = self.candidate(path)
+                if failure == "unknown":
+                    draft["assets"].append({"name": "unexpected.zip"})
+                elif failure == "duplicate":
+                    draft["assets"].append(draft["assets"][0])
+                elif failure == "source":
+                    draft["target_commitish"] = "b" * 40
+                refs = "b" * 40 + "\trefs/tags/v2.1.2" if failure == "tag" else ""
+                with patch.object(release, "command", return_value=refs), \
+                        patch.object(release, "download_verified") as download, \
+                        self.assertRaises(release.ReleaseError):
+                    release.verify_uploaded(draft, path, "2.1.2", "a" * 40, digest, "1")
+                download.assert_not_called()
+
+    def test_public_resume_uses_original_candidate_after_main_has_advanced(self):
+        from argparse import Namespace
+        args = Namespace(version="2.1.2", verify_existing=False, build="1", merge_pr=None)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            args.notes = args.smoke_record = root / "notes.md"
+            args.notes.write_text("实际验收记录")
+            output = root / "dist/manual-release/2.1.2/candidate"
+            output.mkdir(parents=True)
+            public, digest = self.candidate(output)
+            public["draft"] = False
+            (output / "state.json").write_text(json.dumps(dict(
+                version=args.version, commit="a" * 40, build="1", sha256=digest)))
+            with patch.object(release, "ROOT", root), \
+                    patch.object(release, "clean_checkout", return_value="b" * 40), \
+                    patch.object(release, "release_for", return_value=public), \
+                    patch.object(release, "api", return_value={"sha": "a" * 40}), \
+                    patch.object(release, "verify_dmg") as mount, \
+                    patch.object(release, "download_verified") as download, \
+                    patch.object(release, "sync_manifest") as sync:
+                release.perform(args)
+            download.assert_not_called()
+            mount.assert_called_once_with(output / "Muse-v2.1.2.dmg", "2.1.2", "a" * 40, "1")
+            sync.assert_called_once_with("2.1.2")
 
     def test_manifest_noop_keeps_automatic_updates_disabled(self):
         with tempfile.TemporaryDirectory() as tmp:
