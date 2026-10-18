@@ -87,6 +87,12 @@ bash scripts/build_and_run.sh --verify
 
 本地识别服务位于 `sensevoice-server/` 和 `qwen3-asr-server/`，相关构建脚本位于 `scripts/`。
 
+## 发布新版本
+
+默认采用单人维护、本机 `Muse Local` 签名、GitHub Release 手动下载的路线，自动更新保持关闭。
+统一入口为 `python3 scripts/publish-release.py`，会等待同一源码的 CI，通过后打包、创建草稿、下载复验、公开并同步版本清单。
+具体命令、真机验收记录和失败续跑见[发布流程](docs/发布流程.md)。
+
 ## 项目结构
 
 | 路径 | 内容 |

@@ -51,6 +51,9 @@ jobs:
       - name: Swift 全量测试
         run: swift test
 
+      - name: 手动发布流程回归
+        run: python3 -m unittest discover -s scripts -p 'test_publish_release.py' -v
+
       - name: 仓库健康检查
         run: bash scripts/health-check.sh
 

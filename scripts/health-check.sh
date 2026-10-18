@@ -189,6 +189,7 @@ echo "Date:    $(date '+%Y-%m-%d %H:%M:%S %Z')"
 run_step "swift-build-debug" swift build
 run_step "swift-build-release" swift build -c release
 run_step "swift-test" swift test
+run_step "manual-release-tests" python3 -m unittest discover -s scripts -p 'test_publish_release.py' -v
 run_step "model-artifact-policy" model_artifact_policy
 run_step "package-signing-policy" package_signing_policy
 run_step "ci-release-policy" ci_release_policy

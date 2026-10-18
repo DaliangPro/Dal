@@ -89,7 +89,12 @@ final class UpdateManifestTests: XCTestCase {
     func testRepositoryManifestAndDualArtifactFixtureDecode() throws {
         let repositoryManifest = try Data(contentsOf: repositoryRoot.appendingPathComponent("updates.json"))
         let decodedRepository = try JSONDecoder().decode(UpdateManifest.self, from: repositoryManifest)
-        XCTAssertEqual(decodedRepository.latest, "2.1.1")
+        XCTAssertNotNil(decodedRepository.latest.range(
+            of: #"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"#,
+            options: .regularExpression
+        ), "清单必须包含合法版本号，不能在测试中写死某一次发布版本")
+        XCTAssertTrue(decodedRepository.releases.isEmpty,
+                      "手动签名分发期间不能误发布自动更新制品")
 
         let fixture = """
         {
