@@ -5,6 +5,44 @@ import XCTest
 final class InteractiveTestRuntimeTests: XCTestCase {
     private let candidate = URL(fileURLWithPath: "/Users/test/muse/build/interactive/Muse.app")
 
+    func testLiveLearningAcceptanceRequiresExplicitFlagAndProductionBundle() {
+        XCTAssertTrue(InteractiveTestRuntime.allowsLiveLearningAcceptance(
+            bundleID: "pro.daliang.muse", arguments: ["Muse", "--live-learning-acceptance"]
+        ))
+        XCTAssertFalse(InteractiveTestRuntime.allowsLiveLearningAcceptance(bundleID: "pro.daliang.muse", arguments: ["Muse"]))
+        for bundle in [nil, "other.app", InteractiveTestRuntime.bundleIdentifier] {
+            XCTAssertFalse(InteractiveTestRuntime.allowsLiveLearningAcceptance(
+                bundleID: bundle, arguments: ["Muse", "--live-learning-acceptance"]
+            ))
+        }
+    }
+
+    func testLiveLearningUsesSavedRequirementsAndNormalProviderResolution() {
+        var stored = ProcessingMode.formalWriting
+        stored.prompt = "保留我的附加要求"
+        stored.processingLabel = "我的处理中提示"
+        let modes = [ProcessingMode.direct, stored]
+        let result = InteractiveTestRuntime.liveLearningMode(.formalWriting, modes: modes, provider: .volcano)
+        XCTAssertEqual(result.prompt, stored.prompt)
+        XCTAssertEqual(result.processingLabel, stored.processingLabel)
+        for provider in ASRProvider.allCases {
+            let resolved = ASRProviderRegistry.resolvedMode(for: .formalWriting, provider: provider)
+            let expected = VoiceInputModes.resolve(modes.first { $0.id == resolved.id } ?? resolved, in: modes)
+            XCTAssertEqual(InteractiveTestRuntime.liveLearningMode(.formalWriting, modes: modes, provider: provider), expected)
+        }
+    }
+
+    @MainActor
+    func testLiveLearningPanelHasRealRecordingActionsAndNoPermissionOrFixtureOverrides() {
+        let menu = AppDelegate.makeLiveLearningAcceptanceMenu(target: nil)
+        XCTAssertEqual(menu.items.map(\.title), ["开始直出录音", "开始润色录音", "停止并上屏", "关闭验收面板"])
+        let existing = AppDelegate.makeInteractiveTestStatusMenu(target: nil)
+        for title in ["开始直出录音", "停止并上屏"] {
+            XCTAssertEqual(menu.items.first { $0.title == title }?.action,
+                           existing.items.first { $0.title == title }?.action)
+        }
+    }
+
     func testProductionBundleIgnoresTestEnvironment() throws {
         XCTAssertNil(try InteractiveTestRuntime.validatedSupportDirectory(
             bundleID: "pro.daliang.muse", bundleURL: candidate,
