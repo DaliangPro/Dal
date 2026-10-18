@@ -89,7 +89,7 @@ final class UpdateManifestTests: XCTestCase {
     func testRepositoryManifestAndDualArtifactFixtureDecode() throws {
         let repositoryManifest = try Data(contentsOf: repositoryRoot.appendingPathComponent("updates.json"))
         let decodedRepository = try JSONDecoder().decode(UpdateManifest.self, from: repositoryManifest)
-        XCTAssertEqual(decodedRepository.latest, "1.7.4")
+        XCTAssertEqual(decodedRepository.latest, "2.1.0")
 
         let fixture = """
         {
