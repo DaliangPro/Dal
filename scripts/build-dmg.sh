@@ -40,6 +40,7 @@ esac
 
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-}"
 ALLOW_ADHOC_DMG="${ALLOW_ADHOC_DMG:-0}"
+ALLOW_LOCAL_SIGNING="${ALLOW_LOCAL_SIGNING:-0}"
 UPDATE_READY="yes"
 if [ -z "$CODESIGN_IDENTITY" ] || [ "$CODESIGN_IDENTITY" = "-" ]; then
     if [ "$ALLOW_ADHOC_DMG" != "1" ]; then
@@ -47,6 +48,10 @@ if [ -z "$CODESIGN_IDENTITY" ] || [ "$CODESIGN_IDENTITY" = "-" ]; then
         exit 1
     fi
     CODESIGN_IDENTITY="-"
+    UPDATE_READY="no"
+elif [ "$CODESIGN_IDENTITY" = "Muse Local" ] && [ "$ALLOW_LOCAL_SIGNING" = "1" ]; then
+    # Muse 的公开手动分发沿用本机 Muse Local 证书；它没有 Developer ID
+    # TeamIdentifier，也不进入自动更新清单，但仍保留应用包的严格签名校验。
     UPDATE_READY="no"
 fi
 
@@ -152,7 +157,7 @@ if [ "$UPDATE_READY" = "yes" ]; then
     "$CODESIGN_BIN" --force --timestamp --sign "$CODESIGN_IDENTITY" "$PARTIAL_DMG"
     "$CODESIGN_BIN" --verify --strict --verbose=4 "$PARTIAL_DMG"
 else
-    echo "WARNING: ad-hoc development DMG is not eligible for the update manifest" >&2
+    echo "WARNING: local/ad-hoc DMG is not eligible for the update manifest" >&2
 fi
 
 "$HDIUTIL_BIN" verify "$PARTIAL_DMG"
