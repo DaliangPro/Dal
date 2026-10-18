@@ -135,23 +135,29 @@ def verify_dmg(path, version, commit, build=None):
         command("hdiutil", "detach", mounts[0])
 
 
-def verify_assets(directory, version, commit, expected_hash=None, build=None):
+def verify_checksums(directory, version, expected_hash=None):
     name = f"Muse-v{version}.dmg"
     image = directory / name
     digest = sha256(image)
     require((directory / "SHA256SUMS.txt").read_text().strip() == f"{digest}  {name}",
-            "下载文件与 SHA256 清单不一致")
+            "安装包与 SHA256 清单不一致")
     if expected_hash:
-        require(digest == expected_hash, "GitHub 下载文件与本机发布制品不同")
+        require(digest == expected_hash, "安装包与本机发布制品不同")
+    return digest
+
+
+def verify_assets(directory, version, commit, expected_hash=None, build=None):
+    digest = verify_checksums(directory, version, expected_hash)
+    image = directory / f"Muse-v{version}.dmg"
     verify_dmg(image, version, commit, build)
     return digest
 
 
-def download_verified(release, directory, version, expected_hash=None, build=None):
-    directory.mkdir(parents=True, exist_ok=False)
+def release_source(release, version):
     expected = {f"Muse-v{version}.dmg", "SHA256SUMS.txt"}
-    require({item["name"] for item in release["assets"]} == expected, "Release 附件不完整或含未知文件")
-    gh("release", "download", f"v{version}", "--dir", str(directory))
+    names = [item["name"] for item in release["assets"]]
+    require(len(names) == len(expected) and set(names) == expected,
+            "Release 附件不完整、重复或含未知文件")
     if release["draft"]:
         # GitHub 草稿可能尚未建立标签，先按固定的完整提交校验；若标签已经存在，
         # 必须确认它也指向同一源码，避免公开时沿用另一个提交的旧标签。
@@ -165,8 +171,29 @@ def download_verified(release, directory, version, expected_hash=None, build=Non
     else:
         commit = api(f"commits/v{version}")["sha"]
     require(release["target_commitish"] == commit, "Release 目标没有固定为完整源码提交")
+    return commit
+
+
+def download_verified(release, directory, version, expected_hash=None, build=None):
+    commit = release_source(release, version)
+    directory.mkdir(parents=True, exist_ok=False)
+    gh("release", "download", f"v{version}", "--dir", str(directory))
     verify_assets(directory, version, commit, expected_hash, build)
     return commit
+
+
+def verify_uploaded(release, directory, version, commit, expected_hash, build=None):
+    require(release_source(release, version) == commit, "Release 来源与本机候选不一致")
+    digest = verify_checksums(directory, version, expected_hash)
+    for item in release["assets"]:
+        path = directory / item["name"]
+        if item.get("size") != path.stat().st_size or item.get("digest") != f"sha256:{sha256(path)}":
+            print("GitHub 附件校验信息缺失或异常，回退到下载复验。", flush=True)
+            downloaded_commit = download_verified(
+                release, directory / f"download-{uuid.uuid4().hex[:8]}", version, digest, build)
+            require(downloaded_commit == commit, "下载复验期间 Release 来源变化")
+            return
+    print("GitHub 附件名称、大小和 SHA256 与本机一致，无需重复下载。", flush=True)
 
 
 def publish_draft(state, output, notes_file):
@@ -182,7 +209,7 @@ def publish_draft(state, output, notes_file):
             require(present <= expected, "已有草稿含未知附件，拒绝接管")
             missing = expected - present
             if missing:
-                # 只补齐本次草稿中缺少的文件；不覆盖已存在附件，随后完整下载复验。
+                # 只补齐本次草稿中缺少的文件；不覆盖已存在附件，随后核对服务端指纹。
                 gh("release", "upload", tag, *(str(output / name) for name in sorted(missing)))
                 existing = release_for(tag)
                 require(existing is not None and existing["draft"], "补齐附件后草稿状态变化，请核对后继续")
@@ -192,9 +219,8 @@ def publish_draft(state, output, notes_file):
            "--title", f"Muse v{state['version']}", "--notes-file", str(notes_file))
         existing = release_for(tag)
         require(existing is not None, "创建草稿后无法读取，可用相同命令续跑")
-    # 续跑也重新下载并比较本机指纹，验证失败留下草稿，绝不公开或覆盖附件。
-    download_verified(existing, output / f"download-{uuid.uuid4().hex[:8]}",
-                      state["version"], state["sha256"], state["build"])
+    # 续跑也核对服务端指纹；本机候选已验签，只有校验信息不足或异常才下载。
+    verify_uploaded(existing, output, state["version"], state["commit"], state["sha256"], state["build"])
     require(api("git/ref/heads/main")["object"]["sha"] == state["commit"],
             "main 已更新，草稿保留；请检查新改动后重新准备候选")
     wait_ci(state["commit"], "push")
@@ -227,7 +253,7 @@ def sync_manifest(version):
             command("git", "push", "-u", "origin", branch)
             url = gh("pr", "create", "--base", "main", "--head", branch,
                      "--title", f"更新: 同步已发布版本 {version}", "--body",
-                     f"GitHub v{version} 安装包下载及签名复验通过，更新已发布版本基线；自动更新保持关闭。")
+                     f"GitHub v{version} 发布附件校验通过，更新已发布版本基线；自动更新保持关闭。")
             print(f"清单 PR 已创建：{url}", flush=True)
             number = int(url.rstrip("/").split("/")[-1])
         finally:
@@ -263,7 +289,14 @@ def perform(args):
     existing = release_for(f"v{args.version}")
     if existing and not existing["draft"]:
         require(not existing["prerelease"], "同名版本是预发布版本")
-        download_verified(existing, output / f"public-{uuid.uuid4().hex[:8]}", args.version)
+        if state_file.exists():
+            state = json.loads(state_file.read_text())
+            require(state["version"] == args.version, "本机候选版本不一致")
+            verify_assets(output, args.version, state["commit"], state["sha256"], state["build"])
+            verify_uploaded(existing, output, args.version, state["commit"], state["sha256"], state["build"])
+        else:
+            print("本机缺少原始候选记录，下载复验已公开的附件。", flush=True)
+            download_verified(existing, output / f"public-{uuid.uuid4().hex[:8]}", args.version)
         sync_manifest(args.version)
         return
     releases = json.loads(gh("release", "list", "--limit", "1000", "--json", "tagName,isDraft,isPrerelease"))
