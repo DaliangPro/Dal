@@ -37,6 +37,7 @@ permissions:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+  MUSE_SOLO_MAINTAINER_RELEASE: "1"
 
 concurrency:
   group: muse-release
@@ -93,7 +94,7 @@ jobs:
             echo '- [ ] Local 旧版更新'
             echo '- [ ] 更新失败回滚'
             echo
-            echo '受保护环境 reviewer 必须依据独立真机记录复核，不得仅依赖调度者勾选。'
+            echo '单人维护模式仍要求依据独立真机记录完成 gate，不得仅依赖调度者勾选。'
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$PUBLISH_REQUESTED" = "true" ] && [ "$MANUAL_GATE_CONFIRMED" != "true" ]; then
             echo "发布被拒绝：尚未确认全部真机 gate" >&2

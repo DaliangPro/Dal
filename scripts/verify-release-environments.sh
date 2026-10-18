@@ -22,6 +22,22 @@ DEFAULT_BRANCH="${DEFAULT_BRANCH:-}"
 
 TEST_MODE="${MUSE_RELEASE_ENVIRONMENT_TEST_MODE:-0}"
 FIXTURE_DIR="${MUSE_RELEASE_ENVIRONMENT_FIXTURE_DIR:-}"
+SOLO_MAINTAINER_MODE="${MUSE_SOLO_MAINTAINER_RELEASE:-0}"
+
+# 本项目由单一维护者发布时，GitHub 环境的 required reviewer 规则无法成立：
+# 当前仓库没有第二个协作者，也不能让发布者自审。保留仓库、main 分支和
+# workflow 入口校验，把签名、公证、制品复验与手动 gate 留给后续步骤。
+if [ "$SOLO_MAINTAINER_MODE" = "1" ]; then
+    [ "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY" ] \
+        || fail "workflow must run in $EXPECTED_REPOSITORY"
+    [ "$DEFAULT_BRANCH" = "$EXPECTED_DEFAULT_BRANCH" ] \
+        || fail "repository default branch must remain $EXPECTED_DEFAULT_BRANCH"
+    [ "$GITHUB_REF_NAME" = "$EXPECTED_DEFAULT_BRANCH" ] \
+        || fail "release workflow must run from $EXPECTED_DEFAULT_BRANCH"
+    echo "RELEASE_ENVIRONMENT_POLICY_RESULT: PASS (solo maintainer; main only)"
+    exit 0
+fi
+
 if [ "$TEST_MODE" = "1" ]; then
     [ -n "$FIXTURE_DIR" ] && [ -d "$FIXTURE_DIR" ] && [ ! -L "$FIXTURE_DIR" ] \
         || fail "test fixture directory is missing or unsafe"

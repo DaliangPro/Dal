@@ -23,6 +23,8 @@ final class DMGScriptTests: XCTestCase {
         XCTAssertTrue(source.contains(#""$SHASUM_BIN" -a 256"#))
         XCTAssertTrue(source.contains(#"MUSE_DMG_TEST_MODE"#))
         XCTAssertTrue(source.contains(#"ALLOW_ADHOC_DMG"#))
+        XCTAssertTrue(source.contains(#"ALLOW_LOCAL_SIGNING"#))
+        XCTAssertTrue(source.contains(#"Muse Local"#))
         XCTAssertTrue(source.contains(#"Developer ID Application"#))
         XCTAssertTrue(source.contains(#"TeamIdentifier"#))
         XCTAssertTrue(source.contains(#"PARTIAL_DMG"#))
