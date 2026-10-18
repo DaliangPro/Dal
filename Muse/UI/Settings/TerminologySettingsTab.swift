@@ -14,6 +14,11 @@ private enum TerminologySettingsPanel: String, CaseIterable {
     }
 }
 
+private enum BuiltInTerminologyLayout {
+    static let canonicalColumnWidth: CGFloat = 170
+    static let statusColumnWidth: CGFloat = 154
+}
+
 /// 术语编辑器中的 Bundle ID 只接受可预测的反向域名格式，避免保存一个永远匹配不到的作用域。
 enum TerminologyBundleIdentifierValidator {
     static func isValid(_ rawValue: String) -> Bool {
@@ -586,10 +591,25 @@ private extension TerminologySettingsTab {
                 ))
                 .font(TF.settingsFontCaption)
                 .foregroundStyle(TF.settingsTextTertiary)
+                HStack(spacing: 12) {
+                    Text(L("标准词", "Canonical")).frame(
+                        width: BuiltInTerminologyLayout.canonicalColumnWidth,
+                        alignment: .leading
+                    )
+                    Text(L("常见错法", "Common mishearings"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(L("生效状态", "Status")).frame(
+                        width: BuiltInTerminologyLayout.statusColumnWidth,
+                        alignment: .trailing
+                    )
+                }
+                .font(TF.settingsFontMetadata)
+                .foregroundStyle(TF.settingsTextTertiary)
                 terminologyList(
                     entries: filteredBuiltInTerms,
                     emptyTitle: searchText.isEmpty ? L("暂无内置术语", "No built-in terms") : L("没有匹配项", "No matches"),
-                    emptyDescription: searchText.isEmpty ? L("当前内置词表为空。", "The built-in terminology list is empty.") : L("换一个关键词试试。", "Try another search.")
+                    emptyDescription: searchText.isEmpty ? L("当前内置词表为空。", "The built-in terminology list is empty.") : L("换一个关键词试试。", "Try another search."),
+                    compact: true
                 )
             }
         }
@@ -625,14 +645,15 @@ private extension TerminologySettingsTab {
         entries: [TerminologyEntry],
         emptyTitle: String,
         emptyDescription: String,
-        allowsEditing: Bool = false
+        allowsEditing: Bool = false,
+        compact: Bool = false
     ) -> some View {
         if entries.isEmpty {
             terminologyEmptyState(title: emptyTitle, description: emptyDescription)
         } else {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                    terminologyRow(entry, allowsEditing: allowsEditing)
+                    terminologyRow(entry, allowsEditing: allowsEditing, compact: compact)
                     if index < entries.count - 1 {
                         Rectangle().fill(TF.settingsStroke.opacity(0.5)).frame(height: 1)
                     }
@@ -641,7 +662,20 @@ private extension TerminologySettingsTab {
         }
     }
 
-    func terminologyRow(_ entry: TerminologyEntry, allowsEditing: Bool) -> some View {
+    @ViewBuilder
+    func terminologyRow(
+        _ entry: TerminologyEntry,
+        allowsEditing: Bool,
+        compact: Bool = false
+    ) -> some View {
+        if compact {
+            compactTerminologyRow(entry)
+        } else {
+            standardTerminologyRow(entry, allowsEditing: allowsEditing)
+        }
+    }
+
+    func standardTerminologyRow(_ entry: TerminologyEntry, allowsEditing: Bool) -> some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 8) {
@@ -704,6 +738,52 @@ private extension TerminologySettingsTab {
             }
         }
         .padding(.vertical, 10)
+        .opacity(entry.isEnabled ? 1 : 0.68)
+    }
+
+    func compactTerminologyRow(_ entry: TerminologyEntry) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text(entry.canonicalText)
+                .font(TF.settingsFontBodyStrong)
+                .foregroundStyle(entry.isEnabled ? TF.settingsText : TF.settingsTextTertiary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: BuiltInTerminologyLayout.canonicalColumnWidth, alignment: .leading)
+
+            Text(entry.aliases.isEmpty
+                ? "—"
+                : entry.aliases.map(\.text).joined(separator: "、"))
+                .font(TF.settingsFontCaption)
+                .foregroundStyle(TF.settingsTextTertiary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 6) {
+                terminologyStatusChip(
+                    L("识别增强", "ASR"),
+                    active: entry.isEnabled
+                        && entry.scope.kind == .global
+                        && ASRTerminologyCapabilities.forProvider(selectedASRProvider).hotwordDelivery != .unsupported
+                )
+                .help(asrStatusHelp(for: entry))
+                terminologyStatusChip(
+                    L("自动纠错", "Correction"),
+                    active: entry.isEnabled && hasUnconflictedAlias(entry)
+                )
+                Toggle("", isOn: Binding(
+                    get: { entry.isEnabled },
+                    set: { setEntryEnabled(entry, enabled: $0) }
+                )).labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .accessibilityLabel(entry.isEnabled
+                        ? L("停用术语", "Disable term")
+                        : L("启用术语", "Enable term"))
+            }
+            .frame(width: BuiltInTerminologyLayout.statusColumnWidth, alignment: .trailing)
+        }
+        .padding(.vertical, 7)
         .opacity(entry.isEnabled ? 1 : 0.68)
     }
 
