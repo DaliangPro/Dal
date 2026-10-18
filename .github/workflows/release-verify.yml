@@ -1,8 +1,16 @@
-name: 发布验签
+name: 发布入口（本机签名 / 可选苹果公证）
 
 "on":
   workflow_dispatch:
     inputs:
+      distribution:
+        description: 默认用本机入口发布；仅已配置苹果证书时选择 notarized
+        required: true
+        default: manual
+        type: choice
+        options:
+          - manual
+          - notarized
       version:
         description: 数字点分版本号，例如 2.0.0
         required: true
@@ -45,7 +53,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  manual-route:
+    if: ${{ inputs.distribution == 'manual' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 显示已确认的本机签名发布入口
+        run: |
+          {
+            echo '## 默认发布方式：本机 Muse Local 签名'
+            echo '本作业只显示入口，不代表版本已经发布。证书私钥保留在维护者的 Mac。'
+            echo '请在本机 main 分支使用 scripts/publish-release.py。'
+            echo '入口自动等待 CI，支持 --merge-pr，先草稿后下载复验，通过后才公开并同步版本清单。'
+            echo '完整命令与真机记录要求见 docs/发布流程.md。'
+            echo '苹果公证路线保留为可选项；默认流程不依赖它。'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   quality:
+    if: ${{ inputs.distribution == 'notarized' }}
     runs-on: macos-26
     timeout-minutes: 90
     permissions:
