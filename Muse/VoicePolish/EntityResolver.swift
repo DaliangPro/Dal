@@ -324,10 +324,16 @@ enum EntityResolver {
                 $0.isASCII && CharacterSet.letters.contains($0)
             }
         }
-        guard isLongWord(left), isLongWord(right),
-              Double(min(left.count, right.count)) / Double(max(left.count, right.count)) >= 0.75,
-              editSimilarity(left, right) >= 0.5,
-              let leftKey = englishPhoneticKey(left), let rightKey = englishPhoneticKey(right),
+        // 识别也可能把一个词拆成多个完整英文词；只在低置信建议中合并比较。
+        let words = left.split(whereSeparator: \.isWhitespace).map(String.init)
+        guard !left.contains(where: \.isNewline), (1...3).contains(words.count),
+              words.allSatisfy({ $0.count >= 2 && $0.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) } })
+        else { return false }
+        let compactLeft = words.joined()
+        guard isLongWord(compactLeft), isLongWord(right),
+              Double(min(compactLeft.count, right.count)) / Double(max(compactLeft.count, right.count)) >= 0.75,
+              editSimilarity(compactLeft, right) >= 0.5,
+              let leftKey = englishPhoneticKey(compactLeft), let rightKey = englishPhoneticKey(right),
               abs(leftKey.filter({ $0 == "a" }).count - rightKey.filter({ $0 == "a" }).count) <= 1
         else { return false }
 
@@ -349,11 +355,15 @@ enum EntityResolver {
         }
         let leftConsonants = consonants(leftKey)
         let rightConsonants = consonants(rightKey)
-        guard leftConsonants.hasSuffix("s"), rightConsonants.hasSuffix("s"),
-              leftConsonants.hasSuffix("ts") != rightConsonants.hasSuffix("ts")
+        func hasFinalCluster(_ value: String) -> Bool {
+            value.hasSuffix("ts") || value.hasSuffix("st")
+        }
+        guard leftConsonants.hasSuffix("s") || leftConsonants.hasSuffix("st"),
+              rightConsonants.hasSuffix("s") || rightConsonants.hasSuffix("st"),
+              hasFinalCluster(leftConsonants) != hasFinalCluster(rightConsonants)
         else { return false }
         func simplifyFinalCluster(_ value: String) -> String {
-            value.hasSuffix("ts") ? String(value.dropLast(2)) + "s" : value
+            hasFinalCluster(value) ? String(value.dropLast(2)) + "s" : value
         }
         let signature = simplifyFinalCluster(leftConsonants)
         return (4...16).contains(signature.count) && signature == simplifyFinalCluster(rightConsonants)

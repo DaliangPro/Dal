@@ -36,6 +36,10 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         try await verifyNativeConfirmation(alias: "l f deck", canonical: "AlphaDeck")
     }
 
+    func testActualSplitWordEditIsObservedConfirmedSavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeConfirmation(alias: "book list", canonical: "Bookless")
+    }
+
     private func verifyNativeConfirmation(alias: String, canonical: String) async throws {
         let fixture = try LearningChainFixture()
         defer { fixture.cleanup() }

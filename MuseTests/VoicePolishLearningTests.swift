@@ -2,6 +2,29 @@ import XCTest
 @testable import Muse
 
 final class VoicePolishLearningTests: XCTestCase {
+    func testActualSplitEnglishWordAndFinalSTOnlyOfferConfirmation() {
+        for alias in ["book list", "booklist", "Book List", "book  list"] {
+            let original = "我正在读 \(alias)。"
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: "我正在读 Bookless。", recognitionText: original
+            ).isEmpty)
+            XCTAssertEqual(TerminologyCorrectionExtractor.confirmationASRCandidates(
+                generatedText: original, correctedText: "我正在读 Bookless。", recognitionText: original
+            ), [.init(alias: alias, canonical: "Bookless")])
+        }
+        for (original, corrected, source) in [
+            ("book list", "Bookless", "其他词"), ("book list", "Bookcase", "book list"),
+            ("book list", "Breakfast", "book list"), ("book list", "book less", "book list"),
+            ("book list", "Bookless1", "book list"), ("bo ok li st", "Bookless", "bo ok li st"),
+            ("\"book list\"@example.com", "\"Bookless\"@example.com", "\"book list\"@example.com"),
+            ("/book list", "/Bookless", "/book list"), ("${book list}", "${Bookless}", "${book list}")
+        ] {
+            XCTAssertTrue(TerminologyCorrectionExtractor.confirmationASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: source
+            ).isEmpty, original)
+        }
+    }
+
     func testActualASRLetterFragmentsOnlyOfferSourceBoundConfirmation() {
         for alias in ["l f deck", "L F Deck", "a l f deck"] {
             let original = "我正在用 \(alias)。"
