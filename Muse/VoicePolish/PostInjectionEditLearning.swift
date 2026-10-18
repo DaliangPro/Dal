@@ -90,17 +90,23 @@ actor PostInjectionEditLearningMonitor {
     private let coordinator: TerminologyHistoryTransactionCoordinator
     private let settingsContext: VocabularyStorageContext
     private let observationTiming: PostInjectionObservationTiming
+    private let observationNow: @Sendable () -> ContinuousClock.Instant
+    private let observationSleep: @Sendable (Duration) async throws -> Void
     private let diagnostic: @Sendable (String) -> Void
 
     init(
         coordinator: TerminologyHistoryTransactionCoordinator = .shared,
         settingsContext: VocabularyStorageContext = .production,
         observationTiming: PostInjectionObservationTiming = PostInjectionObservationTiming(),
+        observationNow: @escaping @Sendable () -> ContinuousClock.Instant = { ContinuousClock.now },
+        observationSleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
         diagnostic: @escaping @Sendable (String) -> Void = { DebugFileLogger.log($0) }
     ) {
         self.coordinator = coordinator
         self.settingsContext = settingsContext
         self.observationTiming = observationTiming
+        self.observationNow = observationNow
+        self.observationSleep = observationSleep
         self.diagnostic = diagnostic
     }
 
@@ -396,25 +402,25 @@ actor PostInjectionEditLearningMonitor {
     }
 
     private func observe(_ target: PostInjectionEditLearningTarget, historyStore: HistoryStore) async {
-        let started = ContinuousClock.now
+        let started = observationNow()
         var window = PostInjectionObservationWindow(timing: observationTiming)
         var lastAttemptedCandidate: String?
-        while window.isOpen(at: started.duration(to: .now)) {
+        while window.isOpen(at: started.duration(to: observationNow())) {
             guard !Task.isCancelled else {
                 diagnostic("learning.observe stopped reason=cancelled")
                 return
             }
-            try? await Task.sleep(for: observationTiming.pollingInterval)
+            try? await observationSleep(observationTiming.pollingInterval)
             guard !Task.isCancelled else {
                 diagnostic("learning.observe stopped reason=cancelled")
                 return
             }
-            guard window.isOpen(at: started.duration(to: .now)) else { break }
+            guard window.isOpen(at: started.duration(to: observationNow())) else { break }
             if !(await target.field.isAvailable()) {
                 // 只使用刚才在原安全控件中完整读回的快照；不读取失焦后的正文。
                 // 控件受保护/只读/失联时不作最终提交，取消也不会触发此路径。
                 if await target.field.canFinishAfterFocusLoss(),
-                   let candidate = window.recentCandidate(at: started.duration(to: .now)),
+                   let candidate = window.recentCandidate(at: started.duration(to: observationNow())),
                    candidate != lastAttemptedCandidate, !Task.isCancelled {
                     await persistAndReport(candidate, target: target, historyStore: historyStore)
                 }
@@ -422,7 +428,7 @@ actor PostInjectionEditLearningMonitor {
                 return
             }
             let candidate = await Self.currentCandidate(for: target)
-            let elapsed = started.duration(to: .now)
+            let elapsed = started.duration(to: observationNow())
             let changed = candidate != window.candidate
             window.sample(candidate, at: elapsed)
             if changed, let candidate {

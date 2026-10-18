@@ -261,26 +261,29 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
     }
 
     func testActualObservationContinuesAfterRelatedEditExtendsIdleTimeout() async throws {
+        let clock = LearningObservationClock()
         let fixture = try LearningChainFixture(timing: PostInjectionObservationTiming(
             pollingInterval: .milliseconds(20), stableDuration: .milliseconds(60),
             idleTimeout: .milliseconds(400), maximumLifetime: .seconds(2)
-        ))
-        defer { fixture.cleanup() }
+        ), clock: clock)
         let editor = LearningNativeEditor()
+        defer { editor.available = false; clock.finish(); fixture.cleanup() }
         await fixture.insert(id: "extended", text: "cloud.")
         editor.replace(with: "cloud.")
         await fixture.monitor.start(injectedText: "cloud.", historyID: "extended",
                                     capture: .field(editor.field), historyStore: fixture.history)
-        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
-        try await Task.sleep(for: .milliseconds(250))
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 && clock.isWaiting }
         editor.replace(with: "cloud!")
-        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
-        try await Task.sleep(for: .milliseconds(250))
+        try clock.advance(to: .milliseconds(250))
+        try await waitUntil { fixture.diagnostics.sampledCandidates == 1 && clock.isWaiting }
+        // 已越过最初400ms空闲期，仍处于第一次相关修改续至650ms的窗口内。
         editor.replace(with: "Claude")
+        try clock.advance(to: .milliseconds(500))
+        try await waitUntil { fixture.diagnostics.sampledCandidates == 2 && clock.isWaiting }
+        try clock.advance(to: .milliseconds(600))
         try await waitUntil {
             TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
         }
-        editor.available = false
     }
 
     func testRangeReadFailureClearsSnapshotBeforeFocusDeparture() async throws {
@@ -408,6 +411,62 @@ private final class LearningChainDiagnostics: @unchecked Sendable {
     var sampledCandidates: Int { lock.lock(); defer { lock.unlock() }; return samples }
 }
 
+/// 只推进逻辑观察时间；真实原生范围读取与保存仍走完整异步链路。
+private final class LearningObservationClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private let origin = ContinuousClock.now
+    private var elapsed: Duration = .zero
+    private var sleeper: CheckedContinuation<Void, Never>?
+    private var finished = false
+
+    var now: ContinuousClock.Instant {
+        lock.lock(); defer { lock.unlock() }
+        return origin + elapsed
+    }
+
+    var isWaiting: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return sleeper != nil
+    }
+
+    func sleep() async {
+        await withCheckedContinuation { continuation in
+            lock.lock()
+            if finished {
+                elapsed += .seconds(10)
+                lock.unlock()
+                continuation.resume()
+            } else {
+                precondition(sleeper == nil)
+                sleeper = continuation
+                lock.unlock()
+            }
+        }
+    }
+
+    func advance(to next: Duration) throws {
+        lock.lock()
+        guard next >= elapsed, let continuation = sleeper else {
+            lock.unlock()
+            throw NSError(domain: "MuseLearningObservationClock", code: 1)
+        }
+        elapsed = next
+        sleeper = nil
+        lock.unlock()
+        continuation.resume()
+    }
+
+    func finish() {
+        lock.lock()
+        finished = true
+        elapsed += .seconds(10)
+        let continuation = sleeper
+        sleeper = nil
+        lock.unlock()
+        continuation?.resume()
+    }
+}
+
 private struct LearningChainFixture {
     let context: VocabularyStorageContext
     let history: HistoryStore
@@ -415,7 +474,8 @@ private struct LearningChainFixture {
     let suiteName: String
     let diagnostics: LearningChainDiagnostics
 
-    init(timing: PostInjectionObservationTiming = PostInjectionObservationTiming()) throws {
+    init(timing: PostInjectionObservationTiming = PostInjectionObservationTiming(),
+         clock: LearningObservationClock? = nil) throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("MuseLearningChain-\(UUID())")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         suiteName = "MuseLearningChain.\(UUID())"
@@ -433,7 +493,12 @@ private struct LearningChainFixture {
         self.diagnostics = diagnostics
         monitor = PostInjectionEditLearningMonitor(
             coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context,
-            observationTiming: timing, diagnostic: { diagnostics.record($0) }
+            observationTiming: timing,
+            observationNow: { clock?.now ?? ContinuousClock.now },
+            observationSleep: { duration in
+                if let clock { await clock.sleep() } else { try await Task.sleep(for: duration) }
+            },
+            diagnostic: { diagnostics.record($0) }
         )
     }
 
