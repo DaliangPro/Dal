@@ -212,7 +212,8 @@ actor PostInjectionEditLearningMonitor {
 
     /// 全局按输入框能力判断，不按 APP 或网页来源设置白名单。
     /// Subrole 是可选属性，AXProtectedContent/AXEditable 并非所有标准控件提供；
-    /// 属性不支持不能当成密码框。明确保护、只读、未知角色或读取出错仍拒绝。
+    /// 属性不支持不能当成密码框。明确保护、只读、未知角色且没有明确可编辑标记、
+    /// 或读取出错仍拒绝。
     /// 范围读取和插入正文的逐字校验仍由 capture 执行，不读取整份网页或聊天记录。
     static func supportsCapture(
         role: String?, subrole: String?, editable: Bool?, protectedContent: Bool?,
@@ -232,7 +233,8 @@ actor PostInjectionEditLearningMonitor {
         if editable == false { return .readOnlyField }
         guard metadataReadable else { return .fieldUnresponsive }
         guard role == "AXTextField" || role == "AXTextArea"
-            || (role == "AXComboBox" && editable == true) else { return .unsupportedField }
+            || subrole == "AXSearchField"
+            || editable == true else { return .unsupportedField }
         return nil
     }
 
@@ -265,6 +267,21 @@ actor PostInjectionEditLearningMonitor {
         capture: PostInjectionLearningFieldCapture,
         historyStore: HistoryStore
     ) {
+        start(
+            injectedText: injectedText,
+            historyID: historyID,
+            captureProvider: { capture },
+            historyStore: historyStore
+        )
+    }
+
+    /// 让监控器在上屏后自行获取输入框，避免 RecognitionSession 只查一次焦点。
+    func start(
+        injectedText: String,
+        historyID: String,
+        captureProvider: @escaping @Sendable () async -> PostInjectionLearningFieldCapture,
+        historyStore: HistoryStore
+    ) {
         tasks[historyID]?.cancel()
         insertionOrder.removeAll { $0 == historyID }
         while tasks.count >= Self.maximumConcurrentTargets,
@@ -275,32 +292,92 @@ actor PostInjectionEditLearningMonitor {
         insertionOrder.append(historyID)
         tasks[historyID] = Task { [weak self] in
             await self?.captureAndObserve(
-                injectedText: injectedText, historyID: historyID, capture: capture, historyStore: historyStore
+                injectedText: injectedText, historyID: historyID,
+                captureProvider: captureProvider, historyStore: historyStore
             )
         }
     }
 
     private func captureAndObserve(
-        injectedText: String, historyID: String, capture: PostInjectionLearningFieldCapture, historyStore: HistoryStore
+        injectedText: String,
+        historyID: String,
+        captureProvider: @escaping @Sendable () async -> PostInjectionLearningFieldCapture,
+        historyStore: HistoryStore
     ) async {
         defer {
             tasks.removeValue(forKey: historyID)
             insertionOrder.removeAll { $0 == historyID }
         }
-        guard case .field(let field) = capture else {
-            // 输入框能力不足是正常兼容边界，不打断用户；仅保留内部诊断。
-            if case .unavailable = capture { DebugFileLogger.log("learning.capture unavailable") }
-            return
-        }
-        let result = await Self.captureResult(injectedText: injectedText, historyID: historyID, field: field)
+        let result = await Self.captureTargetWithRetry(
+            injectedText: injectedText, historyID: historyID, captureProvider: captureProvider
+        )
         guard case .captured(let target) = result else {
             if case .failure(let failure) = result {
                 DebugFileLogger.log("learning.capture failure=\(failure.rawValue) units=\(injectedText.utf16.count)")
             }
-            // 读取失败、焦点变化、范围异常都静默；成功学习才需要用户看到反馈。
+            // 读取失败、焦点变化、范围异常都不打断输入；成功学习才需要反馈。
             return
         }
         await observe(target, historyStore: historyStore)
+    }
+
+    private static func captureTargetWithRetry(
+        injectedText: String,
+        historyID: String,
+        captureProvider: @escaping @Sendable () async -> PostInjectionLearningFieldCapture
+    ) async -> PostInjectionCaptureResult {
+        // 上屏后的焦点可能在输入框、剪贴板粘贴和宿主 AX 树之间短暂切换。
+        // 每次重试都重新获取焦点元素，避免拿着已经失效的 AX 引用继续读取。
+        var lastResult = PostInjectionCaptureResult.failure(.insertionPending)
+        var lastUnavailable: AutomaticLearningFeedback?
+        for attempt in 0..<8 {
+            guard !Task.isCancelled else { return lastResult }
+            let capture = await captureProvider()
+            guard case .field(let field) = capture else {
+                if case .unavailable(let feedback) = capture { lastUnavailable = feedback }
+                if case .unavailable = capture, Self.shouldRetryCapture(capture), attempt + 1 < 8 {
+                    try? await Task.sleep(for: .milliseconds(120))
+                    continue
+                }
+                if let lastUnavailable {
+                    DebugFileLogger.log(
+                        "learning.capture unavailable reason=\(String(describing: lastUnavailable))"
+                    )
+                }
+                return .failure(.focusChanged)
+            }
+            let result = await captureResult(
+                injectedText: injectedText, historyID: historyID, field: field
+            )
+            if case .captured = result { return result }
+            lastResult = result
+            guard case .failure(let failure) = result,
+                  Self.shouldRetryCaptureFailure(failure), attempt + 1 < 8 else {
+                return result
+            }
+            try? await Task.sleep(for: .milliseconds(120))
+        }
+        return lastResult
+    }
+
+    private static func shouldRetryCapture(_ capture: PostInjectionLearningFieldCapture) -> Bool {
+        guard case .unavailable(let feedback) = capture else { return false }
+        switch feedback {
+        case .unavailable, .fieldUnresponsive, .unsupportedField:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private static func shouldRetryCaptureFailure(_ failure: PostInjectionCaptureFailure) -> Bool {
+        switch failure {
+        case .focusChanged, .selectionUnavailable, .selectionActive, .insertionPending,
+             .rangeUnreadable, .invalidRangeResponse, .textMismatch:
+            return true
+        case .rangeUnsupported, .windowTooLarge:
+            return false
+        }
     }
 
     private func observe(_ target: PostInjectionEditLearningTarget, historyStore: HistoryStore) async {

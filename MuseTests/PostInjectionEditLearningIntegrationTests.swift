@@ -151,6 +151,30 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         XCTAssertEqual(reportCount.value, 0, "输入框能力不足时不应弹出技术失败提示")
     }
 
+    func testTransientFieldLookupRetriesUntilInputBoxBecomesReadable() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "delayed-field", text: "cloud.")
+        editor.replace(with: "cloud.")
+        let attempts = NotificationReportCounter()
+        await fixture.monitor.start(
+            injectedText: "cloud.", historyID: "delayed-field",
+            captureProvider: {
+                let attempt = attempts.incrementAndRead()
+                if attempt < 3 { return .unavailable(.unavailable) }
+                return .field(editor.field)
+            },
+            historyStore: fixture.history
+        )
+        try await waitUntil { editor.hasVerifiedOriginal }
+        editor.replace(with: "Claude")
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        XCTAssertGreaterThanOrEqual(attempts.value, 3)
+    }
+
     private func waitUntil(_ condition: @MainActor () -> Bool) async throws {
         let deadline = ContinuousClock.now + .seconds(5)
         while !condition(), ContinuousClock.now < deadline {
@@ -174,6 +198,14 @@ private final class NotificationReportCounter: @unchecked Sendable {
         lock.lock()
         count += 1
         lock.unlock()
+    }
+
+    func incrementAndRead() -> Int {
+        lock.lock()
+        count += 1
+        let result = count
+        lock.unlock()
+        return result
     }
 }
 

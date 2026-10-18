@@ -86,6 +86,12 @@ final class VoicePolishLearningTests: XCTestCase {
         XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
             role: "AXComboBox", subrole: nil, editable: true, protectedContent: false
         ), "可编辑组合框仍需通过后续本次插入范围校验")
+        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+            role: "AXWebArea", subrole: nil, editable: true, protectedContent: false
+        ), "网页输入框可用 AXEditable 明确声明能力时应进入范围捕获")
+        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+            role: "AXButton", subrole: "AXSearchField", editable: nil, protectedContent: false
+        ), "搜索框的角色异常时仍可由 SearchField 子角色确认能力")
     }
 
     func testCaptureRejectionDistinguishesProtectedReadOnlyUnsupportedAndReadErrors() {

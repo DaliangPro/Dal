@@ -1102,16 +1102,11 @@ actor RecognitionSession {
         }
         guard isStillCurrent(sessionID, stage: "post-injection") else { return false }
         onASREvent?(.finalized(text: llmResult.finalText, injection: injectionOutcome))
-        let editLearningCapture: PostInjectionLearningFieldCapture?
-        if PostInjectionEditLearningMonitor.shouldObserve(
+        let shouldObserveEditLearning = PostInjectionEditLearningMonitor.shouldObserve(
             kind: currentMode.kind,
             injection: injectionOutcome,
             defaults: sessionVocabularyContext.userDefaults
-        ) {
-            editLearningCapture = await editLearningFieldCapture()
-        } else {
-            editLearningCapture = nil
-        }
+        )
         guard isStillCurrent(sessionID, stage: "edit learning capture") else { return false }
         if recoveryResult == .failed {
             onASREvent?(.error(ASRRecoveryError.partialTextPreserved(
@@ -1128,9 +1123,10 @@ actor RecognitionSession {
             durationSeconds: recordedDuration,
             sessionID: sessionID
         )
-        if let editLearningCapture {
+        if shouldObserveEditLearning {
             await editLearningMonitor.start(
-                injectedText: llmResult.finalText, historyID: historyID, capture: editLearningCapture,
+                injectedText: llmResult.finalText, historyID: historyID,
+                captureProvider: editLearningFieldCapture,
                 historyStore: historyStore
             )
         }
