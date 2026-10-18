@@ -283,6 +283,55 @@ final class VoicePolishLearningTests: XCTestCase {
     }
 
     @MainActor
+    func testUndoKeepsManualPairAddedAfterAutomaticLearning() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "post-manual", text: "Tablets.")
+        let receipt = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "post-manual", historyStore: fixture.historyStore
+        )
+        try TerminologyRepository.upsert(TerminologyEntry(
+            canonicalText: "Typeless", aliases: [.init(text: "Tablets", source: .manual)], origin: .manual
+        ), context: fixture.context)
+        let undo = try XCTUnwrap(receipt?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        let entry = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+        XCTAssertEqual(entry.origin, .manual)
+        XCTAssertEqual(entry.aliases.first?.source, .manual)
+        XCTAssertEqual(entry.aliases.first?.sourceRecordIDs, [])
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"], "Typeless")
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+    }
+
+    @MainActor
+    func testUndoKeepsExplicitManualEditOfAutomaticallyLearnedEntry() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "edited-manual", text: "Tablets.")
+        let receipt = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "edited-manual", historyStore: fixture.historyStore
+        )
+        var edited = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+        let identity = edited.id
+        edited.canonicalText = "TypelessPro"
+        edited = edited.markedAsManual()
+        XCTAssertEqual(edited.id, identity)
+        try TerminologyRepository.upsert(edited, context: fixture.context)
+        let undo = try XCTUnwrap(receipt?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"], "TypelessPro")
+        let remaining = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.id == identity })
+        XCTAssertEqual(remaining.origin, .manual)
+        XCTAssertEqual(remaining.aliases.first?.source, .manual)
+        XCTAssertEqual(remaining.aliases.first?.sourceRecordIDs, [])
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+    }
+
+    @MainActor
     func testStaleUndoReceiptCannotRemoveUpdatedCorrection() async throws {
         let fixture = try AutomaticTerminologyLearningFixture()
         defer { fixture.cleanup() }

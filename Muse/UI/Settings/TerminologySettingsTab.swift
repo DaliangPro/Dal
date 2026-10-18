@@ -1248,7 +1248,7 @@ private struct TerminologyEntryEditorSheet: View {
             scope: scope,
             createdAt: entry?.createdAt ?? Date(),
             updatedAt: Date()
-        )
+        ).markedAsManual()
     }
 
     private func splitAliases(_ text: String) -> [String] {

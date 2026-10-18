@@ -127,6 +127,20 @@ struct TerminologyEntry: Identifiable, Codable, Sendable, Equatable {
     }
 
     var isReadOnly: Bool { origin == .builtIn }
+
+    /// 词库界面的明确保存形成独立手工来源，撤销历史学习不能删去它。
+    func markedAsManual() -> TerminologyEntry {
+        guard !isReadOnly else { return self }
+        var entry = self
+        entry.origin = .manual
+        entry.aliases = aliases.map { original in
+            var alias = original
+            alias.source = .manual
+            return alias
+        }
+        return entry
+    }
+
 }
 
 struct TerminologyConflictCandidate: Codable, Sendable, Equatable, Hashable {
@@ -298,7 +312,11 @@ enum TerminologyDocumentNormalizer {
     }
 
     private static func merge(_ existing: TerminologyEntry, _ incoming: TerminologyEntry) -> TerminologyEntry {
-        let incomingWins = incoming.origin.priority > existing.origin.priority
+        // 同一词条的持久来源不能被可撤销的历史来源覆盖；冲突排序仍用原优先级。
+        let differentLifetime = (existing.origin == .confirmedCorrection) != (incoming.origin == .confirmedCorrection)
+        let incomingWins = differentLifetime
+            ? existing.origin == .confirmedCorrection
+            : incoming.origin.priority > existing.origin.priority
         let preferred = incomingWins ? incoming : existing
         let other = incomingWins ? existing : incoming
         let aliases = mergeAliases(preferred.aliases + other.aliases)
@@ -331,7 +349,11 @@ enum TerminologyDocumentNormalizer {
     }
 
     private static func merge(_ existing: TerminologyAlias, _ incoming: TerminologyAlias) -> TerminologyAlias {
-        let preferred = incoming.source.priority > existing.source.priority ? incoming : existing
+        let differentLifetime = (existing.source == .confirmedCorrection) != (incoming.source == .confirmedCorrection)
+        let incomingWins = differentLifetime
+            ? existing.source == .confirmedCorrection
+            : incoming.source.priority > existing.source.priority
+        let preferred = incomingWins ? incoming : existing
         return TerminologyAlias(
             id: existing.id,
             text: preferred.text,

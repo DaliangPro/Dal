@@ -3,6 +3,51 @@ import XCTest
 @testable import Muse
 
 final class TerminologyRepositoryTests: XCTestCase {
+    func testPersistentAliasSourceSurvivesMergeAndEvidenceRestoreInEitherOrder() throws {
+        for reversed in [false, true] {
+            let fixture = try TerminologyStorageFixture()
+            defer { fixture.cleanup() }
+            try fixture.seedEmptyBuiltIns()
+            _ = try TerminologyRepository.migrateIfNeeded(context: fixture.context)
+            let learned = TerminologyEntry(canonicalText: "Typeless", aliases: [
+                .init(text: "Tablets", source: .confirmedCorrection, sourceRecordIDs: ["learned"])
+            ], origin: .confirmedCorrection)
+            let manual = TerminologyEntry(canonicalText: "Typeless", aliases: [
+                .init(text: "Tablets", source: .manual)
+            ], origin: .manual)
+            try TerminologyRepository.save(TerminologyDocument(entries: reversed ? [manual, learned] : [learned, manual]), context: fixture.context)
+            let snapshot = try TerminologyRepository.evidenceSnapshot(sourceRecordID: "learned", context: fixture.context)
+            try TerminologyRepository.restoreEvidence(snapshot, context: fixture.context)
+            try TerminologyRepository.removeEvidence(sourceRecordID: "learned", context: fixture.context)
+            let entry = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+            XCTAssertEqual(entry.origin, .manual)
+            XCTAssertEqual(entry.aliases.first?.source, .manual)
+            XCTAssertEqual(entry.aliases.first?.sourceRecordIDs, [])
+            XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"], "Typeless")
+        }
+    }
+
+    func testRestoringOlderAutomaticSnapshotKeepsLaterManualSave() throws {
+        let fixture = try TerminologyStorageFixture()
+        defer { fixture.cleanup() }
+        try fixture.seedEmptyBuiltIns()
+        _ = try TerminologyRepository.migrateIfNeeded(context: fixture.context)
+        try TerminologyRepository.replaceEvidence(sourceRecordID: "rollback", with: [.init(alias: "Tablets", canonical: "Typeless")], context: fixture.context)
+        let snapshot = try TerminologyRepository.evidenceSnapshot(sourceRecordID: "rollback", context: fixture.context)
+        try TerminologyRepository.upsert(TerminologyEntry(canonicalText: "Typeless", aliases: [.init(text: "Tablets")]), context: fixture.context)
+        try TerminologyRepository.restoreEvidence(snapshot, context: fixture.context)
+        try TerminologyRepository.removeEvidence(sourceRecordID: "rollback", context: fixture.context)
+        let entry = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+        XCTAssertEqual(entry.origin, .manual)
+        XCTAssertEqual(entry.aliases.first?.source, .manual)
+        XCTAssertEqual(entry.aliases.first?.sourceRecordIDs, [])
+    }
+
+    func testManualSaveMarkerDoesNotChangeBuiltInEntry() {
+        let builtIn = TerminologyEntry(canonicalText: "Claude", aliases: [.init(text: "cloud", source: .builtIn)], origin: .builtIn)
+        XCTAssertEqual(builtIn.markedAsManual(), builtIn)
+    }
+
     func testDeletingMainPunctuatedTermRemovesItsCopiesAndDoesNotReappearOnNextSave() throws {
         let fixture = try TerminologyStorageFixture()
         defer { fixture.cleanup() }
