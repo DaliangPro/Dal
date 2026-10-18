@@ -142,6 +142,42 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(stored[0].correctedText, confirmed.correctedText)
     }
 
+    func testDirectHistoryOnlyAcceptsTerminologyLearningForSuccessfulDirectOutput() async throws {
+        let cases: [(mode: String?, processed: String?, status: String, style: Bool, allowed: Bool)] = [
+            ("直出", nil, "completed", false, true),
+            ("Direct", nil, "stream_recovered", false, true),
+            ("直出", nil, "completed", true, false),
+            ("直出", nil, "copied_only", false, false),
+            ("直出", nil, "no_input_target", false, false),
+            ("直出", "模型输出", "completed", false, false),
+            ("翻译", nil, "completed", false, false),
+            (nil, nil, "completed", false, false),
+        ]
+        for (index, item) in cases.enumerated() {
+            let id = "direct-learning-\(index)"
+            await store.insert(HistoryRecord(
+                id: id, createdAt: Date(), durationSeconds: 1,
+                rawText: "Type less", processingMode: item.mode, processedText: item.processed,
+                finalText: "Type less", status: item.status, characterCount: 9
+            ))
+            do {
+                let correction = try await store.confirmVoicePolishCorrection(
+                    historyID: id, correctedText: "Typeless", scene: .unknown,
+                    personalizationEnabled: true, retentionLimit: 200,
+                    learnStyle: item.style, learnTerminology: true
+                )
+                XCTAssertTrue(item.allowed, "不应接受案例 \(index)")
+                XCTAssertFalse(correction.learnStyle)
+                XCTAssertTrue(correction.learnTerminology)
+            } catch {
+                XCTAssertFalse(item.allowed, "应接受案例 \(index)：\(error)")
+                XCTAssertEqual(error as? HistoryStoreError, .correctionNotEligible)
+            }
+        }
+        let corrections = try await store.fetchVoicePolishCorrections()
+        XCTAssertEqual(corrections.count, 2)
+    }
+
     func testVoicePolishCorrectionRetentionExportClearAndHistoryDelete() async throws {
         for index in 0..<3 {
             let id = "vp-\(index)"

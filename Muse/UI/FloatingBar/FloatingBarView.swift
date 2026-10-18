@@ -14,7 +14,6 @@ protocol FloatingBarState: AnyObject, Observable {
     var transcriptionText: String { get }
     var recordingStartDate: Date? { get }
     var copyFallbackWasCopied: Bool { get }
-    var preserveProcessingWidthForCopyFallback: Bool { get }
     var voicePolishStage: VoicePolishStage? { get }
     var isVoicePolishUnavailable: Bool { get }
     var isRetryingVoicePolish: Bool { get }
@@ -712,10 +711,7 @@ struct FloatingBarView<S: FloatingBarState>: View {
                 max(400, measureText(state.voicePolishUnavailableMessage ?? "") + 150)
             )
         }
-        let labelWidth = measureText(processingLabel) + 126.0
-        guard state.preserveProcessingWidthForCopyFallback else { return labelWidth }
-        let preservedInputWidth = max(TF.barFallbackMinWidth, min(TF.barFallbackWidth, recordingPeakWidth))
-        return max(labelWidth, preservedInputWidth)
+        return measureText(processingLabel) + 126.0
     }
 
     private var processingLabel: String {

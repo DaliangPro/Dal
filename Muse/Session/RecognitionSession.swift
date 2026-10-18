@@ -112,6 +112,9 @@ actor RecognitionSession {
     private let llmConfigLoader: (@Sendable () async -> LLMConfig?)?
     private let voicePolishRecentInputStore: VoicePolishRecentInputContextStore
     private let aliyunReplaySleep: @Sendable (Duration) async throws -> Void
+    private let editLearningMonitor: PostInjectionEditLearningMonitor
+    private let editLearningFieldCapture: @Sendable () async -> PostInjectionLearningFieldCapture
+    private let sessionVocabularyContext: VocabularyStorageContext
     private var asrClient: (any SpeechRecognizer)?
     private var asrClientSessionID: RecognitionSessionID?
 
@@ -147,7 +150,12 @@ actor RecognitionSession {
         voicePolishRecentInputStore: VoicePolishRecentInputContextStore = .shared,
         aliyunReplaySleep: @escaping @Sendable (Duration) async throws -> Void = {
             try await Task.sleep(for: $0)
-        }
+        },
+        editLearningMonitor: PostInjectionEditLearningMonitor = .shared,
+        editLearningFieldCapture: @escaping @Sendable () async -> PostInjectionLearningFieldCapture = {
+            await PostInjectionEditLearningMonitor.focusedField()
+        },
+        vocabularyContext: VocabularyStorageContext = .production
     ) {
         self.audioEngine = audioEngine
         self.injectionEngine = injectionEngine
@@ -164,6 +172,9 @@ actor RecognitionSession {
         self.llmConfigLoader = llmConfigLoader
         self.voicePolishRecentInputStore = voicePolishRecentInputStore
         self.aliyunReplaySleep = aliyunReplaySleep
+        self.editLearningMonitor = editLearningMonitor
+        self.editLearningFieldCapture = editLearningFieldCapture
+        self.sessionVocabularyContext = vocabularyContext
     }
 
     private let logger = Logger(
@@ -1066,6 +1077,7 @@ actor RecognitionSession {
             durationMs: Int((recordedDuration * 1_000).rounded()),
             sessionID: sessionID,
             stopStartedAt: stopT0,
+            vocabularyContext: sessionVocabularyContext,
             allowsVoicePolishUserChoice: true
         ) else { return false }
         guard isStillCurrent(sessionID, stage: "pre-injection") else { return false }
@@ -1090,18 +1102,12 @@ actor RecognitionSession {
         }
         guard isStillCurrent(sessionID, stage: "post-injection") else { return false }
         onASREvent?(.finalized(text: llmResult.finalText, injection: injectionOutcome))
-        let editLearningTarget: PostInjectionEditLearningTarget?
-        if currentMode.kind == .voicePolish,
-           case .inserted = injectionOutcome,
-           VoicePolishSettings.personalizationEnabled()
-                || VoicePolishSettings.terminologyLearningEnabled() {
-            editLearningTarget = PostInjectionEditLearningMonitor.capture(
-                injectedText: llmResult.finalText,
-                historyID: historyID
-            )
-        } else {
-            editLearningTarget = nil
-        }
+        let shouldObserveEditLearning = PostInjectionEditLearningMonitor.shouldObserve(
+            kind: currentMode.kind,
+            injection: injectionOutcome,
+            defaults: sessionVocabularyContext.userDefaults
+        )
+        guard isStillCurrent(sessionID, stage: "edit learning capture") else { return false }
         if recoveryResult == .failed {
             onASREvent?(.error(ASRRecoveryError.partialTextPreserved(
                 provider: provider.displayName
@@ -1117,9 +1123,10 @@ actor RecognitionSession {
             durationSeconds: recordedDuration,
             sessionID: sessionID
         )
-        if let editLearningTarget {
-            await PostInjectionEditLearningMonitor.shared.start(
-                editLearningTarget,
+        if shouldObserveEditLearning {
+            await editLearningMonitor.start(
+                injectedText: llmResult.finalText, historyID: historyID,
+                captureProvider: editLearningFieldCapture,
                 historyStore: historyStore
             )
         }

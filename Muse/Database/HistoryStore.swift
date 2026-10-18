@@ -19,7 +19,7 @@ enum HistoryStoreError: Error, LocalizedError, Equatable {
         case .sqlite(let message):
             return L("历史数据库查询失败：\(message)", "History database query failed: \(message)")
         case .correctionNotEligible:
-            return L("这条记录不是可学习的语音润色记录", "This record is not eligible for Voice Polish learning")
+            return L("这条记录不支持当前学习方式", "This record is not eligible for this type of learning")
         case .personalizationDisabled:
             return L("请先开启语音润色个性化", "Enable Voice Polish personalization first")
         case .correctionUnchanged:
@@ -434,7 +434,7 @@ actor HistoryStore {
         }
     }
 
-    // MARK: - Voice Polish 显式纠正学习
+    // MARK: - 语音输入显式纠正学习（沿用原数据格式）
 
     @discardableResult
     func confirmVoicePolishCorrection(
@@ -451,8 +451,11 @@ actor HistoryStore {
         guard learnStyle || learnTerminology else {
             throw HistoryStoreError.personalizationDisabled
         }
-        guard let history = try fetchOrThrow(ids: [historyID]).first,
-              history.status.hasPrefix("voice_polish_") else {
+        guard let history = try fetchOrThrow(ids: [historyID]).first else {
+            throw HistoryStoreError.correctionNotEligible
+        }
+        guard history.status.hasPrefix("voice_polish_")
+                || (history.supportsDirectTerminologyLearning && learnTerminology && !learnStyle) else {
             throw HistoryStoreError.correctionNotEligible
         }
         let corrected = correctedText.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -56,7 +56,6 @@ final class AppState {
     var feedbackMessage: String = L("已完成", "Done")
     var processingFinishTime: Date?
     var copyFallbackWasCopied = false
-    var preserveProcessingWidthForCopyFallback = false
     var voicePolishStage: VoicePolishStage?
     var isVoicePolishUnavailable = false
     var isRetryingVoicePolish = false
@@ -78,6 +77,7 @@ final class AppState {
     /// 服务端偶发在切句时让尚未确认的上一句从新帧中消失（09-29 实测火山 partial 28→4 字，
     /// 结束时才回归）。此处暂存已显示的那句，仅用于 HUD，不参与注入。
     @ObservationIgnored private var heldLiveText = ""
+    @ObservationIgnored private var pendingLearningFeedback: AutomaticLearningFeedback?
 
     // MARK: Update Check
 
@@ -112,7 +112,6 @@ final class AppState {
         recordingStartDate = nil
         feedbackMessage = L("已完成", "Done")
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         resetVoicePolishProcessingState()
         onCopyFallbackVisibilityChange?(false)
         barPhase = .preparing
@@ -142,22 +141,8 @@ final class AppState {
         case .recording:
             processingFinishTime = nil
             resetVoicePolishProcessingState()
-            // 2026-07 修回归：AX 焦点查询对微信等无响应进程可阻塞主线程数百 ms（AX 超时上限秒级），
-            // 曾导致停止录音瞬间 HUD 冻结（文字不显示/卡顿）。改后台计算，先按 false 走流程
-            preserveProcessingWidthForCopyFallback = false
             withAnimation(TF.hudMorph) {
                 barPhase = .processing
-            }
-            let frontmostBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-            if TextInjectionEngine.canReadFocusedEditableElement,
-               !TextInjectionEngine.isAXOpaqueApp(frontmostBundleID) {
-                Task.detached(priority: .userInitiated) { [weak self] in
-                    let needsReserve = !TextInjectionEngine.frontmostApplicationHasFocusedEditableElement()
-                    await MainActor.run { [weak self] in
-                        guard let self, self.barPhase == .processing else { return }
-                        self.preserveProcessingWidthForCopyFallback = needsReserve
-                    }
-                }
             }
         default:
             break
@@ -288,27 +273,27 @@ final class AppState {
         scheduleAutoHide(for: .error, delay: .seconds(1.8))
     }
 
-    /// 自动学习发生在文字已经插入、用户完成修改之后。只在 HUD 空闲时给出
-    /// 一次轻提示，避免打断下一次正在进行的录音或润色。
-    func showVoicePolishAutomaticLearningNotice() {
-        guard barPhase == .hidden || barPhase == .done else { return }
-        feedbackMessage = L(
-            "已记住这次修改，可在个人词汇中管理",
-            "Edit remembered — manage it in Personal Vocabulary"
-        )
+    /// 忙碌时保留最近结果，当前录音或输出结束后再显示，不覆盖进行中的交互。
+    func showAutomaticLearningFeedback(_ feedback: AutomaticLearningFeedback) {
+        guard barPhase == .hidden || barPhase == .done else {
+            pendingLearningFeedback = feedback
+            return
+        }
+        pendingLearningFeedback = nil
+        feedbackMessage = feedback.hudMessage
         resetVoicePolishProcessingState()
         barPhase = .done
         onShowPanel?()
-        scheduleAutoHide(for: .done, delay: .seconds(2.4))
+        scheduleAutoHide(for: .done, delay: .seconds(2.8))
     }
 
     func cancel() {
+        pendingLearningFeedback = nil
         barPhase = .hidden
         segments = []
         resetLiveTranscriptTracking()
         audioLevel.current = 0
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         resetVoicePolishProcessingState()
         onCopyFallbackVisibilityChange?(false)
         onHidePanel?()
@@ -390,7 +375,6 @@ final class AppState {
         feedbackMessage = message
         resetVoicePolishProcessingState()
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         onCopyFallbackVisibilityChange?(false)
         barPhase = .done
         scheduleAutoHide(for: .done, delay: .seconds(0.8))
@@ -415,12 +399,15 @@ final class AppState {
             try? await Task.sleep(for: delay)
             guard barPhase == phase, hideGeneration == myGeneration else { return }
             barPhase = .hidden
-            preserveProcessingWidthForCopyFallback = false
             if phase == .copyFallback {
                 copyFallbackWasCopied = false
                 onCopyFallbackVisibilityChange?(false)
             }
-            onHidePanel?()
+            if let feedback = pendingLearningFeedback {
+                showAutomaticLearningFeedback(feedback)
+            } else {
+                onHidePanel?()
+            }
         }
     }
 }

@@ -257,6 +257,40 @@ final class FloatingBarLayoutTests: XCTestCase {
     }
 
     @MainActor
+    func testProcessingHUDKeepsItsOwnWidthBeforeCopyFallbackExpands() async throws {
+        guard #available(macOS 26.0, *) else { throw XCTSkip("原生玻璃需要 macOS 26") }
+        _ = NSApplication.shared
+        let defaults = UserDefaults.standard
+        let previousRegistration = defaults.volatileDomain(forName: UserDefaults.registrationDomain)
+        defaults.register(defaults: ["museGlassMinimal": true])
+        defer { defaults.setVolatileDomain(previousRegistration, forName: UserDefaults.registrationDomain) }
+
+        let state = DemoState()
+        state.barPhase = .processing
+        state.segments = [TranscriptionSegment(text: String(repeating: "很短的输入", count: 40), isConfirmed: true)]
+        let host = NSHostingView(rootView: FloatingBarView(state: state, styleOverride: .appleNative)
+            .transaction { $0.disablesAnimations = true })
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 760, height: 180),
+            styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        window.contentView = host
+        host.frame = NSRect(x: 0, y: 0, width: 760, height: 180)
+
+        try await settleLayout(host)
+        let processingWidth = try XCTUnwrap(findGlass(in: host)).bounds.width
+        XCTAssertLessThan(processingWidth, TF.barFallbackMinWidth,
+                          "处理中不能按后续复制卡片预留宽度")
+
+        state.barPhase = .copyFallback
+        try await settleLayout(host)
+        let fallbackWidth = try XCTUnwrap(findGlass(in: host)).bounds.width
+        XCTAssertGreaterThanOrEqual(fallbackWidth, TF.barFallbackMinWidth)
+        XCTAssertGreaterThan(fallbackWidth, processingWidth + 40,
+                             "只有进入复制卡片后才应展开到宽卡片")
+    }
+
+    @MainActor
     func testPolishHUDKeepsItsWidthWhileWaitingForTheResult() async throws {
         guard #available(macOS 26.0, *) else { throw XCTSkip("原生玻璃需要 macOS 26") }
         _ = NSApplication.shared

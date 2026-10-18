@@ -313,9 +313,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             forName: .voicePolishAutomaticLearningDidFinish,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] note in
+            guard let feedback = note.object as? AutomaticLearningFeedback else { return }
             MainActor.assumeIsolated { [weak self] in
-                self?.appState.showVoicePolishAutomaticLearningNotice()
+                AutomaticLearningStatus.shared.update(feedback)
+                self?.appState.showAutomaticLearningFeedback(feedback)
             }
         }
 

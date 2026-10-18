@@ -279,6 +279,42 @@ enum EntityResolver {
         return 1 - Double(previous[b.count]) / Double(longest)
     }
 
+    /// 自动记词专用的保守判定：只接受可解释为 ASR 同音/近音或明显拼写
+    /// 偏差的词对。它不判断语义，也不把两个不同意思的正常换词当成识别错误。
+    static func isLikelySpeechRecognitionCorrection(alias: String, canonical: String) -> Bool {
+        let left = alias.trimmingCharacters(in: .whitespacesAndNewlines)
+        let right = canonical.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !left.isEmpty, !right.isEmpty, left.lowercased() != right.lowercased() else { return false }
+
+        if let leftSyllables = pinyinSyllablesIfChinese(left),
+           let rightSyllables = pinyinSyllablesIfChinese(right),
+           let score = chinesePinyinSimilarity(leftSyllables, rightSyllables),
+           score >= chinesePinyinThreshold {
+            return true
+        }
+        if let leftSyllables = tonelessPinyinSyllablesIfChinese(left),
+           let rightSyllables = tonelessPinyinSyllablesIfChinese(right),
+           let score = chinesePinyinSimilarity(leftSyllables, rightSyllables),
+           score >= 0.97 {
+            return true
+        }
+        if let leftKey = englishPhoneticKey(left),
+           let rightKey = englishPhoneticKey(right),
+           editSimilarity(
+               leftKey.replacingOccurrences(of: "|", with: ""),
+               rightKey.replacingOccurrences(of: "|", with: "")
+           ) >= englishPhoneticThreshold {
+            return true
+        }
+        guard isASCIIWordLike(left) && isASCIIWordLike(right) else {
+            return false
+        }
+        let compactLeft = left.replacingOccurrences(of: " ", with: "")
+        let compactRight = right.replacingOccurrences(of: " ", with: "")
+        let score = editSimilarity(compactLeft.lowercased(), compactRight.lowercased())
+        return score >= similarityThreshold
+    }
+
     private static func resolveSurface(
         _ surface: String,
         candidates: [PreparedCandidate]

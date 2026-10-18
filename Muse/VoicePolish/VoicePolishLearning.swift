@@ -133,6 +133,23 @@ enum TerminologyCorrectionExtractor {
         return changes
     }
 
+    /// 自动观察专用：候选必须来自本次 ASR 原文，并通过保守的音近/拼写门槛。
+    /// 普通人工语义改写仍可由明确的纠正界面保存，不在这里隐式入库。
+    static func automaticASRCandidates(
+        generatedText: String,
+        correctedText: String,
+        recognitionText: String
+    ) -> [TerminologyCorrectionCandidate] {
+        let source = recognitionText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !source.isEmpty else { return [] }
+        return candidates(generatedText: generatedText, correctedText: correctedText).filter { candidate in
+            source.localizedStandardContains(candidate.alias)
+                && EntityResolver.isLikelySpeechRecognitionCorrection(
+                    alias: candidate.alias, canonical: candidate.canonical
+                )
+        }
+    }
+
     private static func longestCommonSubsequenceMatches(
         _ left: [LearningToken],
         _ right: [LearningToken]
