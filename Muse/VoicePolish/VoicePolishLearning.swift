@@ -174,6 +174,13 @@ enum TerminologyCorrectionExtractor {
         guard term.unicodeScalars.contains(where: { $0.isASCII && CharacterSet.letters.contains($0) }) else {
             return source.localizedStandardContains(term)
         }
+        // 引号包裹的邮箱 local-part 可以包含空格，不能按空白或引号切开
+        // 再判断。先排除与完整邮箱片段重叠的词，匹配式不可用时保守跳过。
+        let emailRanges: [NSRange]
+        if source.contains("@") {
+            guard let expression = try? NSRegularExpression(pattern: #"(?:"(?:[^"\\\r\n]|\\.)*"|[\p{L}\p{N}!#$%&'*+/=?^_`{|}~.\-]+)@[\p{L}\p{N}.\-]+"#) else { return false }
+            emailRanges = expression.matches(in: source, range: NSRange(source.startIndex..., in: source)).map(\.range)
+        } else { emailRanges = [] }
         var start = source.startIndex
         while let range = source.range(of: term, options: [.caseInsensitive, .diacriticInsensitive], range: start..<source.endIndex) {
             let before = range.lowerBound > source.startIndex ? source.index(before: range.lowerBound) : nil
@@ -181,7 +188,7 @@ enum TerminologyCorrectionExtractor {
             // 邮箱 local-part 可含加号、引号、星号等合法符号，不能只检查
             // 紧邻字符；同一连续片段中出现 @ 或 URI scheme 时保守跳过。
             func tokenBoundary(_ character: Character) -> Bool {
-                character.isWhitespace || "，。；、（）<>\"".contains(character)
+                character.isWhitespace || "，。；、（）<>".contains(character)
             }
             let tokenStart = source[..<range.lowerBound].lastIndex(where: tokenBoundary).map { source.index(after: $0) } ?? source.startIndex
             let tokenEnd = source[range.upperBound...].firstIndex(where: tokenBoundary) ?? source.endIndex
@@ -189,7 +196,7 @@ enum TerminologyCorrectionExtractor {
             func isBoundary(_ index: String.Index?, preceding: Bool) -> Bool {
                 guard let index else { return true }
                 let character = source[index]
-                guard !isASCIIWordCharacter(character), !"@:/\\#?=&%+-".contains(character) else { return false }
+                guard !isASCIIWordCharacter(character), !"@:/\\#?=&%+-$`{}".contains(character) else { return false }
                 if character == "." {
                     if preceding {
                         // 点号左边还有域名/标识符，不能将右段当作独立术语。
@@ -200,7 +207,8 @@ enum TerminologyCorrectionExtractor {
                 }
                 return true
             }
-            if !token.contains("@"), !token.contains("://"),
+            let inEmail = emailRanges.contains { NSIntersectionRange($0, NSRange(range, in: source)).length > 0 }
+            if !inEmail, !token.contains("@"), !token.contains("://"),
                isBoundary(before, preceding: true), isBoundary(after, preceding: false) { return true }
             start = range.upperBound
         }

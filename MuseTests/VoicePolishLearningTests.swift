@@ -29,6 +29,11 @@ final class VoicePolishLearningTests: XCTestCase {
             ("Tablets!sales@example.com", "Typeless!sales@example.com"),
             ("Tablets'sales@example.com", "Typeless'sales@example.com"),
             ("Tablets*sales@example.com", "Typeless*sales@example.com"),
+            ("\"Tablets\"@example.com", "\"Typeless\"@example.com"),
+            ("\"Tablets sales\"@example.com", "\"Typeless sales\"@example.com"),
+            ("\"cloud\"@example.com", "\"Claude\"@example.com"),
+            ("$cloud", "$Claude"), ("$Tablets", "$Typeless"),
+            ("${Tablets}", "${Typeless}"), ("`Tablets`", "`Typeless`"),
             ("Tablets.中国", "Typeless.中国"),
             ("Tablets123", "Typeless123"), ("我想吃苹果", "我想去散步")
         ] {
@@ -43,6 +48,11 @@ final class VoicePolishLearningTests: XCTestCase {
         XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
             generatedText: "我用 Tablets。", correctedText: "我用 Typeless。", recognitionText: "我用其他应用。"
         ).isEmpty)
+        XCTAssertEqual(TerminologyCorrectionExtractor.confirmationASRCandidates(
+            generatedText: "我用 Tablets，邮件是 user@example.com。",
+            correctedText: "我用 Typeless，邮件是 user@example.com。",
+            recognitionText: "我用 Tablets，邮件是 user@example.com。"
+        ), [.init(alias: "Tablets", canonical: "Typeless")], "无关位置的邮箱不影响正常改词")
         XCTAssertTrue(TerminologyCorrectionExtractor.confirmationASRCandidates(
             generatedText: "我用 Tablets。", correctedText: "我用 Typeless。", recognitionText: "我用其他应用。"
         ).isEmpty)
