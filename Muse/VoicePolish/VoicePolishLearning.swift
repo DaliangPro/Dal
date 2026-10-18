@@ -138,8 +138,8 @@ enum TerminologyCorrectionExtractor {
         return changes
     }
 
-    /// 自动观察专用：候选必须来自本次 ASR 原文，并通过保守的音近/拼写门槛。
-    /// 普通人工语义改写仍可由明确的纠正界面保存，不在这里隐式入库。
+    /// 自动观察专用：词对须来自本次 ASR 原文，并满足中文近音或英文音形结构。
+    /// 提取后直接保存，由本次收据提供撤销，不再产生记词前的确认步骤。
     static func automaticASRCandidates(
         generatedText: String,
         correctedText: String,
@@ -149,22 +149,9 @@ enum TerminologyCorrectionExtractor {
         guard !source.isEmpty else { return [] }
         return candidates(generatedText: generatedText, correctedText: correctedText).filter { candidate in
             containsStandaloneASRTerm(candidate.alias, in: source)
-                && EntityResolver.isLikelySpeechRecognitionCorrection(
+                && (EntityResolver.isLikelySpeechRecognitionCorrection(
                     alias: candidate.alias, canonical: candidate.canonical
-                )
-        }
-    }
-
-    /// 音形存在解释但证据不足的英文词对，仅提出确认，不作为自动学习证据。
-    static func confirmationASRCandidates(
-        generatedText: String, correctedText: String, recognitionText: String
-    ) -> [TerminologyCorrectionCandidate] {
-        let source = recognitionText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !source.isEmpty else { return [] }
-        return candidates(generatedText: generatedText, correctedText: correctedText).filter {
-            containsStandaloneASRTerm($0.alias, in: source)
-                && !EntityResolver.isLikelySpeechRecognitionCorrection(alias: $0.alias, canonical: $0.canonical)
-                && EntityResolver.isPossibleEnglishSpeechCorrection($0.alias, $0.canonical)
+                ) || EntityResolver.isEnglishSpeechCorrectionVariant(candidate.alias, candidate.canonical))
         }
     }
 

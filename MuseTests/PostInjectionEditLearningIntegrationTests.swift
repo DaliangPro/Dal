@@ -29,18 +29,18 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
     }
 
     func testReportedTabletsEditIsObservedSavedAndUndoableWithoutCharacterCount() async throws {
-        try await verifyNativeConfirmation(alias: "Tablets", canonical: "Typeless")
+        try await verifyNativeAutomaticLearning(alias: "Tablets", canonical: "Typeless")
     }
 
-    func testActualLetterFragmentEditIsObservedConfirmedSavedAndUndoableWithoutCharacterCount() async throws {
-        try await verifyNativeConfirmation(alias: "l f deck", canonical: "AlphaDeck")
+    func testActualLetterFragmentEditIsObservedAutomaticallySavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeAutomaticLearning(alias: "l f deck", canonical: "AlphaDeck")
     }
 
-    func testActualSplitWordEditIsObservedConfirmedSavedAndUndoableWithoutCharacterCount() async throws {
-        try await verifyNativeConfirmation(alias: "book list", canonical: "Bookless")
+    func testActualSplitWordEditIsObservedAutomaticallySavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeAutomaticLearning(alias: "book list", canonical: "Bookless")
     }
 
-    private func verifyNativeConfirmation(alias: String, canonical: String) async throws {
+    private func verifyNativeAutomaticLearning(alias: String, canonical: String) async throws {
         let fixture = try LearningChainFixture()
         defer { fixture.cleanup() }
         let editor = LearningNativeEditor()
@@ -53,8 +53,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         ) { note in
             guard let feedback = note.object as? AutomaticLearningFeedback else { return }
             let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
-            let confirmation = note.userInfo?["confirmation"] as? AutomaticLearningConfirmation
-            MainActor.assumeIsolated { status.update(feedback, undo: undo, confirmation: confirmation) }
+            MainActor.assumeIsolated { status.update(feedback, undo: undo) }
         }
         defer { NotificationCenter.default.removeObserver(observer); editor.available = false }
         await fixture.monitor.start(
@@ -62,12 +61,9 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         )
         try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "我正在用 \(canonical)")
-        try await waitUntil { status.confirmation != nil }
-        let before = try await fixture.history.fetchVoicePolishCorrections()
-        XCTAssertTrue(before.isEmpty)
-        let confirmation = try XCTUnwrap(status.confirmation)
-        await confirmation.perform()
         try await waitUntil { status.latest?.didPersist == true }
+        let saved = try await fixture.history.fetchVoicePolishCorrections()
+        XCTAssertEqual(saved.count, 1, "真实观察完成后直接保存，不调用额外确认动作")
         XCTAssertEqual(status.latest?.detail, "\(alias) → \(canonical)")
         let session = RecognitionSession(historyStore: fixture.history)
         let transcript = RecognitionTranscript(confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true)
@@ -147,7 +143,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         await fixture.monitor.start(
             injectedText: editor.view.string, historyID: "generic", capture: .field(editor.field), historyStore: fixture.history
         )
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "我使用 AlphaDeck 编辑")
         try await waitUntil {
             TerminologyRepository.projections(context: fixture.context).corrections["alfadeck"] == "AlphaDeck"
@@ -165,7 +161,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         await fixture.monitor.start(
             injectedText: "cloud.", historyID: "intermediate", capture: .field(editor.field), historyStore: fixture.history
         )
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "cloud!")
         try await Task.sleep(for: .seconds(2.2))
         editor.replace(with: "Claude")
@@ -218,7 +214,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
             },
             historyStore: fixture.history
         )
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "Claude")
         try await waitUntil {
             TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
@@ -234,9 +230,9 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         editor.replace(with: "cloud")
         await fixture.monitor.start(injectedText: "cloud", historyID: "quick-departure",
                                     capture: .field(editor.field), historyStore: fixture.history)
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "Claude")
-        try await waitUntil { editor.lastReadText == "Claude" }
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
         let reads = editor.rangeReads
         editor.available = false
         editor.allowsFocusFinalization = true
@@ -254,9 +250,9 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         editor.replace(with: "cloud")
         await fixture.monitor.start(injectedText: "cloud", historyID: "unsafe-departure",
                                     capture: .field(editor.field), historyStore: fixture.history)
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "Claude")
-        try await waitUntil { editor.lastReadText == "Claude" }
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
         editor.available = false
         // 安全/能力检查失败不能当成正常切换焦点。
         editor.allowsFocusFinalization = false
@@ -275,10 +271,10 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         editor.replace(with: "cloud.")
         await fixture.monitor.start(injectedText: "cloud.", historyID: "extended",
                                     capture: .field(editor.field), historyStore: fixture.history)
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         try await Task.sleep(for: .milliseconds(250))
         editor.replace(with: "cloud!")
-        try await waitUntil { editor.lastReadText == "cloud!" }
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
         try await Task.sleep(for: .milliseconds(250))
         editor.replace(with: "Claude")
         try await waitUntil {
@@ -295,9 +291,9 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         editor.replace(with: "cloud")
         await fixture.monitor.start(injectedText: "cloud", historyID: "range-failed",
                                     capture: .field(editor.field), historyStore: fixture.history)
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         editor.replace(with: "Claude")
-        try await waitUntil { editor.lastReadText == "Claude" }
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
         editor.failsRangeReads = true
         try await waitUntil { editor.didFailRangeRead }
         // 等本轮 nil 候选处理完成，随后模拟正常切换焦点。
@@ -402,11 +398,14 @@ private final class LearningNativeEditor {
 private final class LearningChainDiagnostics: @unchecked Sendable {
     private let lock = NSLock()
     private var captures = 0
+    private var samples = 0
     func record(_ message: String) {
-        guard message.hasPrefix("learning.capture verified ") else { return }
-        lock.lock(); defer { lock.unlock() }; captures += 1
+        lock.lock(); defer { lock.unlock() }
+        if message.hasPrefix("learning.capture verified ") { captures += 1 }
+        if message.hasPrefix("learning.observe sampled ") { samples += 1 }
     }
     var verifiedCaptures: Int { lock.lock(); defer { lock.unlock() }; return captures }
+    var sampledCandidates: Int { lock.lock(); defer { lock.unlock() }; return samples }
 }
 
 private struct LearningChainFixture {

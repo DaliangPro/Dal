@@ -249,7 +249,6 @@ actor PostInjectionEditLearningMonitor {
     static func report(_ receipt: AutomaticLearningReceipt) {
         var actions: [String: Any] = [:]
         if let undo = receipt.undo { actions["undo"] = undo }
-        if let confirmation = receipt.confirmation { actions["confirmation"] = confirmation }
         NotificationCenter.default.post(
             name: .voicePolishAutomaticLearningDidFinish, object: receipt.feedback,
             userInfo: actions
@@ -424,7 +423,11 @@ actor PostInjectionEditLearningMonitor {
             }
             let candidate = await Self.currentCandidate(for: target)
             let elapsed = started.duration(to: .now)
+            let changed = candidate != window.candidate
             window.sample(candidate, at: elapsed)
+            if changed, let candidate {
+                diagnostic("learning.observe sampled units=\(candidate.utf16.count)")
+            }
             guard let candidate, window.isStable(at: elapsed), candidate != lastAttemptedCandidate else { continue }
             lastAttemptedCandidate = candidate
             if await persistAndReport(candidate, target: target, historyStore: historyStore) { return }
@@ -442,14 +445,14 @@ actor PostInjectionEditLearningMonitor {
                 historyID: target.historyID, historyStore: historyStore
               ) else { return false }
         switch receipt.feedback {
-        case .learned, .needsConfirmation: break
+        case .learned: break
         default: return false
         }
         Self.report(receipt)
         return true
     }
 
-    /// 把确认后的本次修改写入既有纠正历史与术语仓库。AX 观察和持久化分层，
+    /// 把捕获到的本次修改写入既有纠正历史与术语仓库。AX 观察和持久化分层，
     /// 既便于使用临时目录做端到端测试，也避免出现第二套学习规则。
     @discardableResult
     func recordCorrection(
@@ -506,29 +509,16 @@ actor PostInjectionEditLearningMonitor {
             : []
         let fromASR = extracted.filter { history.rawText.localizedStandardContains($0.alias) }.count
         diagnostic("learning.candidate units=\(correctedText.utf16.count) extracted=\(extracted.count) source=\(fromASR) accepted=\(candidates.count)")
-        let suggested = terminologyEnabled
-            ? TerminologyCorrectionExtractor.confirmationASRCandidates(
-                generatedText: originalText, correctedText: correctedText, recognitionText: history.rawText
-            ) : []
-        if !suggested.isEmpty {
-            let proposed = extracted.filter { candidates.contains($0) || suggested.contains($0) }
-            let confirmation = await AutomaticLearningConfirmation { [weak self] in
-                guard let self else { throw TerminologyHistoryTransactionError.correctionChanged }
-                return try await self.saveCorrectionReceipt(
-                    proposed, correctedText: correctedText, historyID: historyID, historyStore: historyStore,
-                    expectedUncorrectedHistory: history
-                )
-            }
-            diagnostic("learning.candidate confirmation count=\(proposed.count)")
-            return AutomaticLearningReceipt(.needsConfirmation(proposed), confirmation: confirmation)
-        }
         let learnsTerminology = terminologyEnabled && !candidates.isEmpty
         guard learnsTerminology else {
             return terminologyEnabled ? AutomaticLearningReceipt(.noTerms) : nil
         }
 
         do {
-            return try await saveCorrectionReceipt(candidates, correctedText: correctedText, historyID: historyID, historyStore: historyStore)
+            return try await saveCorrectionReceipt(
+                candidates, correctedText: correctedText, historyID: historyID, historyStore: historyStore,
+                expectedUncorrectedHistory: history
+            )
         } catch {
             diagnostic("learning.save failed")
             AppLogger.log("[Muse] 自动纠正学习未写入: \(error.localizedDescription)")

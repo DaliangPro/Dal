@@ -49,7 +49,7 @@ actor TerminologyHistoryTransactionCoordinator {
         await acquireExclusiveOperation()
         defer { releaseExclusiveOperation() }
 
-        // 延后点击的候选不能覆盖已更新、已纠正或已删除的历史。
+        // 自动学习的历史快照不能覆盖已更新、已纠正或已删除的记录。
         if let expectedUncorrectedHistory {
             let current = try await historyStore.fetchOrThrow(ids: [historyID]).first
             let alreadyCorrected = try await historyStore.fetchVoicePolishCorrections().contains { $0.historyID == historyID }

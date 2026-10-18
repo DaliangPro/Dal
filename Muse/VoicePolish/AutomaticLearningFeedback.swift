@@ -3,7 +3,6 @@ import Observation
 
 enum AutomaticLearningFeedback: Sendable, Equatable {
     case learned([TerminologyCorrectionCandidate], hasConflict: Bool)
-    case needsConfirmation([TerminologyCorrectionCandidate])
     case styleOnly
     case noTerms
     case failed
@@ -30,9 +29,6 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
 
     var message: String {
         switch self {
-        case .needsConfirmation(let candidates):
-            let pairs = candidates.map { "\($0.alias) → \($0.canonical)" }.joined(separator: "；")
-            return L("记住 \(pairs)？", "Remember \(pairs)?")
         case .learned(let candidates, let hasConflict):
             let pairs = candidates.map { "\($0.alias) → \($0.canonical)" }.joined(separator: "；")
             return hasConflict
@@ -64,16 +60,14 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
     func hudMessage(reserving reservedWidth: CGFloat) -> String {
         let candidates: [TerminologyCorrectionCandidate]
         let conflict: Bool
-        let asking: Bool
         switch self {
-        case .learned(let pairs, let hasConflict): (candidates, conflict, asking) = (pairs, hasConflict, false)
-        case .needsConfirmation(let pairs): (candidates, conflict, asking) = (pairs, false, true)
+        case .learned(let pairs, let hasConflict): (candidates, conflict) = (pairs, hasConflict)
         default: return message
         }
         guard let first = candidates.first else { return message }
-        let prefix = asking ? L("记住 ", "Remember ") : (conflict ? L("已保存：", "Saved: ") : L("已记住：", "Remembered: "))
+        let prefix = conflict ? L("已保存：", "Saved: ") : L("已记住：", "Remembered: ")
         let count = candidates.count > 1 ? L("（共 \(candidates.count) 组）", " (\(candidates.count) pairs)") : ""
-        let suffix = count + (asking ? "？" : (conflict ? L("（冲突待确认）", " (conflict pending)") : ""))
+        let suffix = count + (conflict ? L("（冲突待确认）", " (conflict pending)") : "")
         let full = prefix + first.alias + " → " + first.canonical + suffix
         let available = TF.barWidth - 84 - reservedWidth
         guard Self.width(full) > available else { return full }
@@ -95,7 +89,7 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
 
     var detail: String {
         switch self {
-        case .learned(let candidates, _), .needsConfirmation(let candidates):
+        case .learned(let candidates, _):
             return candidates.map { "\($0.alias) → \($0.canonical)" }.joined(separator: "；")
         default: return message
         }
@@ -108,12 +102,10 @@ final class AutomaticLearningStatus {
     static let shared = AutomaticLearningStatus()
     private(set) var latest: AutomaticLearningFeedback?
     private(set) var undo: AutomaticLearningUndo?
-    private(set) var confirmation: AutomaticLearningConfirmation?
 
-    func update(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil, confirmation: AutomaticLearningConfirmation? = nil) {
+    func update(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil) {
         latest = feedback
         self.undo = undo
-        self.confirmation = confirmation
     }
 }
 
@@ -121,40 +113,10 @@ final class AutomaticLearningStatus {
 struct AutomaticLearningReceipt: Sendable {
     let feedback: AutomaticLearningFeedback
     let undo: AutomaticLearningUndo?
-    let confirmation: AutomaticLearningConfirmation?
 
-    init(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil, confirmation: AutomaticLearningConfirmation? = nil) {
+    init(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil) {
         self.feedback = feedback
         self.undo = undo
-        self.confirmation = confirmation
-    }
-}
-
-/// 低置信候选只在本次运行保留。按下“记住”才执行事务；不确认不落盘。
-@Observable @MainActor
-final class AutomaticLearningConfirmation {
-    private(set) var isRunning = false
-    private(set) var didConfirm = false
-    private(set) var didFail = false
-    private(set) var savedReceipt: AutomaticLearningReceipt?
-    @ObservationIgnored private let operation: @Sendable () async throws -> AutomaticLearningReceipt
-
-    init(operation: @escaping @Sendable () async throws -> AutomaticLearningReceipt) { self.operation = operation }
-    var canConfirm: Bool { !isRunning && !didConfirm }
-    var message: String? { didFail ? L("未能记住，请检查词库开关或重新改词", "Could not remember; check Vocabulary or edit again") : nil }
-
-    func perform() async {
-        guard canConfirm else { return }
-        isRunning = true
-        didFail = false
-        defer { isRunning = false }
-        do {
-            let receipt = try await operation()
-            guard receipt.feedback.didPersist else { didFail = true; return }
-            savedReceipt = receipt
-            didConfirm = true
-            PostInjectionEditLearningMonitor.report(receipt)
-        } catch { didFail = true }
     }
 }
 

@@ -79,24 +79,22 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(status.latest?.detail, "cloud → Claude")
     }
 
-    func testUncertainLearningKeepsConfirmationOnHUDAndVocabularyUntilExplicitAction() {
+    func testAutomaticLearningKeepsSameUndoOnHUDAndVocabularyWithoutExtraAction() {
         let state = AppState(initialModes: ProcessingMode.defaults)
         defer { state.cancel() }
-        let confirmation = AutomaticLearningConfirmation { AutomaticLearningReceipt(.failed) }
-        let feedback = AutomaticLearningFeedback.needsConfirmation([.init(alias: "Tablets", canonical: "Typeless")])
-        state.showAutomaticLearningFeedback(feedback, confirmation: confirmation)
+        let undo = AutomaticLearningUndo { }
+        let feedback = AutomaticLearningFeedback.learned([.init(alias: "Tablets", canonical: "Typeless")], hasConflict: false)
+        state.showAutomaticLearningFeedback(feedback, undo: undo)
         XCTAssertEqual(state.barPhase, .done)
-        XCTAssertTrue(state.learningConfirmation === confirmation)
-        XCTAssertNil(state.learningUndo)
+        XCTAssertTrue(state.learningUndo === undo)
         XCTAssertTrue(state.feedbackMessage.contains("Tablets → Typeless"))
-        XCTAssertFalse(feedback.didPersist)
-        XCTAssertFalse(confirmation.didConfirm)
+        XCTAssertTrue(feedback.didPersist)
         let status = AutomaticLearningStatus()
-        status.update(feedback, confirmation: confirmation)
-        XCTAssertTrue(status.confirmation === confirmation)
+        status.update(feedback, undo: undo)
+        XCTAssertTrue(status.undo === undo)
         state.startRecording()
-        XCTAssertNil(state.learningConfirmation, "录音时不能让上次候选按钮覆盖当前操作")
-        XCTAssertTrue(status.confirmation === confirmation, "词库最近结果仍可处理该明确词对")
+        XCTAssertNil(state.learningUndo, "录音时不能让上次撤销按钮覆盖当前操作")
+        XCTAssertTrue(status.undo === undo, "词库保留同一精确撤销收据")
     }
 
     func testLearningFeedbackRetainsPairsForMultipleLongAndConflictingCorrections() {

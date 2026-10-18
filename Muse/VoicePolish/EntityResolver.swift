@@ -315,16 +315,16 @@ enum EntityResolver {
         return score >= similarityThreshold
     }
 
-    /// 只用于提出需用户确认的候选，不自动建立替换。弱元音、清浊音和
-    /// 词尾 /ts/、/s/ 可能混淆，但辅音结构相同仍不能证明是识别错误。
-    static func isPossibleEnglishSpeechCorrection(_ left: String, _ right: String) -> Bool {
+    /// 上屏改词学习支持的英文变体：弱元音、清浊音与词尾 /ts/、/st/、/s/。
+    /// 只用于有本次 ASR 来源的人工改词学习；通用实体解析保持原门槛。
+    static func isEnglishSpeechCorrectionVariant(_ left: String, _ right: String) -> Bool {
         if isEnglishLetterFragmentCorrection(left, right) { return true }
         func isLongWord(_ word: String) -> Bool {
             (7...32).contains(word.count) && word.unicodeScalars.allSatisfy {
                 $0.isASCII && CharacterSet.letters.contains($0)
             }
         }
-        // 识别也可能把一个词拆成多个完整英文词；只在低置信建议中合并比较。
+        // 识别也可能把一个词拆成多个完整英文词；在改词学习时合并比较。
         let words = left.split(whereSeparator: \.isWhitespace).map(String.init)
         guard !left.contains(where: \.isNewline), (1...3).contains(words.count),
               words.allSatisfy({ $0.count >= 2 && $0.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) } })
@@ -369,8 +369,8 @@ enum EntityResolver {
         return (4...16).contains(signature.count) && signature == simplifyFinalCluster(rightConsonants)
     }
 
-    /// ASR 可把名字前半段听成独立字母。完整后缀及相近拼写只足以提出
-    /// 确认，不能据此自动建词，例如多个字母片段再接一个完整英文单词。
+    /// ASR 可把名字前半段听成独立字母；用完整后缀及紧凑拼写关联词对。
+    /// 来源和保存由上屏改词学习流程核验，不用于放宽通用实体替换。
     private static func isEnglishLetterFragmentCorrection(_ left: String, _ right: String) -> Bool {
         func lettersOnly(_ word: String) -> Bool {
             !word.isEmpty && word.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) }
