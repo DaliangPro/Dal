@@ -318,6 +318,7 @@ enum EntityResolver {
     /// 只用于提出需用户确认的候选，不自动建立替换。弱元音、清浊音和
     /// 词尾 /ts/、/s/ 可能混淆，但辅音结构相同仍不能证明是识别错误。
     static func isPossibleEnglishSpeechCorrection(_ left: String, _ right: String) -> Bool {
+        if isEnglishLetterFragmentCorrection(left, right) { return true }
         func isLongWord(_ word: String) -> Bool {
             (7...32).contains(word.count) && word.unicodeScalars.allSatisfy {
                 $0.isASCII && CharacterSet.letters.contains($0)
@@ -356,6 +357,22 @@ enum EntityResolver {
         }
         let signature = simplifyFinalCluster(leftConsonants)
         return (4...16).contains(signature.count) && signature == simplifyFinalCluster(rightConsonants)
+    }
+
+    /// ASR 可把名字前半段听成独立字母。完整后缀及相近拼写只足以提出
+    /// 确认，不能据此自动建词，例如多个字母片段再接一个完整英文单词。
+    private static func isEnglishLetterFragmentCorrection(_ left: String, _ right: String) -> Bool {
+        func lettersOnly(_ word: String) -> Bool {
+            !word.isEmpty && word.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) }
+        }
+        let words = left.split(whereSeparator: \.isWhitespace).map(String.init)
+        guard (2...4).contains(words.count), (7...32).contains(right.count), lettersOnly(right),
+              let suffix = words.last, (4...16).contains(suffix.count), lettersOnly(suffix),
+              words.dropLast().allSatisfy({ $0.count == 1 && lettersOnly($0) }),
+              right.lowercased().hasSuffix(suffix.lowercased()) else { return false }
+        let compact = words.joined()
+        return Double(min(compact.count, right.count)) / Double(max(compact.count, right.count)) >= 0.5
+            && editSimilarity(compact, right) >= 0.5
     }
 
     private static func resolveSurface(

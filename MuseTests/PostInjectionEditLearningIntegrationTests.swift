@@ -29,10 +29,18 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
     }
 
     func testReportedTabletsEditIsObservedSavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeConfirmation(alias: "Tablets", canonical: "Typeless")
+    }
+
+    func testActualLetterFragmentEditIsObservedConfirmedSavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeConfirmation(alias: "l f deck", canonical: "AlphaDeck")
+    }
+
+    private func verifyNativeConfirmation(alias: String, canonical: String) async throws {
         let fixture = try LearningChainFixture()
         defer { fixture.cleanup() }
         let editor = LearningNativeEditor()
-        let original = "我正在用 Tablets."
+        let original = "我正在用 \(alias)."
         editor.replace(with: original)
         await fixture.insert(id: "tablets-native", text: original)
         let status = AutomaticLearningStatus()
@@ -49,18 +57,18 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
             injectedText: original, historyID: "tablets-native", capture: .field(editor.fieldWithoutCount), historyStore: fixture.history
         )
         try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
-        editor.replace(with: "我正在用 Typeless")
+        editor.replace(with: "我正在用 \(canonical)")
         try await waitUntil { status.confirmation != nil }
         let before = try await fixture.history.fetchVoicePolishCorrections()
         XCTAssertTrue(before.isEmpty)
         let confirmation = try XCTUnwrap(status.confirmation)
         await confirmation.perform()
         try await waitUntil { status.latest?.didPersist == true }
-        XCTAssertEqual(status.latest?.detail, "Tablets → Typeless")
+        XCTAssertEqual(status.latest?.detail, "\(alias) → \(canonical)")
         let session = RecognitionSession(historyStore: fixture.history)
         let transcript = RecognitionTranscript(confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true)
         let learned = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)
-        XCTAssertEqual(learned?.finalText, "我正在用 Typeless.")
+        XCTAssertEqual(learned?.finalText, "我正在用 \(canonical).")
         let undo = try XCTUnwrap(status.undo)
         await undo.perform()
         let undone = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)

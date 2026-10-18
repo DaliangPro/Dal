@@ -2,6 +2,31 @@ import XCTest
 @testable import Muse
 
 final class VoicePolishLearningTests: XCTestCase {
+    func testActualASRLetterFragmentsOnlyOfferSourceBoundConfirmation() {
+        for alias in ["l f deck", "L F Deck", "a l f deck"] {
+            let original = "我正在用 \(alias)。"
+            let corrected = "我正在用 AlphaDeck。"
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ).isEmpty)
+            XCTAssertEqual(TerminologyCorrectionExtractor.confirmationASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ), [.init(alias: alias, canonical: "AlphaDeck")])
+        }
+        for (original, corrected, source) in [
+            ("l f deck", "AlphaNotes", "l f deck"),
+            ("x z deck", "AlphaDeck", "x z deck"),
+            ("l f de2ck", "AlphaDeck", "l f de2ck"),
+            ("l f deck", "AlphaDeck", "其他应用"),
+            ("\"l f deck\"@example.com", "\"AlphaDeck\"@example.com", "\"l f deck\"@example.com"),
+            ("/l f deck", "/AlphaDeck", "/l f deck"),
+            ("${l f deck}", "${AlphaDeck}", "${l f deck}")
+        ] {
+            XCTAssertTrue(TerminologyCorrectionExtractor.confirmationASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: source
+            ).isEmpty, original)
+        }
+    }
     func testUncertainEnglishFinalClusterCorrectionsOfferConfirmationInsteadOfAutomaticLearning() {
         for (original, corrected, alias, canonical) in [
             ("Tablets.", "Typeless", "Tablets", "Typeless"),
