@@ -165,7 +165,10 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                 Toggle(L("自动记住我改正的词", "Remember corrected words"), isOn: $automaticallyLearnTerms)
                     .toggleStyle(.switch)
                     .font(TF.settingsFontCaption)
-                    .help(L("直出或润色上屏后短时观察支持的输入框，把明确的词语修改记入词库。", "Remembers word corrections shortly after Direct or Polish output in supported text fields."))
+                    .help(L(
+                        "直出或润色上屏后短时观察支持的输入框，仅记住能确认来自本次识别、且像近音或拼写错误的词；语义换词不会自动记入词库。",
+                        "After Direct or Polish output, remembers only likely speech-recognition or spelling errors from the current transcript; semantic rewrites are not learned automatically."
+                    ))
                 Spacer(minLength: 8)
                 SettingsTextButton(L("词库设置", "Options"), controlSize: .compact) { showsVocabularySettings = true }
             }

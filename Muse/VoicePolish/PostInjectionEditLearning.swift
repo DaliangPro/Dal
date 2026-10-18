@@ -108,7 +108,6 @@ actor PostInjectionEditLearningMonitor {
             return VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
         case .voicePolish:
             return VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
-                || VoicePolishSettings.personalizationEnabled(defaults: defaults)
         default:
             return false
         }
@@ -289,10 +288,8 @@ actor PostInjectionEditLearningMonitor {
             insertionOrder.removeAll { $0 == historyID }
         }
         guard case .field(let field) = capture else {
-            if case .unavailable(let feedback) = capture,
-               VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults) {
-                Self.report(feedback)
-            }
+            // 输入框能力不足是正常兼容边界，不打断用户；仅保留内部诊断。
+            if case .unavailable = capture { DebugFileLogger.log("learning.capture unavailable") }
             return
         }
         let result = await Self.captureResult(injectedText: injectedText, historyID: historyID, field: field)
@@ -300,11 +297,7 @@ actor PostInjectionEditLearningMonitor {
             if case .failure(let failure) = result {
                 DebugFileLogger.log("learning.capture failure=\(failure.rawValue) units=\(injectedText.utf16.count)")
             }
-            if !Task.isCancelled,
-               VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults),
-               case .failure(let failure) = result, let feedback = failure.feedback {
-                Self.report(feedback)
-            }
+            // 读取失败、焦点变化、范围异常都静默；成功学习才需要用户看到反馈。
             return
         }
         await observe(target, historyStore: historyStore)
@@ -337,9 +330,9 @@ actor PostInjectionEditLearningMonitor {
                 originalText: target.originalText, correctedText: candidate,
                 historyID: target.historyID, historyStore: historyStore
             )
-            if let feedback {
+            if let feedback, case .learned = feedback {
                 Self.report(feedback)
-                if case .learned = feedback { return }
+                return
             }
         }
     }
@@ -379,16 +372,15 @@ actor PostInjectionEditLearningMonitor {
         }
         let isVoicePolish = history.status.hasPrefix("voice_polish_")
         guard isVoicePolish || history.supportsDirectTerminologyLearning else { return .failed }
-        let styleEnabled = isVoicePolish
-            && VoicePolishSettings.personalizationEnabled(defaults: defaults)
         let candidates = terminologyEnabled
-            ? TerminologyCorrectionExtractor.candidates(
+            ? TerminologyCorrectionExtractor.automaticASRCandidates(
                 generatedText: originalText,
-                correctedText: correctedText
+                correctedText: correctedText,
+                recognitionText: history.rawText
             )
             : []
         let learnsTerminology = terminologyEnabled && !candidates.isEmpty
-        guard styleEnabled || learnsTerminology else {
+        guard learnsTerminology else {
             return terminologyEnabled ? .noTerms : nil
         }
 
@@ -399,12 +391,12 @@ actor PostInjectionEditLearningMonitor {
                 candidates: candidates,
                 correctedText: correctedText,
                 scene: .unknown,
-                personalizationEnabled: styleEnabled,
+                personalizationEnabled: false,
                 retentionLimit: VoicePolishSettings.correctionLimit(defaults: defaults),
-                learnStyle: styleEnabled,
+                learnStyle: false,
                 learnTerminology: learnsTerminology
             )
-            guard learnsTerminology else { return .styleOnly }
+            guard learnsTerminology else { return .noTerms }
             let saved = TerminologyRepository.load(context: settingsContext)
             let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
             let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }

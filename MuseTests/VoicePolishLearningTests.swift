@@ -143,9 +143,9 @@ final class VoicePolishLearningTests: XCTestCase {
         XCTAssertFalse(PostInjectionEditLearningMonitor.shouldObserve(
             kind: .direct, injection: .inserted, defaults: defaults
         ))
-        XCTAssertTrue(PostInjectionEditLearningMonitor.shouldObserve(
+        XCTAssertFalse(PostInjectionEditLearningMonitor.shouldObserve(
             kind: .voicePolish, injection: .inserted, defaults: defaults
-        ))
+        ), "个人表达学习不应由自动记词开关隐式启动")
 
         VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
         for kind in [ProcessingKind.direct, .voicePolish] {
@@ -199,6 +199,40 @@ final class VoicePolishLearningTests: XCTestCase {
         )
         XCTAssertEqual(result?.finalText, corrected)
         XCTAssertNil(result?.processedText, "直出沿用本地词库，不调用润色")
+    }
+
+    func testAutomaticCandidatesOnlyKeepLikelyASRErrorsFromRecognitionText() {
+        XCTAssertEqual(
+            TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: "我使用 cloud。", correctedText: "我使用 Claude。", recognitionText: "我使用 cloud。"
+            ),
+            [TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")]
+        )
+        XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+            generatedText: "我想吃苹果。", correctedText: "我想去散步。", recognitionText: "我想吃苹果。"
+        ).isEmpty, "正常语义换词不能被自动记为 ASR 错词")
+        XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+            generatedText: "今天开会讨论。", correctedText: "今天开会讨论。", recognitionText: "今天开会讨论。"
+        ).isEmpty)
+    }
+
+    func testAutomaticVoicePolishSemanticEditDoesNotLearnStyleOrTerminology() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.historyStore.insert(HistoryRecord(
+            id: "voice-polish-semantic", createdAt: Date(), durationSeconds: 2,
+            rawText: "我想吃苹果。", processingMode: "语音润色",
+            processedText: "我想吃苹果。", finalText: "我想吃苹果。",
+            status: "voice_polish_success", characterCount: 6
+        ))
+
+        let feedback = await fixture.monitor.recordCorrectionFeedback(
+            originalText: "我想吃苹果。", correctedText: "我想去散步。",
+            historyID: "voice-polish-semantic", historyStore: fixture.historyStore
+        )
+        XCTAssertEqual(feedback, .noTerms)
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
     }
 
     func testDirectCorrectionDoesNotLearnWhenTerminologySwitchIsOff() async throws {
@@ -329,7 +363,7 @@ final class VoicePolishLearningTests: XCTestCase {
         let corrections = try await historyStore.fetchVoicePolishCorrections()
         XCTAssertEqual(corrections.count, 1)
         XCTAssertEqual(corrections[0].correctedText, "我正在用 Typeless 写这段话")
-        XCTAssertTrue(corrections[0].learnStyle)
+        XCTAssertFalse(corrections[0].learnStyle)
         XCTAssertTrue(corrections[0].learnTerminology)
         let terminology = TerminologyRepository.load(context: context)
         XCTAssertTrue(terminology.entries.contains { entry in

@@ -115,15 +115,8 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
             injectedText: "cloud.", historyID: "intermediate", capture: .field(editor.field), historyStore: fixture.history
         )
         try await waitUntil { editor.hasVerifiedOriginal }
-        let noTerms = expectation(description: "中间标点修改不应结束观察")
-        let token = NotificationCenter.default.addObserver(
-            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: .main
-        ) { note in
-            if note.object as? AutomaticLearningFeedback == .noTerms { noTerms.fulfill() }
-        }
-        defer { NotificationCenter.default.removeObserver(token) }
         editor.replace(with: "cloud!")
-        await fulfillment(of: [noTerms], timeout: 4)
+        try await Task.sleep(for: .seconds(2.2))
         editor.replace(with: "Claude")
         try await waitUntil {
             TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
@@ -141,12 +134,46 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         XCTAssertEqual(editor.rangeReads, 0)
     }
 
+    func testCaptureFailureDoesNotPostTechnicalFailureNotification() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let reportCount = NotificationReportCounter()
+        let token = NotificationCenter.default.addObserver(
+            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: nil
+        ) { _ in reportCount.increment() }
+        defer { NotificationCenter.default.removeObserver(token) }
+
+        await fixture.monitor.start(
+            injectedText: "cloud.", historyID: "unsupported", capture: .unavailable(.unsupportedField),
+            historyStore: fixture.history
+        )
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertEqual(reportCount.value, 0, "输入框能力不足时不应弹出技术失败提示")
+    }
+
     private func waitUntil(_ condition: @MainActor () -> Bool) async throws {
         let deadline = ContinuousClock.now + .seconds(5)
         while !condition(), ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(25))
         }
         XCTAssertTrue(condition(), "自动学习链路没有按期完成")
+    }
+}
+
+private final class NotificationReportCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return count
+    }
+
+    func increment() {
+        lock.lock()
+        count += 1
+        lock.unlock()
     }
 }
 
