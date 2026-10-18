@@ -90,15 +90,18 @@ actor PostInjectionEditLearningMonitor {
     private let coordinator: TerminologyHistoryTransactionCoordinator
     private let settingsContext: VocabularyStorageContext
     private let observationTiming: PostInjectionObservationTiming
+    private let diagnostic: @Sendable (String) -> Void
 
     init(
         coordinator: TerminologyHistoryTransactionCoordinator = .shared,
         settingsContext: VocabularyStorageContext = .production,
-        observationTiming: PostInjectionObservationTiming = PostInjectionObservationTiming()
+        observationTiming: PostInjectionObservationTiming = PostInjectionObservationTiming(),
+        diagnostic: @escaping @Sendable (String) -> Void = { DebugFileLogger.log($0) }
     ) {
         self.coordinator = coordinator
         self.settingsContext = settingsContext
         self.observationTiming = observationTiming
+        self.diagnostic = diagnostic
     }
 
     static func shouldObserve(
@@ -244,9 +247,12 @@ actor PostInjectionEditLearningMonitor {
     }
 
     static func report(_ receipt: AutomaticLearningReceipt) {
+        var actions: [String: Any] = [:]
+        if let undo = receipt.undo { actions["undo"] = undo }
+        if let confirmation = receipt.confirmation { actions["confirmation"] = confirmation }
         NotificationCenter.default.post(
             name: .voicePolishAutomaticLearningDidFinish, object: receipt.feedback,
-            userInfo: receipt.undo.map { ["undo": $0] }
+            userInfo: actions
         )
     }
 
@@ -298,6 +304,7 @@ actor PostInjectionEditLearningMonitor {
             tasks.removeValue(forKey: oldest)?.cancel()
         }
         insertionOrder.append(historyID)
+        diagnostic("learning.capture started units=\(injectedText.utf16.count)")
         tasks[historyID] = Task { [weak self] in
             await self?.captureAndObserve(
                 injectedText: injectedText, historyID: historyID,
@@ -326,6 +333,7 @@ actor PostInjectionEditLearningMonitor {
             // 读取失败、焦点变化、范围异常都不打断输入；成功学习才需要反馈。
             return
         }
+        diagnostic("learning.capture verified units=\(injectedText.utf16.count)")
         await observe(target, historyStore: historyStore)
     }
 
@@ -393,9 +401,16 @@ actor PostInjectionEditLearningMonitor {
         var window = PostInjectionObservationWindow(timing: observationTiming)
         var lastAttemptedCandidate: String?
         while window.isOpen(at: started.duration(to: .now)) {
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled else {
+                diagnostic("learning.observe stopped reason=cancelled")
+                return
+            }
             try? await Task.sleep(for: observationTiming.pollingInterval)
-            guard !Task.isCancelled, window.isOpen(at: started.duration(to: .now)) else { return }
+            guard !Task.isCancelled else {
+                diagnostic("learning.observe stopped reason=cancelled")
+                return
+            }
+            guard window.isOpen(at: started.duration(to: .now)) else { break }
             if !(await target.field.isAvailable()) {
                 // 只使用刚才在原安全控件中完整读回的快照；不读取失焦后的正文。
                 // 控件受保护/只读/失联时不作最终提交，取消也不会触发此路径。
@@ -404,6 +419,7 @@ actor PostInjectionEditLearningMonitor {
                    candidate != lastAttemptedCandidate, !Task.isCancelled {
                     await persistAndReport(candidate, target: target, historyStore: historyStore)
                 }
+                diagnostic("learning.observe stopped reason=fieldUnavailable")
                 return
             }
             let candidate = await Self.currentCandidate(for: target)
@@ -413,6 +429,7 @@ actor PostInjectionEditLearningMonitor {
             lastAttemptedCandidate = candidate
             if await persistAndReport(candidate, target: target, historyStore: historyStore) { return }
         }
+        diagnostic("learning.observe stopped reason=expired")
     }
 
     @discardableResult
@@ -423,7 +440,11 @@ actor PostInjectionEditLearningMonitor {
               let receipt = await recordCorrectionReceipt(
                 originalText: target.originalText, correctedText: candidate,
                 historyID: target.historyID, historyStore: historyStore
-              ), case .learned = receipt.feedback else { return false }
+              ) else { return false }
+        switch receipt.feedback {
+        case .learned, .needsConfirmation: break
+        default: return false
+        }
         Self.report(receipt)
         return true
     }
@@ -479,38 +500,72 @@ actor PostInjectionEditLearningMonitor {
                 recognitionText: history.rawText
             )
             : []
+        // 只写阶段、长度与数量；不得将用户正文、词对或历史标识带入诊断。
+        let extracted = terminologyEnabled
+            ? TerminologyCorrectionExtractor.candidates(generatedText: originalText, correctedText: correctedText)
+            : []
+        let fromASR = extracted.filter { history.rawText.localizedStandardContains($0.alias) }.count
+        diagnostic("learning.candidate units=\(correctedText.utf16.count) extracted=\(extracted.count) source=\(fromASR) accepted=\(candidates.count)")
+        let suggested = terminologyEnabled
+            ? TerminologyCorrectionExtractor.confirmationASRCandidates(
+                generatedText: originalText, correctedText: correctedText, recognitionText: history.rawText
+            ) : []
+        if !suggested.isEmpty {
+            let proposed = extracted.filter { candidates.contains($0) || suggested.contains($0) }
+            let confirmation = await AutomaticLearningConfirmation { [weak self] in
+                guard let self else { throw TerminologyHistoryTransactionError.correctionChanged }
+                return try await self.saveCorrectionReceipt(
+                    proposed, correctedText: correctedText, historyID: historyID, historyStore: historyStore,
+                    expectedUncorrectedHistory: history
+                )
+            }
+            diagnostic("learning.candidate confirmation count=\(proposed.count)")
+            return AutomaticLearningReceipt(.needsConfirmation(proposed), confirmation: confirmation)
+        }
         let learnsTerminology = terminologyEnabled && !candidates.isEmpty
         guard learnsTerminology else {
             return terminologyEnabled ? AutomaticLearningReceipt(.noTerms) : nil
         }
 
         do {
-            let record = try await coordinator.confirmCorrection(
-                historyStore: historyStore,
-                historyID: historyID,
-                candidates: candidates,
-                correctedText: correctedText,
-                scene: .unknown,
-                personalizationEnabled: false,
-                retentionLimit: VoicePolishSettings.correctionLimit(defaults: defaults),
-                learnStyle: false,
-                learnTerminology: learnsTerminology
-            )
-            guard learnsTerminology else { return AutomaticLearningReceipt(.noTerms) }
-            let saved = TerminologyRepository.load(context: settingsContext)
-            let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
-            let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }
-            let coordinator = self.coordinator
-            let undo = await AutomaticLearningUndo {
-                try await coordinator.undoCorrection(
-                    historyStore: historyStore, historyID: historyID, expectedCorrection: record
-                )
-            }
-            return AutomaticLearningReceipt(.learned(candidates, hasConflict: hasConflict), undo: undo)
+            return try await saveCorrectionReceipt(candidates, correctedText: correctedText, historyID: historyID, historyStore: historyStore)
         } catch {
+            diagnostic("learning.save failed")
             AppLogger.log("[Muse] 自动纠正学习未写入: \(error.localizedDescription)")
             return AutomaticLearningReceipt(.failed)
         }
+    }
+
+    private func saveCorrectionReceipt(
+        _ candidates: [TerminologyCorrectionCandidate], correctedText: String,
+        historyID: String, historyStore: HistoryStore, expectedUncorrectedHistory: HistoryRecord? = nil
+    ) async throws -> AutomaticLearningReceipt {
+        guard VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults) else {
+            throw TerminologyHistoryTransactionError.correctionChanged
+        }
+        let record = try await coordinator.confirmCorrection(
+            historyStore: historyStore,
+            historyID: historyID,
+            candidates: candidates,
+            correctedText: correctedText,
+            scene: .unknown,
+            personalizationEnabled: false,
+            retentionLimit: VoicePolishSettings.correctionLimit(defaults: settingsContext.userDefaults),
+            learnStyle: false,
+            learnTerminology: true,
+            expectedUncorrectedHistory: expectedUncorrectedHistory
+        )
+        let saved = TerminologyRepository.load(context: settingsContext)
+        let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
+        let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }
+        let coordinator = self.coordinator
+        let undo = await AutomaticLearningUndo {
+            try await coordinator.undoCorrection(
+                historyStore: historyStore, historyID: historyID, expectedCorrection: record
+            )
+        }
+        diagnostic("learning.save success count=\(candidates.count)")
+        return AutomaticLearningReceipt(.learned(candidates, hasConflict: hasConflict), undo: undo)
     }
 
     static func currentCandidate(

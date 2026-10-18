@@ -115,4 +115,26 @@ final class HUDStyleTests: XCTestCase {
             state.stop()
         }
     }
+
+    @MainActor
+    func testUncertainWordConfirmationRendersActualActionAndBothWords() throws {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        defer { state.cancel() }
+        let confirmation = AutomaticLearningConfirmation { AutomaticLearningReceipt(.failed) }
+        state.showAutomaticLearningFeedback(.needsConfirmation([.init(alias: "Tablets", canonical: "Typeless")]), confirmation: confirmation)
+        XCTAssertTrue(state.feedbackMessage.contains("Tablets → Typeless"))
+        let textWidth = (state.feedbackMessage as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width
+        XCTAssertLessThanOrEqual(textWidth + 84 + 96, TF.barWidth)
+        let renderer = ImageRenderer(content: FloatingBarView(state: state, styleOverride: .ink)
+            .frame(width: 576, height: 120).background(Color.white)
+            .transaction { $0.disablesAnimations = true })
+        renderer.scale = 2
+        let image = try XCTUnwrap(renderer.cgImage)
+        if let path = ProcessInfo.processInfo.environment["MUSE_LEARNING_FEEDBACK_PREVIEW_DIR"] {
+            let directory = URL(fileURLWithPath: path)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let png = try XCTUnwrap(NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]))
+            try png.write(to: directory.appendingPathComponent("english-confirmation.png"))
+        }
+    }
 }

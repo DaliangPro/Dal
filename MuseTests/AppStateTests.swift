@@ -79,6 +79,26 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(status.latest?.detail, "cloud → Claude")
     }
 
+    func testUncertainLearningKeepsConfirmationOnHUDAndVocabularyUntilExplicitAction() {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        defer { state.cancel() }
+        let confirmation = AutomaticLearningConfirmation { AutomaticLearningReceipt(.failed) }
+        let feedback = AutomaticLearningFeedback.needsConfirmation([.init(alias: "Tablets", canonical: "Typeless")])
+        state.showAutomaticLearningFeedback(feedback, confirmation: confirmation)
+        XCTAssertEqual(state.barPhase, .done)
+        XCTAssertTrue(state.learningConfirmation === confirmation)
+        XCTAssertNil(state.learningUndo)
+        XCTAssertTrue(state.feedbackMessage.contains("Tablets → Typeless"))
+        XCTAssertFalse(feedback.didPersist)
+        XCTAssertFalse(confirmation.didConfirm)
+        let status = AutomaticLearningStatus()
+        status.update(feedback, confirmation: confirmation)
+        XCTAssertTrue(status.confirmation === confirmation)
+        state.startRecording()
+        XCTAssertNil(state.learningConfirmation, "录音时不能让上次候选按钮覆盖当前操作")
+        XCTAssertTrue(status.confirmation === confirmation, "词库最近结果仍可处理该明确词对")
+    }
+
     func testLearningFeedbackRetainsPairsForMultipleLongAndConflictingCorrections() {
         withChineseAppLanguage {
             let pairs = [

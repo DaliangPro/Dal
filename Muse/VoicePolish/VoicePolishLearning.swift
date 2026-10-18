@@ -148,11 +148,67 @@ enum TerminologyCorrectionExtractor {
         let source = recognitionText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !source.isEmpty else { return [] }
         return candidates(generatedText: generatedText, correctedText: correctedText).filter { candidate in
-            source.localizedStandardContains(candidate.alias)
+            containsStandaloneASRTerm(candidate.alias, in: source)
                 && EntityResolver.isLikelySpeechRecognitionCorrection(
                     alias: candidate.alias, canonical: candidate.canonical
                 )
         }
+    }
+
+    /// 音形存在解释但证据不足的英文词对，仅提出确认，不作为自动学习证据。
+    static func confirmationASRCandidates(
+        generatedText: String, correctedText: String, recognitionText: String
+    ) -> [TerminologyCorrectionCandidate] {
+        let source = recognitionText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !source.isEmpty else { return [] }
+        return candidates(generatedText: generatedText, correctedText: correctedText).filter {
+            containsStandaloneASRTerm($0.alias, in: source)
+                && !EntityResolver.isLikelySpeechRecognitionCorrection(alias: $0.alias, canonical: $0.canonical)
+                && EntityResolver.isPossibleEnglishSpeechCorrection($0.alias, $0.canonical)
+        }
+    }
+
+    /// 英文词须在识别原文中独立出现，不能从网址、邮箱或较长标识符中
+    /// 截出片段建立全局替换；句末句号仍是普通标点。
+    private static func containsStandaloneASRTerm(_ term: String, in source: String) -> Bool {
+        guard term.unicodeScalars.contains(where: { $0.isASCII && CharacterSet.letters.contains($0) }) else {
+            return source.localizedStandardContains(term)
+        }
+        var start = source.startIndex
+        while let range = source.range(of: term, options: [.caseInsensitive, .diacriticInsensitive], range: start..<source.endIndex) {
+            let before = range.lowerBound > source.startIndex ? source.index(before: range.lowerBound) : nil
+            let after = range.upperBound < source.endIndex ? range.upperBound : nil
+            // 邮箱 local-part 可含加号、引号、星号等合法符号，不能只检查
+            // 紧邻字符；同一连续片段中出现 @ 或 URI scheme 时保守跳过。
+            func tokenBoundary(_ character: Character) -> Bool {
+                character.isWhitespace || "，。；、（）<>\"".contains(character)
+            }
+            let tokenStart = source[..<range.lowerBound].lastIndex(where: tokenBoundary).map { source.index(after: $0) } ?? source.startIndex
+            let tokenEnd = source[range.upperBound...].firstIndex(where: tokenBoundary) ?? source.endIndex
+            let token = source[tokenStart..<tokenEnd]
+            func isBoundary(_ index: String.Index?, preceding: Bool) -> Bool {
+                guard let index else { return true }
+                let character = source[index]
+                guard !isASCIIWordCharacter(character), !"@:/\\#?=&%+-".contains(character) else { return false }
+                if character == "." {
+                    if preceding {
+                        // 点号左边还有域名/标识符，不能将右段当作独立术语。
+                        return index == source.startIndex || !isDomainCharacter(source[source.index(before: index)])
+                    }
+                    let outer = source.index(after: index)
+                    return outer == source.endIndex || !isDomainCharacter(source[outer])
+                }
+                return true
+            }
+            if !token.contains("@"), !token.contains("://"),
+               isBoundary(before, preceding: true), isBoundary(after, preceding: false) { return true }
+            start = range.upperBound
+        }
+        return false
+    }
+
+    private static func isDomainCharacter(_ character: Character) -> Bool {
+        character.isLetter || character.isNumber || character == "_"
     }
 
     /// 中文单字音近差异不能直接成为全局规则。先恢复本机分词确认的短词；

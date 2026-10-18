@@ -11,6 +11,7 @@ protocol FloatingBarState: AnyObject, Observable {
     var currentMode: ProcessingMode { get }
     var feedbackMessage: String { get }
     var learningUndo: AutomaticLearningUndo? { get }
+    var learningConfirmation: AutomaticLearningConfirmation? { get }
     var processingFinishTime: Date? { get }
     var transcriptionText: String { get }
     var recordingStartDate: Date? { get }
@@ -27,6 +28,7 @@ protocol FloatingBarState: AnyObject, Observable {
 
 extension FloatingBarState {
     var learningUndo: AutomaticLearningUndo? { nil }
+    var learningConfirmation: AutomaticLearningConfirmation? { nil }
     var isVoicePolishUnavailable: Bool { false }
     var isRetryingVoicePolish: Bool { false }
     var voicePolishUnavailableMessage: String? { nil }
@@ -74,8 +76,10 @@ struct FloatingBarView<S: FloatingBarState>: View {
     private var isRecordingLabelOnlyState: Bool {
         state.segments.isEmpty && state.isQwen3OnlyMode
     }
-    private var visibleFeedback: String { state.learningUndo?.message ?? state.feedbackMessage }
-    private var undoButtonWidth: CGFloat { measureText(L("撤销", "Undo")) + 24 }
+    private var visibleFeedback: String { state.learningConfirmation?.message ?? state.learningUndo?.message ?? state.feedbackMessage }
+    private var learningActionWidth: CGFloat {
+        measureText(state.learningConfirmation == nil ? L("撤销", "Undo") : L("记住", "Remember")) + 24
+    }
     private var usesSuccessCheckmarkDoneContent: Bool {
         state.feedbackMessage == L("已完成", "Done")
     }
@@ -101,7 +105,7 @@ struct FloatingBarView<S: FloatingBarState>: View {
             return processingWidth()
         case .done:
             return min(TF.barWidth, feedbackWidth(for: visibleFeedback)
-                       + (state.learningUndo?.didUndo == false ? undoButtonWidth : 0))
+                       + (state.learningUndo?.didUndo == false || state.learningConfirmation?.didConfirm == false ? learningActionWidth : 0))
         case .copyFallback:
             return copyFallbackWidth()
         case .error:
@@ -448,6 +452,14 @@ struct FloatingBarView<S: FloatingBarState>: View {
                     .foregroundStyle(barTextColor)
                     .disabled(!undo.canUndo)
                     .accessibilityLabel(L("撤销此次记词", "Undo word learning"))
+            }
+            if let confirmation = state.learningConfirmation, !confirmation.didConfirm {
+                Button(L("记住", "Remember")) { Task { await confirmation.perform() } }
+                    .buttonStyle(.plain)
+                    .font(TF.hudFontTitle)
+                    .foregroundStyle(barTextColor)
+                    .disabled(!confirmation.canConfirm)
+                    .accessibilityLabel(L("确认记住这次改词", "Remember this correction"))
             }
         }
         .frame(maxWidth: .infinity)

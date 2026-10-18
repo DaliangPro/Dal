@@ -315,6 +315,49 @@ enum EntityResolver {
         return score >= similarityThreshold
     }
 
+    /// 只用于提出需用户确认的候选，不自动建立替换。弱元音、清浊音和
+    /// 词尾 /ts/、/s/ 可能混淆，但辅音结构相同仍不能证明是识别错误。
+    static func isPossibleEnglishSpeechCorrection(_ left: String, _ right: String) -> Bool {
+        func isLongWord(_ word: String) -> Bool {
+            (7...32).contains(word.count) && word.unicodeScalars.allSatisfy {
+                $0.isASCII && CharacterSet.letters.contains($0)
+            }
+        }
+        guard isLongWord(left), isLongWord(right),
+              Double(min(left.count, right.count)) / Double(max(left.count, right.count)) >= 0.75,
+              editSimilarity(left, right) >= 0.5,
+              let leftKey = englishPhoneticKey(left), let rightKey = englishPhoneticKey(right),
+              abs(leftKey.filter({ $0 == "a" }).count - rightKey.filter({ $0 == "a" }).count) <= 1
+        else { return false }
+
+        func consonants(_ key: String) -> String {
+            var result = ""
+            for character in key where character != "a" {
+                let folded: Character
+                switch character {
+                case "b": folded = "p"
+                case "d": folded = "t"
+                case "g": folded = "k"
+                case "v": folded = "f"
+                case "z": folded = "s"
+                default: folded = character
+                }
+                if result.last != folded { result.append(folded) }
+            }
+            return result
+        }
+        let leftConsonants = consonants(leftKey)
+        let rightConsonants = consonants(rightKey)
+        guard leftConsonants.hasSuffix("s"), rightConsonants.hasSuffix("s"),
+              leftConsonants.hasSuffix("ts") != rightConsonants.hasSuffix("ts")
+        else { return false }
+        func simplifyFinalCluster(_ value: String) -> String {
+            value.hasSuffix("ts") ? String(value.dropLast(2)) + "s" : value
+        }
+        let signature = simplifyFinalCluster(leftConsonants)
+        return (4...16).contains(signature.count) && signature == simplifyFinalCluster(rightConsonants)
+    }
+
     private static func resolveSurface(
         _ surface: String,
         candidates: [PreparedCandidate]

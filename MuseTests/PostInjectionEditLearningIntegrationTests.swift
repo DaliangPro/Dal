@@ -28,6 +28,45 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         try await verifyNativeSession(reportsCount: false)
     }
 
+    func testReportedTabletsEditIsObservedSavedAndUndoableWithoutCharacterCount() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        let original = "我正在用 Tablets."
+        editor.replace(with: original)
+        await fixture.insert(id: "tablets-native", text: original)
+        let status = AutomaticLearningStatus()
+        let observer = NotificationCenter.default.addObserver(
+            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: .main
+        ) { note in
+            guard let feedback = note.object as? AutomaticLearningFeedback else { return }
+            let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
+            let confirmation = note.userInfo?["confirmation"] as? AutomaticLearningConfirmation
+            MainActor.assumeIsolated { status.update(feedback, undo: undo, confirmation: confirmation) }
+        }
+        defer { NotificationCenter.default.removeObserver(observer); editor.available = false }
+        await fixture.monitor.start(
+            injectedText: original, historyID: "tablets-native", capture: .field(editor.fieldWithoutCount), historyStore: fixture.history
+        )
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "我正在用 Typeless")
+        try await waitUntil { status.confirmation != nil }
+        let before = try await fixture.history.fetchVoicePolishCorrections()
+        XCTAssertTrue(before.isEmpty)
+        let confirmation = try XCTUnwrap(status.confirmation)
+        await confirmation.perform()
+        try await waitUntil { status.latest?.didPersist == true }
+        XCTAssertEqual(status.latest?.detail, "Tablets → Typeless")
+        let session = RecognitionSession(historyStore: fixture.history)
+        let transcript = RecognitionTranscript(confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true)
+        let learned = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)
+        XCTAssertEqual(learned?.finalText, "我正在用 Typeless.")
+        let undo = try XCTUnwrap(status.undo)
+        await undo.perform()
+        let undone = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)
+        XCTAssertEqual(undone?.finalText, original)
+    }
+
     private func verifyNativeSession(reportsCount: Bool) async throws {
         let fixture = try LearningChainFixture()
         defer { fixture.cleanup() }
@@ -69,7 +108,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         await session.stopRecording()
         let phase = await session.state
         XCTAssertEqual(phase, .idle, "等候上屏验证不能阻塞下一次输入")
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
         XCTAssertEqual(editor.view.string, "cloud.")
         editor.replace(with: "Claude")
         try await waitUntil { status.latest?.didPersist == true }
@@ -82,7 +121,7 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         editor.hasVerifiedOriginal = false
         await session.startRecording(mode: .direct)
         await session.stopRecording()
-        try await waitUntil { editor.hasVerifiedOriginal }
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 2 }
         XCTAssertEqual(editor.view.string, "Claude.", "下一次完整会话须自动应用学到的规则")
         editor.available = false
     }
@@ -348,11 +387,22 @@ private final class LearningNativeEditor {
     }
 }
 
+private final class LearningChainDiagnostics: @unchecked Sendable {
+    private let lock = NSLock()
+    private var captures = 0
+    func record(_ message: String) {
+        guard message.hasPrefix("learning.capture verified ") else { return }
+        lock.lock(); defer { lock.unlock() }; captures += 1
+    }
+    var verifiedCaptures: Int { lock.lock(); defer { lock.unlock() }; return captures }
+}
+
 private struct LearningChainFixture {
     let context: VocabularyStorageContext
     let history: HistoryStore
     let monitor: PostInjectionEditLearningMonitor
     let suiteName: String
+    let diagnostics: LearningChainDiagnostics
 
     init(timing: PostInjectionObservationTiming = PostInjectionObservationTiming()) throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("MuseLearningChain-\(UUID())")
@@ -368,9 +418,11 @@ private struct LearningChainFixture {
         _ = try TerminologyRepository.migrateIfNeeded(context: context)
         VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
         history = HistoryStore(path: directory.appendingPathComponent("history.db").path)
+        let diagnostics = LearningChainDiagnostics()
+        self.diagnostics = diagnostics
         monitor = PostInjectionEditLearningMonitor(
             coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context,
-            observationTiming: timing
+            observationTiming: timing, diagnostic: { diagnostics.record($0) }
         )
     }
 

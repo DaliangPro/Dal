@@ -319,10 +319,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] note in
             guard let feedback = note.object as? AutomaticLearningFeedback else { return }
+            let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
+            let confirmation = note.userInfo?["confirmation"] as? AutomaticLearningConfirmation
             MainActor.assumeIsolated { [weak self] in
-                let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
-                AutomaticLearningStatus.shared.update(feedback, undo: undo)
-                self?.appState.showAutomaticLearningFeedback(feedback, undo: undo)
+                AutomaticLearningStatus.shared.update(feedback, undo: undo, confirmation: confirmation)
+                self?.appState.showAutomaticLearningFeedback(feedback, undo: undo, confirmation: confirmation)
             }
         }
 
