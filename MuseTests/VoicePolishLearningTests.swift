@@ -2,6 +2,379 @@ import XCTest
 @testable import Muse
 
 final class VoicePolishLearningTests: XCTestCase {
+    func testSplitEnglishWordAndFinalSTAutomaticallyLearnWithSource() {
+        for alias in ["book list", "booklist", "Book List", "book  list"] {
+            let original = "我正在读 \(alias)。"
+            XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: "我正在读 Bookless。", recognitionText: original
+            ), [.init(alias: alias, canonical: "Bookless")])
+        }
+        for (original, corrected, source) in [
+            ("book list", "Bookless", "其他词"), ("book list", "Bookcase", "book list"),
+            ("book list", "Breakfast", "book list"), ("book list", "book less", "book list"),
+            ("book list", "Bookless1", "book list"), ("bo ok li st", "Bookless", "bo ok li st"),
+            ("\"book list\"@example.com", "\"Bookless\"@example.com", "\"book list\"@example.com"),
+            ("/book list", "/Bookless", "/book list"), ("${book list}", "${Bookless}", "${book list}")
+        ] {
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: source
+            ).isEmpty, original)
+        }
+    }
+
+    func testASRLetterFragmentsAutomaticallyLearnWithSource() {
+        for alias in ["l f deck", "L F Deck", "a l f deck"] {
+            let original = "我正在用 \(alias)。"
+            let corrected = "我正在用 AlphaDeck。"
+            XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ), [.init(alias: alias, canonical: "AlphaDeck")])
+        }
+        for (original, corrected, source) in [
+            ("l f deck", "AlphaNotes", "l f deck"),
+            ("x z deck", "AlphaDeck", "x z deck"),
+            ("l f de2ck", "AlphaDeck", "l f de2ck"),
+            ("l f deck", "AlphaDeck", "其他应用"),
+            ("\"l f deck\"@example.com", "\"AlphaDeck\"@example.com", "\"l f deck\"@example.com"),
+            ("/l f deck", "/AlphaDeck", "/l f deck"),
+            ("${l f deck}", "${AlphaDeck}", "${l f deck}")
+        ] {
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: source
+            ).isEmpty, original)
+        }
+    }
+    func testEnglishFinalClusterCorrectionsAutomaticallyLearn() {
+        for (original, corrected, alias, canonical) in [
+            ("Tablets.", "Typeless", "Tablets", "Typeless"),
+            ("我在用 Tablets。", "我在用 Typeless。", "Tablets", "Typeless"),
+            ("使用 tablets！", "使用 typeless！", "tablets", "typeless"),
+            ("TABLETS.", "TYPELESS.", "TABLETS", "TYPELESS"),
+            ("试试 Brandlets。", "试试 Prandless。", "Brandlets", "Prandless")
+        ] {
+            XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ), [TerminologyCorrectionCandidate(alias: alias, canonical: canonical)], original)
+        }
+    }
+
+    func testEnglishClusterRescueDoesNotRelaxGeneralSemanticOrSourceGuards() {
+        for (original, corrected) in [
+            ("product", "protect"), ("markets", "markers"), ("parents", "persons"),
+            ("tablets", "oranges"), ("tablets", "typhoons"), ("cat", "cut"),
+            ("我要用 Tablets Pro。", "我要用 Typeless Go。"),
+            ("https://tablets.example", "https://typeless.example"),
+            ("Tablets+sales@example.com", "Typeless+sales@example.com"),
+            ("Tablets!sales@example.com", "Typeless!sales@example.com"),
+            ("Tablets'sales@example.com", "Typeless'sales@example.com"),
+            ("Tablets*sales@example.com", "Typeless*sales@example.com"),
+            ("\"Tablets\"@example.com", "\"Typeless\"@example.com"),
+            ("\"Tablets sales\"@example.com", "\"Typeless sales\"@example.com"),
+            ("\"cloud\"@example.com", "\"Claude\"@example.com"),
+            ("$cloud", "$Claude"), ("$Tablets", "$Typeless"),
+            ("${Tablets}", "${Typeless}"), ("`Tablets`", "`Typeless`"),
+            ("Tablets.中国", "Typeless.中国"),
+            ("Tablets123", "Typeless123"), ("我想吃苹果", "我想去散步")
+        ] {
+            // 这里检验整个自动提取入口，防止普通换词或网址被拆成词后绕过限制。
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ).isEmpty, original)
+        }
+        XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+            generatedText: "我用 Tablets。", correctedText: "我用 Typeless。", recognitionText: "我用其他应用。"
+        ).isEmpty)
+        XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+            generatedText: "我用 Tablets，邮件是 user@example.com。",
+            correctedText: "我用 Typeless，邮件是 user@example.com。",
+            recognitionText: "我用 Tablets，邮件是 user@example.com。"
+        ), [.init(alias: "Tablets", canonical: "Typeless")], "无关位置的邮箱不影响正常改词")
+        XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+            generatedText: "我用 Tablets。", correctedText: "我用 Typeless。", recognitionText: "我用其他应用。"
+        ).isEmpty)
+        for (left, right) in [("receipts", "recipes"), ("contents", "condense"), ("students", "steadiness"), ("parents", "bareness"), ("products", "produces")] {
+            // 用户选择直接记住符合结构的近音修改，误记由收据撤销。
+            XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: left, correctedText: right, recognitionText: left
+            ), [.init(alias: left, canonical: right)])
+        }
+    }
+
+    @MainActor
+    func testReportedEnglishCorrectionPersistsCorrectsNextDirectAndCanUndo() async throws {
+        let diagnostics = LearningDiagnosticRecorder()
+        let fixture = try AutomaticTerminologyLearningFixture(diagnostic: { diagnostics.append($0) })
+        defer { fixture.cleanup() }
+        let original = "我正在用 Tablets."
+        let corrected = "我正在用 Typeless"
+        await fixture.insertDirectHistory(id: "reported-tablets", text: original)
+        let result = await fixture.monitor.recordCorrectionReceipt(
+            originalText: original, correctedText: corrected,
+            historyID: "reported-tablets", historyStore: fixture.historyStore
+        )
+        let receipt = try XCTUnwrap(result)
+        XCTAssertTrue(receipt.feedback.didPersist, "不需要额外点击就已保存")
+        let duplicate = await fixture.monitor.recordCorrectionReceipt(
+            originalText: original, correctedText: corrected,
+            historyID: "reported-tablets", historyStore: fixture.historyStore
+        )
+        XCTAssertFalse(duplicate?.feedback.didPersist ?? false, "重复观察不能覆盖已保存的历史")
+        let records = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(records.count, 1, "重复观察不能重复入库")
+        let session = RecognitionSession(historyStore: fixture.historyStore)
+        func nextOutput() async -> String? {
+            await session.postProcessForTesting(
+                rawText: original,
+                transcript: RecognitionTranscript(confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true),
+                mode: .direct, vocabularyContext: fixture.context
+            )?.finalText
+        }
+        let learned = await nextOutput()
+        XCTAssertEqual(learned, "我正在用 Typeless.")
+        let undo = try XCTUnwrap(receipt.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        let undone = await nextOutput()
+        XCTAssertEqual(undone, original)
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"])
+        let messages = diagnostics.messages
+        XCTAssertTrue(messages.contains { $0.contains("extracted=1 source=1 accepted=1") })
+        XCTAssertTrue(messages.contains("learning.save success count=1"))
+        for forbidden in [original, corrected, "Tablets", "Typeless", "reported-tablets"] {
+            XCTAssertFalse(messages.contains { $0.contains(forbidden) }, "诊断只能包含阶段、长度与数量")
+        }
+    }
+
+    @MainActor
+    func testAutomaticEnglishLearningHonorsDisabledDeletedAndAlreadyCorrectedHistory() async throws {
+        for state in ["disabled", "deleted", "updated"] {
+            let fixture = try AutomaticTerminologyLearningFixture()
+            defer { fixture.cleanup() }
+            await fixture.insertDirectHistory(id: "guarded", text: "Tablets.")
+            if state == "disabled" {
+                VoicePolishSettings.setTerminologyLearningEnabled(false, defaults: fixture.context.userDefaults)
+            } else if state == "deleted" {
+                try await fixture.historyStore.deleteOrThrow(id: "guarded")
+            } else {
+                try await TerminologyHistoryTransactionCoordinator(context: fixture.context).confirmCorrection(
+                    historyStore: fixture.historyStore, historyID: "guarded",
+                    candidates: [.init(alias: "Tablets", canonical: "OtherTerm")], correctedText: "OtherTerm",
+                    scene: .unknown, personalizationEnabled: false, retentionLimit: 100, learnStyle: false, learnTerminology: true
+                )
+            }
+            let result = await fixture.monitor.recordCorrectionReceipt(
+                originalText: "Tablets.", correctedText: "Typeless", historyID: "guarded", historyStore: fixture.historyStore
+            )
+            XCTAssertFalse(result?.feedback.didPersist ?? false, state)
+            let projection = TerminologyRepository.projections(context: fixture.context)
+            XCTAssertNotEqual(projection.corrections["Tablets"], "Typeless", state)
+            if state == "updated" { XCTAssertEqual(projection.corrections["Tablets"], "OtherTerm") }
+        }
+    }
+
+    @MainActor
+    func testStrictAndVariantWordsAutomaticallyPersistTogetherAndUndoTogether() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        let original = "我用 cloud 和 l f deck。"
+        await fixture.insertDirectHistory(id: "mixed", text: original)
+        let receipt = await fixture.monitor.recordCorrectionReceipt(
+            originalText: original, correctedText: "我用 Claude 和 AlphaDeck。",
+            historyID: "mixed", historyStore: fixture.historyStore
+        )
+        XCTAssertTrue(receipt?.feedback.didPersist == true)
+        let projection = TerminologyRepository.projections(context: fixture.context)
+        XCTAssertEqual(projection.corrections["cloud"], "Claude")
+        XCTAssertEqual(projection.corrections["l f deck"], "AlphaDeck")
+        let records = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(records.count, 1)
+        let undo = try XCTUnwrap(receipt?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        let restored = TerminologyRepository.projections(context: fixture.context)
+        XCTAssertNil(restored.corrections["cloud"])
+        XCTAssertNil(restored.corrections["l f deck"])
+    }
+
+    @MainActor
+    func testConcurrentAutomaticObservationsOnlySaveOnceAndKeepValidUndo() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "concurrent", text: "Tablets.")
+        let first = Task { await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "concurrent", historyStore: fixture.historyStore
+        ) }
+        let second = Task { await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "concurrent", historyStore: fixture.historyStore
+        ) }
+        let receipts = [await first.value, await second.value].compactMap { $0 }
+        XCTAssertEqual(receipts.filter { $0.feedback.didPersist }.count, 1)
+        let records = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(records.count, 1)
+        let undo = try XCTUnwrap(receipts.first(where: { $0.feedback.didPersist })?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"])
+    }
+
+    func testChineseSingleCharacterCorrectionsRecoverShortWords() {
+        let examples = [
+            ("明天联系苏林开会", "明天联系苏霖开会", "苏林", "苏霖"),
+            ("今天去食奇家吃饭", "今天去食其家吃饭", "食奇家", "食其家"),
+            ("我在食奇家", "我在食其家", "食奇家", "食其家"),
+            ("苏林", "苏霖", "苏林", "苏霖"),
+            ("这片森霖很漂亮", "这片森林很漂亮", "森霖", "森林")
+        ]
+        for (original, corrected, alias, canonical) in examples {
+            XCTAssertEqual(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: original
+            ), [TerminologyCorrectionCandidate(alias: alias, canonical: canonical)], original)
+        }
+    }
+
+    func testChineseExpansionStillRejectsMissingSourceAmbiguousBoundariesAndSemanticChanges() {
+        for (original, corrected, source) in [
+            ("联系苏林", "联系苏霖", "联系其他人"),
+            ("林", "霖", "林"),
+            ("林，家", "霖，家", "林，家"),
+            ("联系苏林", "联系苏雪", "联系苏林"),
+            ("今天吃米饭", "今天吃晚饭", "今天吃米饭"),
+            ("食奇家", "食奇家继续输入", "食奇家")
+        ] {
+            XCTAssertTrue(TerminologyCorrectionExtractor.automaticASRCandidates(
+                generatedText: original, correctedText: corrected, recognitionText: source
+            ).isEmpty, original)
+        }
+    }
+
+    @MainActor
+    func testUndoReceiptOnlyRemovesItsEvidenceAndIsOneShot() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture(builtIn: ["Claude"])
+        defer { fixture.cleanup() }
+        var manual = TerminologyRepository.load(context: fixture.context)
+        manual.entries.append(TerminologyEntry(
+            canonicalText: "手工术语", aliases: [TerminologyAlias(text: "人工错法", source: .manual)], origin: .manual
+        ))
+        try TerminologyRepository.save(manual, context: fixture.context)
+        for id in ["first", "second"] { await fixture.insertDirectHistory(id: id, text: "cloud") }
+        let first = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "cloud", correctedText: "Claude", historyID: "first", historyStore: fixture.historyStore
+        )
+        let second = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "cloud", correctedText: "Claude", historyID: "second", historyStore: fixture.historyStore
+        )
+        let undo = try XCTUnwrap(first?.undo)
+        await undo.perform()
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertFalse(undo.canUndo)
+        let entries = TerminologyRepository.load(context: fixture.context).entries
+        XCTAssertTrue(entries.contains { $0.origin == .builtIn && $0.canonicalText == "Claude" })
+        let alias = try XCTUnwrap(entries.flatMap(\.aliases).first { $0.text == "cloud" })
+        XCTAssertEqual(alias.sourceRecordIDs, ["second"])
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloud"], "Claude")
+        let remaining = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(remaining.map(\.historyID), ["second"])
+        await second?.undo?.perform()
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+        let histories = await fixture.historyStore.fetchAll()
+        XCTAssertEqual(histories.count, 2, "撤销学习不能删除原录音记录")
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["人工错法"], "手工术语")
+    }
+
+    @MainActor
+    func testUndoKeepsManualPairAddedAfterAutomaticLearning() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "post-manual", text: "Tablets.")
+        let receipt = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "post-manual", historyStore: fixture.historyStore
+        )
+        try TerminologyRepository.upsert(TerminologyEntry(
+            canonicalText: "Typeless", aliases: [.init(text: "Tablets", source: .manual)], origin: .manual
+        ), context: fixture.context)
+        let undo = try XCTUnwrap(receipt?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        let entry = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+        XCTAssertEqual(entry.origin, .manual)
+        XCTAssertEqual(entry.aliases.first?.source, .manual)
+        XCTAssertEqual(entry.aliases.first?.sourceRecordIDs, [])
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"], "Typeless")
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+    }
+
+    @MainActor
+    func testUndoKeepsExplicitManualEditOfAutomaticallyLearnedEntry() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "edited-manual", text: "Tablets.")
+        let receipt = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "Tablets.", correctedText: "Typeless", historyID: "edited-manual", historyStore: fixture.historyStore
+        )
+        var edited = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.canonicalText == "Typeless" })
+        let identity = edited.id
+        edited.canonicalText = "TypelessPro"
+        edited = edited.markedAsManual()
+        XCTAssertEqual(edited.id, identity)
+        try TerminologyRepository.upsert(edited, context: fixture.context)
+        let undo = try XCTUnwrap(receipt?.undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["Tablets"], "TypelessPro")
+        let remaining = try XCTUnwrap(TerminologyRepository.load(context: fixture.context).entries.first { $0.id == identity })
+        XCTAssertEqual(remaining.origin, .manual)
+        XCTAssertEqual(remaining.aliases.first?.source, .manual)
+        XCTAssertEqual(remaining.aliases.first?.sourceRecordIDs, [])
+        let corrections = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertTrue(corrections.isEmpty)
+    }
+
+    @MainActor
+    func testStaleUndoReceiptCannotRemoveUpdatedCorrection() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        await fixture.insertDirectHistory(id: "updated", text: "cloud")
+        let first = await fixture.monitor.recordCorrectionReceipt(
+            originalText: "cloud", correctedText: "Claude", historyID: "updated", historyStore: fixture.historyStore
+        )
+        let coordinator = TerminologyHistoryTransactionCoordinator(context: fixture.context)
+        // 用户通过明确纠正界面更新后，先前自动学习的撤销收据必须失效。
+        let second = try await coordinator.confirmCorrection(
+            historyStore: fixture.historyStore, historyID: "updated",
+            candidates: [.init(alias: "cloud", canonical: "Claude")], correctedText: "Claude",
+            scene: .unknown, personalizationEnabled: false, retentionLimit: 100,
+            learnStyle: false, learnTerminology: true
+        )
+        let undo = try XCTUnwrap(first?.undo)
+        await undo.perform()
+        XCTAssertFalse(undo.didUndo)
+        XCTAssertTrue(undo.didFail)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloud"], "Claude")
+        let remaining = try await fixture.historyStore.fetchVoicePolishCorrections()
+        XCTAssertEqual(remaining.count, 1)
+        try await coordinator.undoCorrection(
+            historyStore: fixture.historyStore, historyID: "updated", expectedCorrection: second
+        )
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
+    func testChineseCorrectionIsAppliedOnNextDirectOutput() async throws {
+        let fixture = try AutomaticTerminologyLearningFixture()
+        defer { fixture.cleanup() }
+        let original = "今天去食奇家吃饭"
+        await fixture.insertDirectHistory(id: "chinese-brand", text: original)
+        let feedback = await fixture.monitor.recordCorrectionFeedback(
+            originalText: original, correctedText: "今天去食其家吃饭", historyID: "chinese-brand",
+            historyStore: fixture.historyStore
+        )
+        XCTAssertEqual(feedback?.didPersist, true)
+        let prepared = VoicePolishTerminologyRuntime.prepare(rawText: original, applicationBundleIdentifier: nil, context: fixture.context)
+        XCTAssertEqual(prepared.canonicalText, "今天去食其家吃饭")
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["奇"], "不能生成全局单字替换")
+    }
+
     func testCloudCorrectionAddsUserAliasWithoutChangingBuiltInClaude() async throws {
         let fixture = try AutomaticTerminologyLearningFixture(builtIn: ["Claude"])
         defer { fixture.cleanup() }
@@ -442,6 +815,13 @@ final class VoicePolishLearningTests: XCTestCase {
     }
 }
 
+private final class LearningDiagnosticRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage: [String] = []
+    func append(_ message: String) { lock.lock(); defer { lock.unlock() }; storage.append(message) }
+    var messages: [String] { lock.lock(); defer { lock.unlock() }; return storage }
+}
+
 private struct AutomaticTerminologyLearningFixture {
     let directory: URL
     let suiteName: String
@@ -449,7 +829,7 @@ private struct AutomaticTerminologyLearningFixture {
     let historyStore: HistoryStore
     let monitor: PostInjectionEditLearningMonitor
 
-    init(builtIn: [String] = []) throws {
+    init(builtIn: [String] = [], diagnostic: @escaping @Sendable (String) -> Void = { _ in }) throws {
         directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("MuseDirectLearningTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -466,7 +846,8 @@ private struct AutomaticTerminologyLearningFixture {
         VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
         historyStore = HistoryStore(path: directory.appendingPathComponent("history.db").path)
         monitor = PostInjectionEditLearningMonitor(
-            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context
+            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context,
+            diagnostic: diagnostic
         )
     }
 

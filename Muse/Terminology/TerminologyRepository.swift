@@ -310,7 +310,9 @@ enum TerminologyRepository {
                         TerminologyText.aliasStorageKey($0.text) == aliasKey
                     }) {
                         let currentAlias = restored.entries[entryIndex].aliases[aliasIndex]
-                        var mergedAlias = originalAlias
+                        // 回滚只恢复历史证据，不覆盖期间新增或明确保存的手工来源。
+                        var mergedAlias = originalAlias.source == .confirmedCorrection && currentAlias.source != .confirmedCorrection
+                            ? currentAlias : originalAlias
                         var sourceIDs = originalAlias.sourceRecordIDs
                         for currentID in currentAlias.sourceRecordIDs where !sourceIDs.contains(currentID) {
                             sourceIDs.append(currentID)

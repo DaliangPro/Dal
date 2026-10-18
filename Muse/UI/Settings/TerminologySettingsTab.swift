@@ -130,8 +130,8 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
                     .toggleStyle(.switch)
                     .font(TF.settingsFontCaption)
                     .help(L(
-                        "直出或润色上屏后短时观察支持的输入框，仅记住能确认来自本次识别、且像近音或拼写错误的词；语义换词不会自动记入词库。",
-                        "After Direct or Polish output, remembers only likely speech-recognition or spelling errors from the current transcript; semantic rewrites are not learned automatically."
+                        "直出或润色上屏后短时观察支持的输入框，来自本次识别且符合近音或拼写条件的改词会直接记住；不满意可撤销此次记词。",
+                        "After Direct or Polish output, directly remembers qualifying sound-alike or spelling corrections from the current transcript. Undo word learning if the change is unwanted."
                     ))
                 Spacer(minLength: 8)
                 SettingsTextButton(L("词库设置", "Options"), controlSize: .compact) { showsVocabularySettings = true }
@@ -178,9 +178,12 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
         .task { if loadsStoredVocabulary { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidFinish)) { note in
             if let feedback = note.object as? AutomaticLearningFeedback {
-                AutomaticLearningStatus.shared.update(feedback)
+                AutomaticLearningStatus.shared.update(feedback, undo: note.userInfo?["undo"] as? AutomaticLearningUndo)
                 if feedback.didPersist, loadsStoredVocabulary { Task { await reload() } }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidUndo)) { _ in
+            if loadsStoredVocabulary { Task { await reload() } }
         }
         .sheet(item: $editorDraft) { draft in
             TerminologyEntryEditorSheet(
@@ -224,9 +227,14 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
             let feedback = AutomaticLearningStatus.shared.latest
             Image(systemName: feedback?.didPersist == true ? "checkmark.circle" : "info.circle")
             VStack(alignment: .leading, spacing: 2) {
-                Text(feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
+                Text(AutomaticLearningStatus.shared.undo?.message ?? feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
                      ?? L("改词后的学习结果会显示在这里", "Learning results will appear here after an edit"))
                     .textSelection(.enabled)
+                if let undo = AutomaticLearningStatus.shared.undo, !undo.didUndo {
+                    Button(L("撤销此次记词", "Undo word learning")) { Task { await undo.perform() } }
+                        .disabled(!undo.canUndo)
+                }
+
             }
         }
         .font(TF.settingsFontCaption)
@@ -1240,7 +1248,7 @@ private struct TerminologyEntryEditorSheet: View {
             scope: scope,
             createdAt: entry?.createdAt ?? Date(),
             updatedAt: Date()
-        )
+        ).markedAsManual()
     }
 
     private func splitAliases(_ text: String) -> [String] {

@@ -315,6 +315,76 @@ enum EntityResolver {
         return score >= similarityThreshold
     }
 
+    /// 上屏改词学习支持的英文变体：弱元音、清浊音与词尾 /ts/、/st/、/s/。
+    /// 只用于有本次 ASR 来源的人工改词学习；通用实体解析保持原门槛。
+    static func isEnglishSpeechCorrectionVariant(_ left: String, _ right: String) -> Bool {
+        if isEnglishLetterFragmentCorrection(left, right) { return true }
+        func isLongWord(_ word: String) -> Bool {
+            (7...32).contains(word.count) && word.unicodeScalars.allSatisfy {
+                $0.isASCII && CharacterSet.letters.contains($0)
+            }
+        }
+        // 识别也可能把一个词拆成多个完整英文词；在改词学习时合并比较。
+        let words = left.split(whereSeparator: \.isWhitespace).map(String.init)
+        guard !left.contains(where: \.isNewline), (1...3).contains(words.count),
+              words.allSatisfy({ $0.count >= 2 && $0.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) } })
+        else { return false }
+        let compactLeft = words.joined()
+        guard isLongWord(compactLeft), isLongWord(right),
+              Double(min(compactLeft.count, right.count)) / Double(max(compactLeft.count, right.count)) >= 0.75,
+              editSimilarity(compactLeft, right) >= 0.5,
+              let leftKey = englishPhoneticKey(compactLeft), let rightKey = englishPhoneticKey(right),
+              abs(leftKey.filter({ $0 == "a" }).count - rightKey.filter({ $0 == "a" }).count) <= 1
+        else { return false }
+
+        func consonants(_ key: String) -> String {
+            var result = ""
+            for character in key where character != "a" {
+                let folded: Character
+                switch character {
+                case "b": folded = "p"
+                case "d": folded = "t"
+                case "g": folded = "k"
+                case "v": folded = "f"
+                case "z": folded = "s"
+                default: folded = character
+                }
+                if result.last != folded { result.append(folded) }
+            }
+            return result
+        }
+        let leftConsonants = consonants(leftKey)
+        let rightConsonants = consonants(rightKey)
+        func hasFinalCluster(_ value: String) -> Bool {
+            value.hasSuffix("ts") || value.hasSuffix("st")
+        }
+        guard leftConsonants.hasSuffix("s") || leftConsonants.hasSuffix("st"),
+              rightConsonants.hasSuffix("s") || rightConsonants.hasSuffix("st"),
+              hasFinalCluster(leftConsonants) != hasFinalCluster(rightConsonants)
+        else { return false }
+        func simplifyFinalCluster(_ value: String) -> String {
+            hasFinalCluster(value) ? String(value.dropLast(2)) + "s" : value
+        }
+        let signature = simplifyFinalCluster(leftConsonants)
+        return (4...16).contains(signature.count) && signature == simplifyFinalCluster(rightConsonants)
+    }
+
+    /// ASR 可把名字前半段听成独立字母；用完整后缀及紧凑拼写关联词对。
+    /// 来源和保存由上屏改词学习流程核验，不用于放宽通用实体替换。
+    private static func isEnglishLetterFragmentCorrection(_ left: String, _ right: String) -> Bool {
+        func lettersOnly(_ word: String) -> Bool {
+            !word.isEmpty && word.unicodeScalars.allSatisfy { $0.isASCII && CharacterSet.letters.contains($0) }
+        }
+        let words = left.split(whereSeparator: \.isWhitespace).map(String.init)
+        guard (2...4).contains(words.count), (7...32).contains(right.count), lettersOnly(right),
+              let suffix = words.last, (4...16).contains(suffix.count), lettersOnly(suffix),
+              words.dropLast().allSatisfy({ $0.count == 1 && lettersOnly($0) }),
+              right.lowercased().hasSuffix(suffix.lowercased()) else { return false }
+        let compact = words.joined()
+        return Double(min(compact.count, right.count)) / Double(max(compact.count, right.count)) >= 0.5
+            && editSimilarity(compact, right) >= 0.5
+    }
+
     private static func resolveSurface(
         _ surface: String,
         candidates: [PreparedCandidate]

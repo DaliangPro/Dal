@@ -53,6 +53,7 @@ final class AppState {
     /// preparing 起点：观测「HUD 转很久才能输入」的实际耗时
     var preparingStartDate: Date?
     var availableModes: [ProcessingMode]
+    var learningUndo: AutomaticLearningUndo?
     var feedbackMessage: String = L("已完成", "Done")
     var processingFinishTime: Date?
     var copyFallbackWasCopied = false
@@ -78,6 +79,7 @@ final class AppState {
     /// 结束时才回归）。此处暂存已显示的那句，仅用于 HUD，不参与注入。
     @ObservationIgnored private var heldLiveText = ""
     @ObservationIgnored private var pendingLearningFeedback: AutomaticLearningFeedback?
+    @ObservationIgnored private var pendingLearningUndo: AutomaticLearningUndo?
 
     // MARK: Update Check
 
@@ -106,6 +108,7 @@ final class AppState {
     // MARK: Actions
 
     func startRecording() {
+        learningUndo = nil
         segments = []
         resetLiveTranscriptTracking()
         audioLevel.current = 0
@@ -263,6 +266,7 @@ final class AppState {
     }
 
     func showError(_ message: String) {
+        learningUndo = nil
         feedbackMessage = message
         resetVoicePolishProcessingState()
         audioLevel.current = 0
@@ -274,20 +278,25 @@ final class AppState {
     }
 
     /// 忙碌时保留最近结果，当前录音或输出结束后再显示，不覆盖进行中的交互。
-    func showAutomaticLearningFeedback(_ feedback: AutomaticLearningFeedback) {
+    func showAutomaticLearningFeedback(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil) {
         guard barPhase == .hidden || barPhase == .done else {
             pendingLearningFeedback = feedback
+            pendingLearningUndo = undo
             return
         }
         pendingLearningFeedback = nil
-        feedbackMessage = feedback.hudMessage
+        pendingLearningUndo = nil
+        learningUndo = undo
+        feedbackMessage = feedback.hudMessage(reserving: undo == nil ? 0 : 72)
         resetVoicePolishProcessingState()
         barPhase = .done
         onShowPanel?()
-        scheduleAutoHide(for: .done, delay: .seconds(2.8))
+        scheduleAutoHide(for: .done, delay: undo == nil ? .seconds(2.8) : .seconds(5))
     }
 
     func cancel() {
+        learningUndo = nil
+        pendingLearningUndo = nil
         pendingLearningFeedback = nil
         barPhase = .hidden
         segments = []
@@ -300,6 +309,7 @@ final class AppState {
     }
 
     func showCancelled() {
+        learningUndo = nil
         feedbackMessage = L("已取消", "Cancelled")
         resetVoicePolishProcessingState()
         audioLevel.current = 0
@@ -372,6 +382,7 @@ final class AppState {
     }
 
     private func showDone(message: String = L("已完成", "Done")) {
+        learningUndo = nil
         feedbackMessage = message
         resetVoicePolishProcessingState()
         copyFallbackWasCopied = false
@@ -381,6 +392,7 @@ final class AppState {
     }
 
     private func showCopyFallback(message: String, copiedToClipboard: Bool) {
+        learningUndo = nil
         feedbackMessage = message
         copyFallbackWasCopied = copiedToClipboard
         audioLevel.current = 0
@@ -404,7 +416,7 @@ final class AppState {
                 onCopyFallbackVisibilityChange?(false)
             }
             if let feedback = pendingLearningFeedback {
-                showAutomaticLearningFeedback(feedback)
+                showAutomaticLearningFeedback(feedback, undo: pendingLearningUndo)
             } else {
                 onHidePanel?()
             }

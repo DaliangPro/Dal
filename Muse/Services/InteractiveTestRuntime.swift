@@ -7,6 +7,23 @@ enum InteractiveTestRuntime {
 
     static var isEnabled: Bool { Bundle.main.bundleIdentifier == bundleIdentifier }
 
+    /// 真实输入框验收使用日常 Bundle 及现有授权，只增加可点击录音入口。
+    /// 不替换识别结果、Provider、设置或数据目录，默认启动不显示面板。
+    static var isLiveLearningAcceptanceEnabled: Bool {
+        allowsLiveLearningAcceptance(bundleID: Bundle.main.bundleIdentifier, arguments: CommandLine.arguments)
+    }
+
+    static func allowsLiveLearningAcceptance(bundleID: String?, arguments: [String]) -> Bool {
+        bundleID == "pro.daliang.muse" && arguments.contains("--live-learning-acceptance")
+    }
+
+    /// 与日常快捷键相同的能力解析和已保存模式选择，不使用静态默认附加要求。
+    static func liveLearningMode(_ requested: ProcessingMode, modes: [ProcessingMode], provider: ASRProvider) -> ProcessingMode {
+        let resolved = ASRProviderRegistry.resolvedMode(for: requested, provider: provider)
+        let stored = modes.first { $0.id == resolved.id } ?? resolved
+        return VoiceInputModes.resolve(stored, in: modes)
+    }
+
     /// 必须先于 AppDelegate 创建数据库与词库执行。配置错误时由入口直接退出。
     static func bootstrap() throws {
         guard let root = try validatedSupportDirectory(

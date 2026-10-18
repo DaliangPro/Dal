@@ -4,6 +4,34 @@ import XCTest
 
 @MainActor
 final class AppStateTests: XCTestCase {
+    func testUndoActionFollowsItsFeedbackAndClearsForNewRecording() async {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        let undo = AutomaticLearningUndo {}
+        let feedback = AutomaticLearningFeedback.learned([
+            TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")
+        ], hasConflict: false)
+        state.showAutomaticLearningFeedback(feedback, undo: undo)
+        XCTAssertTrue(state.learningUndo === undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertNotNil(undo.message)
+        state.startRecording()
+        XCTAssertNil(state.learningUndo)
+        state.cancel()
+    }
+
+    func testUndoButtonBudgetPreservesBothLongWords() {
+        let feedback = AutomaticLearningFeedback.learned([
+            TerminologyCorrectionCandidate(alias: String(repeating: "错词", count: 32),
+                                           canonical: String(repeating: "正词", count: 32))
+        ], hasConflict: false)
+        let text = feedback.hudMessage(reserving: 72)
+        XCTAssertTrue(text.contains("错词"))
+        XCTAssertTrue(text.contains("正词"))
+        XCTAssertLessThanOrEqual((text as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width + 84 + 72,
+                                 TF.barWidth)
+    }
+
     func testLearningFeedbackShowsSpecificSuccessAndFailure() {
         let state = AppState(initialModes: ProcessingMode.defaults)
         let success = AutomaticLearningFeedback.learned(
@@ -49,6 +77,24 @@ final class AppStateTests: XCTestCase {
         )
         status.update(learned)
         XCTAssertEqual(status.latest?.detail, "cloud → Claude")
+    }
+
+    func testAutomaticLearningKeepsSameUndoOnHUDAndVocabularyWithoutExtraAction() {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        defer { state.cancel() }
+        let undo = AutomaticLearningUndo { }
+        let feedback = AutomaticLearningFeedback.learned([.init(alias: "Tablets", canonical: "Typeless")], hasConflict: false)
+        state.showAutomaticLearningFeedback(feedback, undo: undo)
+        XCTAssertEqual(state.barPhase, .done)
+        XCTAssertTrue(state.learningUndo === undo)
+        XCTAssertTrue(state.feedbackMessage.contains("Tablets → Typeless"))
+        XCTAssertTrue(feedback.didPersist)
+        let status = AutomaticLearningStatus()
+        status.update(feedback, undo: undo)
+        XCTAssertTrue(status.undo === undo)
+        state.startRecording()
+        XCTAssertNil(state.learningUndo, "录音时不能让上次撤销按钮覆盖当前操作")
+        XCTAssertTrue(status.undo === undo, "词库保留同一精确撤销收据")
     }
 
     func testLearningFeedbackRetainsPairsForMultipleLongAndConflictingCorrections() {

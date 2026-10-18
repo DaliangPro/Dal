@@ -2,9 +2,12 @@ import Foundation
 
 enum TerminologyHistoryTransactionError: LocalizedError {
     case rollbackFailed(operation: String, rollback: String)
+    case correctionChanged
 
     var errorDescription: String? {
         switch self {
+        case .correctionChanged:
+            return L("这条纠正记录已更新，请到记录中检查", "This correction has changed; check History")
         case .rollbackFailed(let operation, let rollback):
             return L(
                 "操作失败，术语证据回滚也失败。原始错误：\(operation)；回滚错误：\(rollback)",
@@ -40,10 +43,20 @@ actor TerminologyHistoryTransactionCoordinator {
         personalizationEnabled: Bool,
         retentionLimit: Int,
         learnStyle: Bool,
-        learnTerminology: Bool
+        learnTerminology: Bool,
+        expectedUncorrectedHistory: HistoryRecord? = nil
     ) async throws -> VoicePolishCorrectionRecord {
         await acquireExclusiveOperation()
         defer { releaseExclusiveOperation() }
+
+        // 自动学习的历史快照不能覆盖已更新、已纠正或已删除的记录。
+        if let expectedUncorrectedHistory {
+            let current = try await historyStore.fetchOrThrow(ids: [historyID]).first
+            let alreadyCorrected = try await historyStore.fetchVoicePolishCorrections().contains { $0.historyID == historyID }
+            guard current == expectedUncorrectedHistory, !alreadyCorrected else {
+                throw TerminologyHistoryTransactionError.correctionChanged
+            }
+        }
 
         let snapshot = try TerminologyRepository.evidenceSnapshot(
             sourceRecordID: historyID,
@@ -98,11 +111,18 @@ actor TerminologyHistoryTransactionCoordinator {
 
     func undoCorrection(
         historyStore: HistoryStore,
-        historyID: String
+        historyID: String,
+        expectedCorrection: VoicePolishCorrectionRecord? = nil
     ) async throws {
         await acquireExclusiveOperation()
         defer { releaseExclusiveOperation() }
 
+        if let expectedCorrection {
+            let current = try await historyStore.fetchVoicePolishCorrections().first { $0.historyID == historyID }
+            guard current?.id == expectedCorrection.id else {
+                throw TerminologyHistoryTransactionError.correctionChanged
+            }
+        }
         let snapshot = try TerminologyRepository.evidenceSnapshot(
             sourceRecordID: historyID,
             context: context

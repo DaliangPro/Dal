@@ -120,7 +120,7 @@ APP_URL_SCHEME="muse"
 if [ "$APP_BUNDLE_ID" = "pro.daliang.muse.interactive-test" ]; then
     APP_URL_SCHEME="muse-interactive-test"
 fi
-APP_VERSION="${APP_VERSION:-2.1.1}"
+APP_VERSION="${APP_VERSION:-2.1.2}"
 APP_BUILD="${APP_BUILD:-1}"
 MIN_SYSTEM_VERSION="${MIN_SYSTEM_VERSION:-14.0}"
 MICROPHONE_USAGE_DESCRIPTION="${MICROPHONE_USAGE_DESCRIPTION:-Muse 需要访问麦克风以录制语音并将其转换为文本。}"

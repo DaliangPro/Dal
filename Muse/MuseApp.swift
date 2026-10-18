@@ -291,6 +291,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        if InteractiveTestRuntime.isLiveLearningAcceptanceEnabled {
+            showInteractiveTestControlPanel()
+        }
+
         // Start periodic update checking
         UpdateChecker.shared.startPeriodicChecking(appState: appState)
         appUpdater.checkPostUpdateStatus()
@@ -315,9 +319,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] note in
             guard let feedback = note.object as? AutomaticLearningFeedback else { return }
+            let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
             MainActor.assumeIsolated { [weak self] in
-                AutomaticLearningStatus.shared.update(feedback)
-                self?.appState.showAutomaticLearningFeedback(feedback)
+                AutomaticLearningStatus.shared.update(feedback, undo: undo)
+                self?.appState.showAutomaticLearningFeedback(feedback, undo: undo)
             }
         }
 
@@ -419,7 +424,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showInteractiveTestControlPanel() {
-        let panel = interactiveTestControlPanel ?? Self.makeInteractiveTestControlPanel(target: self)
+        let panel = interactiveTestControlPanel ?? Self.makeInteractiveTestControlPanel(
+            target: self, liveLearningAcceptance: InteractiveTestRuntime.isLiveLearningAcceptanceEnabled
+        )
         interactiveTestControlPanel = panel
         let mouseLocation = NSEvent.mouseLocation
         if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main {
@@ -433,8 +440,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
     }
 
-    static func makeInteractiveTestControlPanel(target: AnyObject?) -> NSPanel {
-        let menu = makeInteractiveTestStatusMenu(target: target)
+    static func makeInteractiveTestControlPanel(target: AnyObject?, liveLearningAcceptance: Bool = false) -> NSPanel {
+        let menu = liveLearningAcceptance
+            ? makeLiveLearningAcceptanceMenu(target: target)
+            : makeInteractiveTestStatusMenu(target: target)
         let panelHeight = CGFloat(menu.items.count) * 42 + 74
         let panel = InteractiveTestControlPanel(
             contentRect: NSRect(x: 0, y: 0, width: 380, height: panelHeight),
@@ -442,7 +451,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
-        panel.title = "Muse 交互测试"
+        panel.title = liveLearningAcceptance ? "Muse 自动记词实测" : "Muse 交互测试"
         panel.level = .floating
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -483,6 +492,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(item)
         }
         return menu
+    }
+
+    /// 验收面板仅提供正常录音入口，不请求新授权，也没有模拟文字或改库按钮。
+    static func makeLiveLearningAcceptanceMenu(target: AnyObject?) -> NSMenu {
+        let menu = NSMenu()
+        for (title, action) in [
+            ("开始直出录音", #selector(AppDelegate.startInteractiveDirectRecording)),
+            ("开始润色录音", #selector(AppDelegate.startInteractiveStandardRecording)),
+            ("停止并上屏", #selector(AppDelegate.stopInteractiveRecording)),
+            ("关闭验收面板", #selector(AppDelegate.closeLiveLearningAcceptancePanel)),
+        ] {
+            let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+            item.target = target
+            menu.addItem(item)
+        }
+        return menu
+    }
+
+    @objc private func closeLiveLearningAcceptancePanel() {
+        guard InteractiveTestRuntime.isLiveLearningAcceptanceEnabled else { return }
+        interactiveTestControlPanel?.close()
+        interactiveTestControlPanel = nil
     }
 
     @objc private func prepareInteractiveTestPermissions() {
@@ -534,7 +565,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startInteractiveRecording(mode: ProcessingMode) {
-        guard InteractiveTestRuntime.isEnabled else { return }
+        guard InteractiveTestRuntime.isEnabled || InteractiveTestRuntime.isLiveLearningAcceptanceEnabled else { return }
         switch appState.barPhase {
         case .hidden, .done, .error:
             break
@@ -543,17 +574,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         guard PermissionManager.hasMicrophonePermission,
               PermissionManager.hasAccessibilityPermission else {
-            appState.showError("请先从测试面板准备录音与上屏权限，再点选目标输入框开始录音。")
+            appState.showError(InteractiveTestRuntime.isLiveLearningAcceptanceEnabled
+                ? "现有麦克风或辅助功能权限未就绪，请到系统设置检查。"
+                : "请先从测试面板准备录音与上屏权限，再点选目标输入框开始录音。")
             return
         }
         // 测试面板和状态菜单不激活 Muse；沿用正常会话的焦点捕获、注入流程。
-        appState.currentMode = mode
+        let effectiveMode = InteractiveTestRuntime.isLiveLearningAcceptanceEnabled
+            ? InteractiveTestRuntime.liveLearningMode(mode, modes: appState.availableModes,
+                                                       provider: KeychainService.selectedASRProvider)
+            : mode
+        appState.currentMode = effectiveMode
+        if InteractiveTestRuntime.isLiveLearningAcceptanceEnabled {
+            hotkeyManager.isSessionActive = true
+        }
         appState.startRecording()
-        Task { await session.startRecording(mode: mode) }
+        Task { await session.startRecording(mode: effectiveMode) }
     }
 
     @objc private func stopInteractiveRecording() {
-        guard InteractiveTestRuntime.isEnabled,
+        guard InteractiveTestRuntime.isEnabled || InteractiveTestRuntime.isLiveLearningAcceptanceEnabled,
               appState.barPhase == .recording || appState.barPhase == .preparing else { return }
         requestHotkeyStop()
     }

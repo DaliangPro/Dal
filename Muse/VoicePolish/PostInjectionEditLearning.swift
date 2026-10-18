@@ -14,6 +14,7 @@ extension Notification.Name {
 /// 目标 App 不支持安全范围读取时不会创建该对象。
 struct PostInjectionLearningField: Sendable {
     let isAvailable: @Sendable () async -> Bool
+    let canFinishAfterFocusLoss: @Sendable () async -> Bool
     let selectedRange: @Sendable () async -> CFRange?
     let characterCount: @Sendable () async -> Int?
     let readRange: @Sendable (CFRange) async -> PostInjectionRangeRead
@@ -22,8 +23,10 @@ struct PostInjectionLearningField: Sendable {
         isAvailable: @escaping @Sendable () async -> Bool,
         selectedRange: @escaping @Sendable () async -> CFRange?,
         characterCount: @escaping @Sendable () async -> Int?,
-        readRange: @escaping @Sendable (CFRange) async -> PostInjectionRangeRead
+        readRange: @escaping @Sendable (CFRange) async -> PostInjectionRangeRead,
+        canFinishAfterFocusLoss: @escaping @Sendable () async -> Bool = { false }
     ) {
+        self.canFinishAfterFocusLoss = canFinishAfterFocusLoss
         self.isAvailable = isAvailable
         self.selectedRange = selectedRange
         self.characterCount = characterCount
@@ -34,13 +37,14 @@ struct PostInjectionLearningField: Sendable {
         isAvailable: @escaping @Sendable () async -> Bool,
         selectedRange: @escaping @Sendable () async -> CFRange?,
         characterCount: @escaping @Sendable () async -> Int?,
-        stringForRange: @escaping @Sendable (CFRange) async -> String?
+        stringForRange: @escaping @Sendable (CFRange) async -> String?,
+        canFinishAfterFocusLoss: @escaping @Sendable () async -> Bool = { false }
     ) {
         self.init(isAvailable: isAvailable, selectedRange: selectedRange, characterCount: characterCount,
                   readRange: { range in
             guard let text = await stringForRange(range) else { return .unavailable }
             return .text(text)
-        })
+        }, canFinishAfterFocusLoss: canFinishAfterFocusLoss)
     }
 }
 
@@ -72,15 +76,12 @@ enum PostInjectionLearningFieldCapture: Sendable {
 
 /// 直出与润色上屏后的自动纠正学习；直出只学习术语。
 ///
-/// 仅观察标准 AX 输入框中“本次插入范围”附近的短窗口，最长 20 秒；连续稳定
-/// 2 秒才确认修改。纯追加新内容不视为纠正，避免用户继续输入时产生误学习。
+/// 仅观察原安全输入框中“本次插入范围”附近的短窗口；相关编辑延长空闲期，
+/// 总时长有硬上限。纯追加新内容不视为纠正，避免用户继续输入时产生误学习。
 actor PostInjectionEditLearningMonitor {
     static let shared = PostInjectionEditLearningMonitor()
 
     private static let anchorLength = 24
-    private static let pollingInterval: Duration = .milliseconds(500)
-    private static let stableSampleCount = 4
-    private static let maximumPollCount = 40
     private static let maximumConcurrentTargets = 3
     static let maximumWindowLength = 4_096
 
@@ -88,13 +89,25 @@ actor PostInjectionEditLearningMonitor {
     private var insertionOrder: [String] = []
     private let coordinator: TerminologyHistoryTransactionCoordinator
     private let settingsContext: VocabularyStorageContext
+    private let observationTiming: PostInjectionObservationTiming
+    private let observationNow: @Sendable () -> ContinuousClock.Instant
+    private let observationSleep: @Sendable (Duration) async throws -> Void
+    private let diagnostic: @Sendable (String) -> Void
 
     init(
         coordinator: TerminologyHistoryTransactionCoordinator = .shared,
-        settingsContext: VocabularyStorageContext = .production
+        settingsContext: VocabularyStorageContext = .production,
+        observationTiming: PostInjectionObservationTiming = PostInjectionObservationTiming(),
+        observationNow: @escaping @Sendable () -> ContinuousClock.Instant = { ContinuousClock.now },
+        observationSleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
+        diagnostic: @escaping @Sendable (String) -> Void = { DebugFileLogger.log($0) }
     ) {
         self.coordinator = coordinator
         self.settingsContext = settingsContext
+        self.observationTiming = observationTiming
+        self.observationNow = observationNow
+        self.observationSleep = observationSleep
+        self.diagnostic = diagnostic
     }
 
     static func shouldObserve(
@@ -126,7 +139,8 @@ actor PostInjectionEditLearningMonitor {
             isAvailable: { await field.isAvailable() },
             selectedRange: { await field.read { cfRangeAttribute($0, kAXSelectedTextRangeAttribute as CFString) } },
             characterCount: { await field.read { numberOfCharacters(in: $0) } },
-            readRange: { range in await field.read { readRange(in: $0, range: range) } }
+            readRange: { range in await field.read { readRange(in: $0, range: range) } },
+            canFinishAfterFocusLoss: { await field.canFinishAfterFocusLoss() }
         ))
     }
 
@@ -238,8 +252,13 @@ actor PostInjectionEditLearningMonitor {
         return nil
     }
 
-    static func report(_ feedback: AutomaticLearningFeedback) {
-        NotificationCenter.default.post(name: .voicePolishAutomaticLearningDidFinish, object: feedback)
+    static func report(_ receipt: AutomaticLearningReceipt) {
+        var actions: [String: Any] = [:]
+        if let undo = receipt.undo { actions["undo"] = undo }
+        NotificationCenter.default.post(
+            name: .voicePolishAutomaticLearningDidFinish, object: receipt.feedback,
+            userInfo: actions
+        )
     }
 
     /// 系统焦点优先，兼容焦点宿主不是前台应用的浮动面板。
@@ -290,6 +309,7 @@ actor PostInjectionEditLearningMonitor {
             tasks.removeValue(forKey: oldest)?.cancel()
         }
         insertionOrder.append(historyID)
+        diagnostic("learning.capture started units=\(injectedText.utf16.count)")
         tasks[historyID] = Task { [weak self] in
             await self?.captureAndObserve(
                 injectedText: injectedText, historyID: historyID,
@@ -318,6 +338,7 @@ actor PostInjectionEditLearningMonitor {
             // 读取失败、焦点变化、范围异常都不打断输入；成功学习才需要反馈。
             return
         }
+        diagnostic("learning.capture verified units=\(injectedText.utf16.count)")
         await observe(target, historyStore: historyStore)
     }
 
@@ -381,40 +402,63 @@ actor PostInjectionEditLearningMonitor {
     }
 
     private func observe(_ target: PostInjectionEditLearningTarget, historyStore: HistoryStore) async {
-        var lastCandidate: String?
+        let started = observationNow()
+        var window = PostInjectionObservationWindow(timing: observationTiming)
         var lastAttemptedCandidate: String?
-        var stableSamples = 0
-        for _ in 0..<Self.maximumPollCount {
-            guard !Task.isCancelled else { return }
-            try? await Task.sleep(for: Self.pollingInterval)
-            guard !Task.isCancelled else { return }
-
-            guard await target.field.isAvailable() else { return }
-            guard let candidate = await Self.currentCandidate(for: target) else {
-                lastCandidate = nil
-                stableSamples = 0
-                continue
-            }
-            if candidate == lastCandidate {
-                stableSamples += 1
-            } else {
-                lastCandidate = candidate
-                stableSamples = 1
-            }
-            guard stableSamples >= Self.stableSampleCount, candidate != lastAttemptedCandidate else { continue }
-            lastAttemptedCandidate = candidate
-            let feedback = await recordCorrectionFeedback(
-                originalText: target.originalText, correctedText: candidate,
-                historyID: target.historyID, historyStore: historyStore
-            )
-            if let feedback, case .learned = feedback {
-                Self.report(feedback)
+        while window.isOpen(at: started.duration(to: observationNow())) {
+            guard !Task.isCancelled else {
+                diagnostic("learning.observe stopped reason=cancelled")
                 return
             }
+            try? await observationSleep(observationTiming.pollingInterval)
+            guard !Task.isCancelled else {
+                diagnostic("learning.observe stopped reason=cancelled")
+                return
+            }
+            guard window.isOpen(at: started.duration(to: observationNow())) else { break }
+            if !(await target.field.isAvailable()) {
+                // 只使用刚才在原安全控件中完整读回的快照；不读取失焦后的正文。
+                // 控件受保护/只读/失联时不作最终提交，取消也不会触发此路径。
+                if await target.field.canFinishAfterFocusLoss(),
+                   let candidate = window.recentCandidate(at: started.duration(to: observationNow())),
+                   candidate != lastAttemptedCandidate, !Task.isCancelled {
+                    await persistAndReport(candidate, target: target, historyStore: historyStore)
+                }
+                diagnostic("learning.observe stopped reason=fieldUnavailable")
+                return
+            }
+            let candidate = await Self.currentCandidate(for: target)
+            let elapsed = started.duration(to: observationNow())
+            let changed = candidate != window.candidate
+            window.sample(candidate, at: elapsed)
+            if changed, let candidate {
+                diagnostic("learning.observe sampled units=\(candidate.utf16.count)")
+            }
+            guard let candidate, window.isStable(at: elapsed), candidate != lastAttemptedCandidate else { continue }
+            lastAttemptedCandidate = candidate
+            if await persistAndReport(candidate, target: target, historyStore: historyStore) { return }
         }
+        diagnostic("learning.observe stopped reason=expired")
     }
 
-    /// 把确认后的本次修改写入既有纠正历史与术语仓库。AX 观察和持久化分层，
+    @discardableResult
+    private func persistAndReport(
+        _ candidate: String, target: PostInjectionEditLearningTarget, historyStore: HistoryStore
+    ) async -> Bool {
+        guard !Task.isCancelled,
+              let receipt = await recordCorrectionReceipt(
+                originalText: target.originalText, correctedText: candidate,
+                historyID: target.historyID, historyStore: historyStore
+              ) else { return false }
+        switch receipt.feedback {
+        case .learned: break
+        default: return false
+        }
+        Self.report(receipt)
+        return true
+    }
+
+    /// 把捕获到的本次修改写入既有纠正历史与术语仓库。AX 观察和持久化分层，
     /// 既便于使用临时目录做端到端测试，也避免出现第二套学习规则。
     @discardableResult
     func recordCorrection(
@@ -430,25 +474,34 @@ actor PostInjectionEditLearningMonitor {
     }
 
     func recordCorrectionFeedback(
+        originalText: String, correctedText: String, historyID: String, historyStore: HistoryStore
+    ) async -> AutomaticLearningFeedback? {
+        await recordCorrectionReceipt(
+            originalText: originalText, correctedText: correctedText,
+            historyID: historyID, historyStore: historyStore
+        )?.feedback
+    }
+
+    func recordCorrectionReceipt(
         originalText: String,
         correctedText: String,
         historyID: String,
         historyStore: HistoryStore
-    ) async -> AutomaticLearningFeedback? {
+    ) async -> AutomaticLearningReceipt? {
         let defaults = settingsContext.userDefaults
         let terminologyEnabled = VoicePolishSettings.terminologyLearningEnabled(defaults: defaults)
         let history: HistoryRecord
         do {
             guard let record = try await historyStore.fetchOrThrow(ids: [historyID]).first else {
-                return .failed
+                return AutomaticLearningReceipt(.failed)
             }
             history = record
         } catch {
             AppLogger.log("[Muse] 自动纠正学习读取历史失败: \(error.localizedDescription)")
-            return .failed
+            return AutomaticLearningReceipt(.failed)
         }
         let isVoicePolish = history.status.hasPrefix("voice_polish_")
-        guard isVoicePolish || history.supportsDirectTerminologyLearning else { return .failed }
+        guard isVoicePolish || history.supportsDirectTerminologyLearning else { return AutomaticLearningReceipt(.failed) }
         let candidates = terminologyEnabled
             ? TerminologyCorrectionExtractor.automaticASRCandidates(
                 generatedText: originalText,
@@ -456,32 +509,59 @@ actor PostInjectionEditLearningMonitor {
                 recognitionText: history.rawText
             )
             : []
+        // 只写阶段、长度与数量；不得将用户正文、词对或历史标识带入诊断。
+        let extracted = terminologyEnabled
+            ? TerminologyCorrectionExtractor.candidates(generatedText: originalText, correctedText: correctedText)
+            : []
+        let fromASR = extracted.filter { history.rawText.localizedStandardContains($0.alias) }.count
+        diagnostic("learning.candidate units=\(correctedText.utf16.count) extracted=\(extracted.count) source=\(fromASR) accepted=\(candidates.count)")
         let learnsTerminology = terminologyEnabled && !candidates.isEmpty
         guard learnsTerminology else {
-            return terminologyEnabled ? .noTerms : nil
+            return terminologyEnabled ? AutomaticLearningReceipt(.noTerms) : nil
         }
 
         do {
-            _ = try await coordinator.confirmCorrection(
-                historyStore: historyStore,
-                historyID: historyID,
-                candidates: candidates,
-                correctedText: correctedText,
-                scene: .unknown,
-                personalizationEnabled: false,
-                retentionLimit: VoicePolishSettings.correctionLimit(defaults: defaults),
-                learnStyle: false,
-                learnTerminology: learnsTerminology
+            return try await saveCorrectionReceipt(
+                candidates, correctedText: correctedText, historyID: historyID, historyStore: historyStore,
+                expectedUncorrectedHistory: history
             )
-            guard learnsTerminology else { return .noTerms }
-            let saved = TerminologyRepository.load(context: settingsContext)
-            let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
-            let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }
-            return .learned(candidates, hasConflict: hasConflict)
         } catch {
+            diagnostic("learning.save failed")
             AppLogger.log("[Muse] 自动纠正学习未写入: \(error.localizedDescription)")
-            return .failed
+            return AutomaticLearningReceipt(.failed)
         }
+    }
+
+    private func saveCorrectionReceipt(
+        _ candidates: [TerminologyCorrectionCandidate], correctedText: String,
+        historyID: String, historyStore: HistoryStore, expectedUncorrectedHistory: HistoryRecord? = nil
+    ) async throws -> AutomaticLearningReceipt {
+        guard VoicePolishSettings.terminologyLearningEnabled(defaults: settingsContext.userDefaults) else {
+            throw TerminologyHistoryTransactionError.correctionChanged
+        }
+        let record = try await coordinator.confirmCorrection(
+            historyStore: historyStore,
+            historyID: historyID,
+            candidates: candidates,
+            correctedText: correctedText,
+            scene: .unknown,
+            personalizationEnabled: false,
+            retentionLimit: VoicePolishSettings.correctionLimit(defaults: settingsContext.userDefaults),
+            learnStyle: false,
+            learnTerminology: true,
+            expectedUncorrectedHistory: expectedUncorrectedHistory
+        )
+        let saved = TerminologyRepository.load(context: settingsContext)
+        let keys = Set(candidates.map { TerminologyText.normalizedKey($0.alias) })
+        let hasConflict = saved.conflicts.contains { keys.contains($0.normalizedAlias) }
+        let coordinator = self.coordinator
+        let undo = await AutomaticLearningUndo {
+            try await coordinator.undoCorrection(
+                historyStore: historyStore, historyID: historyID, expectedCorrection: record
+            )
+        }
+        diagnostic("learning.save success count=\(candidates.count)")
+        return AutomaticLearningReceipt(.learned(candidates, hasConflict: hasConflict), undo: undo)
     }
 
     static func currentCandidate(
@@ -508,6 +588,8 @@ actor PostInjectionEditLearningMonitor {
         // 会把原成稿后半段误判为删除。范围读取已经从插入起点覆盖到字段末尾，
         // 因此使用窗口末尾；若用户只是继续追加，extractCandidate 会明确忽略。
         let candidateEnd = target.suffix.isEmpty ? (window as NSString).length : nil
+        guard let selection = await target.field.selectedRange(), selection.length == 0,
+              await target.field.isAvailable() else { return nil }
         return extractCandidate(
             original: target.originalText,
             prefix: target.prefix,
@@ -584,6 +666,14 @@ actor PostInjectionEditLearningMonitor {
                     role: role, subrole: subrole, editable: editable, protectedContent: protected,
                     metadataReadable: readable
                 )
+            }
+        }
+
+        func canFinishAfterFocusLoss() async -> Bool {
+            guard await rejectionReason() == nil else { return false }
+            return await read { element in
+                guard let focused = focusedElement() else { return false }
+                return !CFEqual(element, focused)
             }
         }
 
