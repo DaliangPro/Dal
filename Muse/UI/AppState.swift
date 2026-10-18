@@ -56,7 +56,6 @@ final class AppState {
     var feedbackMessage: String = L("已完成", "Done")
     var processingFinishTime: Date?
     var copyFallbackWasCopied = false
-    var preserveProcessingWidthForCopyFallback = false
     var voicePolishStage: VoicePolishStage?
     var isVoicePolishUnavailable = false
     var isRetryingVoicePolish = false
@@ -113,7 +112,6 @@ final class AppState {
         recordingStartDate = nil
         feedbackMessage = L("已完成", "Done")
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         resetVoicePolishProcessingState()
         onCopyFallbackVisibilityChange?(false)
         barPhase = .preparing
@@ -143,22 +141,8 @@ final class AppState {
         case .recording:
             processingFinishTime = nil
             resetVoicePolishProcessingState()
-            // 2026-07 修回归：AX 焦点查询对微信等无响应进程可阻塞主线程数百 ms（AX 超时上限秒级），
-            // 曾导致停止录音瞬间 HUD 冻结（文字不显示/卡顿）。改后台计算，先按 false 走流程
-            preserveProcessingWidthForCopyFallback = false
             withAnimation(TF.hudMorph) {
                 barPhase = .processing
-            }
-            let frontmostBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-            if TextInjectionEngine.canReadFocusedEditableElement,
-               !TextInjectionEngine.isAXOpaqueApp(frontmostBundleID) {
-                Task.detached(priority: .userInitiated) { [weak self] in
-                    let needsReserve = !TextInjectionEngine.frontmostApplicationHasFocusedEditableElement()
-                    await MainActor.run { [weak self] in
-                        guard let self, self.barPhase == .processing else { return }
-                        self.preserveProcessingWidthForCopyFallback = needsReserve
-                    }
-                }
             }
         default:
             break
@@ -310,7 +294,6 @@ final class AppState {
         resetLiveTranscriptTracking()
         audioLevel.current = 0
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         resetVoicePolishProcessingState()
         onCopyFallbackVisibilityChange?(false)
         onHidePanel?()
@@ -392,7 +375,6 @@ final class AppState {
         feedbackMessage = message
         resetVoicePolishProcessingState()
         copyFallbackWasCopied = false
-        preserveProcessingWidthForCopyFallback = false
         onCopyFallbackVisibilityChange?(false)
         barPhase = .done
         scheduleAutoHide(for: .done, delay: .seconds(0.8))
@@ -417,7 +399,6 @@ final class AppState {
             try? await Task.sleep(for: delay)
             guard barPhase == phase, hideGeneration == myGeneration else { return }
             barPhase = .hidden
-            preserveProcessingWidthForCopyFallback = false
             if phase == .copyFallback {
                 copyFallbackWasCopied = false
                 onCopyFallbackVisibilityChange?(false)

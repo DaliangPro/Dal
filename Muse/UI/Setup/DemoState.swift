@@ -17,7 +17,6 @@ final class DemoState {
     var processingFinishTime: Date?
     var recordingStartDate: Date?
     var copyFallbackWasCopied = false
-    var preserveProcessingWidthForCopyFallback = false
     var voicePolishStage: VoicePolishStage?
 
     var transcriptionText: String {
