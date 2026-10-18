@@ -585,6 +585,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                        provider: KeychainService.selectedASRProvider)
             : mode
         appState.currentMode = effectiveMode
+        if InteractiveTestRuntime.isLiveLearningAcceptanceEnabled {
+            hotkeyManager.isSessionActive = true
+        }
         appState.startRecording()
         Task { await session.startRecording(mode: effectiveMode) }
     }
