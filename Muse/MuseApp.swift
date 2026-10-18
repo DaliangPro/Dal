@@ -316,8 +316,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] note in
             guard let feedback = note.object as? AutomaticLearningFeedback else { return }
             MainActor.assumeIsolated { [weak self] in
-                AutomaticLearningStatus.shared.update(feedback)
-                self?.appState.showAutomaticLearningFeedback(feedback)
+                let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
+                AutomaticLearningStatus.shared.update(feedback, undo: undo)
+                self?.appState.showAutomaticLearningFeedback(feedback, undo: undo)
             }
         }
 

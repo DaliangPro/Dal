@@ -2,9 +2,12 @@ import Foundation
 
 enum TerminologyHistoryTransactionError: LocalizedError {
     case rollbackFailed(operation: String, rollback: String)
+    case correctionChanged
 
     var errorDescription: String? {
         switch self {
+        case .correctionChanged:
+            return L("这条纠正记录已更新，请到记录中检查", "This correction has changed; check History")
         case .rollbackFailed(let operation, let rollback):
             return L(
                 "操作失败，术语证据回滚也失败。原始错误：\(operation)；回滚错误：\(rollback)",
@@ -98,11 +101,18 @@ actor TerminologyHistoryTransactionCoordinator {
 
     func undoCorrection(
         historyStore: HistoryStore,
-        historyID: String
+        historyID: String,
+        expectedCorrection: VoicePolishCorrectionRecord? = nil
     ) async throws {
         await acquireExclusiveOperation()
         defer { releaseExclusiveOperation() }
 
+        if let expectedCorrection {
+            let current = try await historyStore.fetchVoicePolishCorrections().first { $0.historyID == historyID }
+            guard current?.id == expectedCorrection.id else {
+                throw TerminologyHistoryTransactionError.correctionChanged
+            }
+        }
         let snapshot = try TerminologyRepository.evidenceSnapshot(
             sourceRecordID: historyID,
             context: context

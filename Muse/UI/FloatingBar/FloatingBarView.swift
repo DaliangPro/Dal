@@ -10,6 +10,7 @@ protocol FloatingBarState: AnyObject, Observable {
     var audioLevel: AudioLevelMeter { get }
     var currentMode: ProcessingMode { get }
     var feedbackMessage: String { get }
+    var learningUndo: AutomaticLearningUndo? { get }
     var processingFinishTime: Date? { get }
     var transcriptionText: String { get }
     var recordingStartDate: Date? { get }
@@ -25,6 +26,7 @@ protocol FloatingBarState: AnyObject, Observable {
 }
 
 extension FloatingBarState {
+    var learningUndo: AutomaticLearningUndo? { nil }
     var isVoicePolishUnavailable: Bool { false }
     var isRetryingVoicePolish: Bool { false }
     var voicePolishUnavailableMessage: String? { nil }
@@ -72,6 +74,8 @@ struct FloatingBarView<S: FloatingBarState>: View {
     private var isRecordingLabelOnlyState: Bool {
         state.segments.isEmpty && state.isQwen3OnlyMode
     }
+    private var visibleFeedback: String { state.learningUndo?.message ?? state.feedbackMessage }
+    private var undoButtonWidth: CGFloat { measureText(L("撤销", "Undo")) + 24 }
     private var usesSuccessCheckmarkDoneContent: Bool {
         state.feedbackMessage == L("已完成", "Done")
     }
@@ -96,7 +100,8 @@ struct FloatingBarView<S: FloatingBarState>: View {
         case .processing:
             return processingWidth()
         case .done:
-            return feedbackWidth(for: state.feedbackMessage)
+            return min(TF.barWidth, feedbackWidth(for: visibleFeedback)
+                       + (state.learningUndo?.didUndo == false ? undoButtonWidth : 0))
         case .copyFallback:
             return copyFallbackWidth()
         case .error:
@@ -427,13 +432,22 @@ struct FloatingBarView<S: FloatingBarState>: View {
     }
 
     private var doneContent: some View {
-        ZStack {
+        HStack(spacing: 10) {
             if usesSuccessCheckmarkDoneContent {
                 DoneCheckmarkGlyph()
             } else {
-                Text(state.feedbackMessage)
+                Text(visibleFeedback)
                     .font(TF.hudFontTitle)
                     .floatingBarReadableText(color: barTextColor)
+                    .lineLimit(1)
+            }
+            if let undo = state.learningUndo, !undo.didUndo {
+                Button(L("撤销", "Undo")) { Task { await undo.perform() } }
+                    .buttonStyle(.plain)
+                    .font(TF.hudFontTitle)
+                    .foregroundStyle(barTextColor)
+                    .disabled(!undo.canUndo)
+                    .accessibilityLabel(L("撤销此次记词", "Undo word learning"))
             }
         }
         .frame(maxWidth: .infinity)

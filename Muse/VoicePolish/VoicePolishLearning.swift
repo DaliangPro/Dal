@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 struct VoicePolishCorrectionRecord: Identifiable, Codable, Sendable, Equatable {
     let id: String
@@ -124,11 +125,15 @@ enum TerminologyCorrectionExtractor {
                 tokens: corrected,
                 tokenRange: correctedRange
             )
-            guard isUsableLexiconChange(alias: alias, canonical: canonical) else { continue }
-            changes.append(TerminologyCorrectionCandidate(
-                alias: alias,
-                canonical: canonical
-            ))
+            if isUsableLexiconChange(alias: alias, canonical: canonical) {
+                changes.append(TerminologyCorrectionCandidate(alias: alias, canonical: canonical))
+            } else if let expanded = expandedChineseChange(
+                generatedText: generatedText, correctedText: correctedText,
+                generated: generated, corrected: corrected,
+                generatedRange: generatedRange, correctedRange: correctedRange
+            ), !changes.contains(expanded) {
+                changes.append(expanded)
+            }
         }
         return changes
     }
@@ -147,6 +152,84 @@ enum TerminologyCorrectionExtractor {
                 && EntityResolver.isLikelySpeechRecognitionCorrection(
                     alias: candidate.alias, canonical: candidate.canonical
                 )
+        }
+    }
+
+    /// 中文单字音近差异不能直接成为全局规则。先恢复本机分词确认的短词；
+    /// 陌生词被逐字切开时，仅合并被词界/功能字包围的 2～4 字连续片段。
+    /// 两边上下文必须逐字相同，不能跨标点、空格或其他修改拼成词条。
+    private static func expandedChineseChange(
+        generatedText: String, correctedText: String,
+        generated: [LearningToken], corrected: [LearningToken],
+        generatedRange: Range<Int>, correctedRange: Range<Int>
+    ) -> TerminologyCorrectionCandidate? {
+        guard generatedRange.count == 1, correctedRange.count == 1 else { return nil }
+        let left = generated[generatedRange.lowerBound]
+        let right = corrected[correctedRange.lowerBound]
+        guard isHan(left.text), isHan(right.text),
+              EntityResolver.isLikelySpeechRecognitionCorrection(alias: left.text, canonical: right.text)
+        else { return nil }
+
+        func wordRange(in text: String, change: Range<String.Index>) -> Range<String.Index> {
+            let tagger = NLTagger(tagSchemes: [.nameType])
+            tagger.string = text
+            tagger.setLanguage(.simplifiedChinese, range: text.startIndex..<text.endIndex)
+            var ranges: [Range<String.Index>] = []
+            tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word,
+                                 scheme: .nameType, options: [.omitWhitespace, .omitPunctuation, .joinNames]) { _, range in
+                ranges.append(range)
+                return true
+            }
+            guard let index = ranges.firstIndex(where: { $0.overlaps(change) }) else { return change }
+            if text[ranges[index]].count > 1 { return ranges[index] }
+            // 功能字不作为陌生专名的一部分；无法得到短而完整的片段就放弃。
+            let boundaries = Set("的地得了着过在去到从向和与及或是把被让给为对将要我你他她它们这那有不也都很就再才又而但吗呢吧啊片个名位条本次件杯份种台部")
+            func joins(_ range: Range<String.Index>) -> Bool {
+                let word = String(text[range])
+                return isHan(word) && !boundaries.contains(word.first!)
+            }
+            guard joins(ranges[index]) else { return change }
+            var start = index
+            var end = index
+            while start > 0, ranges[start - 1].upperBound == ranges[start].lowerBound,
+                  joins(ranges[start - 1]) { start -= 1 }
+            while end + 1 < ranges.count, ranges[end].upperBound == ranges[end + 1].lowerBound,
+                  joins(ranges[end + 1]) { end += 1 }
+            return ranges[start].lowerBound..<ranges[end].upperBound
+        }
+
+        let leftBoundary = wordRange(in: generatedText, change: left.range)
+        let rightBoundary = wordRange(in: correctedText, change: right.range)
+        // 分词器可能把陌生名称的一部分识别成人名。两侧词界取有界并集，
+        // 之后仍须验证扩出的前后文字完全一致，不能借扩词包住别处修改。
+        let before = max(generatedText.distance(from: leftBoundary.lowerBound, to: left.range.lowerBound),
+                         correctedText.distance(from: rightBoundary.lowerBound, to: right.range.lowerBound))
+        let after = max(generatedText.distance(from: left.range.upperBound, to: leftBoundary.upperBound),
+                        correctedText.distance(from: right.range.upperBound, to: rightBoundary.upperBound))
+        guard before + after + 1 <= 4,
+              let leftStart = generatedText.index(left.range.lowerBound, offsetBy: -before, limitedBy: generatedText.startIndex),
+              let rightStart = correctedText.index(right.range.lowerBound, offsetBy: -before, limitedBy: correctedText.startIndex),
+              let leftEnd = generatedText.index(left.range.upperBound, offsetBy: after, limitedBy: generatedText.endIndex),
+              let rightEnd = correctedText.index(right.range.upperBound, offsetBy: after, limitedBy: correctedText.endIndex)
+        else { return nil }
+        let leftWord = leftStart..<leftEnd
+        let rightWord = rightStart..<rightEnd
+        let leftPrefix = String(generatedText[leftWord.lowerBound..<left.range.lowerBound])
+        let rightPrefix = String(correctedText[rightWord.lowerBound..<right.range.lowerBound])
+        let leftSuffix = String(generatedText[left.range.upperBound..<leftWord.upperBound])
+        let rightSuffix = String(correctedText[right.range.upperBound..<rightWord.upperBound])
+        let alias = String(generatedText[leftWord])
+        let canonical = String(correctedText[rightWord])
+        guard (2...4).contains(alias.count), (2...4).contains(canonical.count),
+              alias.allSatisfy({ isHan(String($0)) }), canonical.allSatisfy({ isHan(String($0)) }),
+              leftPrefix == rightPrefix, leftSuffix == rightSuffix,
+              isUsableLexiconChange(alias: alias, canonical: canonical) else { return nil }
+        return TerminologyCorrectionCandidate(alias: alias, canonical: canonical)
+    }
+
+    private static func isHan(_ text: String) -> Bool {
+        text.count == 1 && text.unicodeScalars.allSatisfy {
+            (0x3400...0x9FFF).contains($0.value) || (0x20000...0x323AF).contains($0.value)
         }
     }
 

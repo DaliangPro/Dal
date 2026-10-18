@@ -178,9 +178,12 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
         .task { if loadsStoredVocabulary { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidFinish)) { note in
             if let feedback = note.object as? AutomaticLearningFeedback {
-                AutomaticLearningStatus.shared.update(feedback)
+                AutomaticLearningStatus.shared.update(feedback, undo: note.userInfo?["undo"] as? AutomaticLearningUndo)
                 if feedback.didPersist, loadsStoredVocabulary { Task { await reload() } }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .voicePolishAutomaticLearningDidUndo)) { _ in
+            if loadsStoredVocabulary { Task { await reload() } }
         }
         .sheet(item: $editorDraft) { draft in
             TerminologyEntryEditorSheet(
@@ -224,9 +227,13 @@ struct TerminologySettingsTab: View, SettingsCardHelpers {
             let feedback = AutomaticLearningStatus.shared.latest
             Image(systemName: feedback?.didPersist == true ? "checkmark.circle" : "info.circle")
             VStack(alignment: .leading, spacing: 2) {
-                Text(feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
+                Text(AutomaticLearningStatus.shared.undo?.message ?? feedback.map { L("最近记词：", "Latest learning: ") + $0.message }
                      ?? L("改词后的学习结果会显示在这里", "Learning results will appear here after an edit"))
                     .textSelection(.enabled)
+                if let undo = AutomaticLearningStatus.shared.undo, !undo.didUndo {
+                    Button(L("撤销此次记词", "Undo word learning")) { Task { await undo.perform() } }
+                        .disabled(!undo.canUndo)
+                }
             }
         }
         .font(TF.settingsFontCaption)

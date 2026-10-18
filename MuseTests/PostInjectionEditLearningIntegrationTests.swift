@@ -175,6 +175,88 @@ final class PostInjectionEditLearningIntegrationTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(attempts.value, 3)
     }
 
+    func testQuickFocusDepartureUsesOnlyLastVerifiedSnapshot() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "quick-departure", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "quick-departure",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { editor.hasVerifiedOriginal }
+        editor.replace(with: "Claude")
+        try await waitUntil { editor.lastReadText == "Claude" }
+        let reads = editor.rangeReads
+        editor.available = false
+        editor.allowsFocusFinalization = true
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        XCTAssertEqual(editor.rangeReads, reads, "失焦后不能再读取正文或新输入框")
+    }
+
+    func testSafetyFailureDoesNotCommitCachedCorrection() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "unsafe-departure", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "unsafe-departure",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { editor.hasVerifiedOriginal }
+        editor.replace(with: "Claude")
+        try await waitUntil { editor.lastReadText == "Claude" }
+        editor.available = false
+        // 安全/能力检查失败不能当成正常切换焦点。
+        editor.allowsFocusFinalization = false
+        try await Task.sleep(for: .milliseconds(700))
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
+    func testActualObservationContinuesAfterRelatedEditExtendsIdleTimeout() async throws {
+        let fixture = try LearningChainFixture(timing: PostInjectionObservationTiming(
+            pollingInterval: .milliseconds(20), stableDuration: .milliseconds(60),
+            idleTimeout: .milliseconds(400), maximumLifetime: .seconds(2)
+        ))
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "extended", text: "cloud.")
+        editor.replace(with: "cloud.")
+        await fixture.monitor.start(injectedText: "cloud.", historyID: "extended",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { editor.hasVerifiedOriginal }
+        try await Task.sleep(for: .milliseconds(250))
+        editor.replace(with: "cloud!")
+        try await waitUntil { editor.lastReadText == "cloud!" }
+        try await Task.sleep(for: .milliseconds(250))
+        editor.replace(with: "Claude")
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        editor.available = false
+    }
+
+    func testRangeReadFailureClearsSnapshotBeforeFocusDeparture() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "range-failed", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "range-failed",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { editor.hasVerifiedOriginal }
+        editor.replace(with: "Claude")
+        try await waitUntil { editor.lastReadText == "Claude" }
+        editor.failsRangeReads = true
+        try await waitUntil { editor.didFailRangeRead }
+        // 等本轮 nil 候选处理完成，随后模拟正常切换焦点。
+        try await Task.sleep(for: .milliseconds(50))
+        editor.available = false
+        editor.allowsFocusFinalization = true
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
     private func waitUntil(_ condition: @MainActor () -> Bool) async throws {
         let deadline = ContinuousClock.now + .seconds(5)
         while !condition(), ContinuousClock.now < deadline {
@@ -216,6 +298,10 @@ private final class LearningNativeEditor {
     var available = true
     var hasVerifiedOriginal = false
     var rangeReads = 0
+    var lastReadText: String?
+    var allowsFocusFinalization = false
+    var failsRangeReads = false
+    var didFailRangeRead = false
 
     init() { view.isRichText = false }
 
@@ -234,10 +320,15 @@ private final class LearningNativeEditor {
             characterCount: { await MainActor.run { self.view.accessibilityNumberOfCharacters() } },
             stringForRange: { range in await MainActor.run {
                 self.rangeReads += 1
+                if self.failsRangeReads { self.didFailRangeRead = true; return nil }
                 let text = self.view.accessibilityString(for: NSRange(location: range.location, length: range.length))
-                if text == self.view.string, !(text ?? "").isEmpty { self.hasVerifiedOriginal = true }
+                if text == self.view.string, !(text ?? "").isEmpty {
+                    self.lastReadText = text
+                    self.hasVerifiedOriginal = true
+                }
                 return text
-            } }
+            } },
+            canFinishAfterFocusLoss: { await MainActor.run { self.allowsFocusFinalization } }
         )
     }
 
@@ -263,7 +354,7 @@ private struct LearningChainFixture {
     let monitor: PostInjectionEditLearningMonitor
     let suiteName: String
 
-    init() throws {
+    init(timing: PostInjectionObservationTiming = PostInjectionObservationTiming()) throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("MuseLearningChain-\(UUID())")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         suiteName = "MuseLearningChain.\(UUID())"
@@ -278,7 +369,8 @@ private struct LearningChainFixture {
         VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
         history = HistoryStore(path: directory.appendingPathComponent("history.db").path)
         monitor = PostInjectionEditLearningMonitor(
-            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context
+            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context,
+            observationTiming: timing
         )
     }
 

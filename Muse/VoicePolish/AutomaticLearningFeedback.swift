@@ -55,13 +55,15 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
 
     /// 悬浮条显示一组真实对应关系；完整列表由词库最近结果展示。
     /// 超长词分别缩略两端，避免整行裁切后只剩“已记住”或错词。
-    var hudMessage: String {
+    var hudMessage: String { hudMessage(reserving: 0) }
+
+    func hudMessage(reserving reservedWidth: CGFloat) -> String {
         guard case .learned(let candidates, let conflict) = self, let first = candidates.first else { return message }
         let prefix = conflict ? L("已保存：", "Saved: ") : L("已记住：", "Remembered: ")
         let count = candidates.count > 1 ? L("（共 \(candidates.count) 组）", " (\(candidates.count) pairs)") : ""
         let suffix = count + (conflict ? L("（冲突待确认）", " (conflict pending)") : "")
         let full = prefix + first.alias + " → " + first.canonical + suffix
-        let available = TF.barWidth - 84
+        let available = TF.barWidth - 84 - reservedWidth
         guard Self.width(full) > available else { return full }
         let wordBudget = max(12, (available - Self.width(prefix + " → " + suffix)) / 2)
         return prefix + Self.fitting(first.alias, width: wordBudget) + " → "
@@ -92,6 +94,56 @@ enum AutomaticLearningFeedback: Sendable, Equatable {
 final class AutomaticLearningStatus {
     static let shared = AutomaticLearningStatus()
     private(set) var latest: AutomaticLearningFeedback?
+    private(set) var undo: AutomaticLearningUndo?
 
-    func update(_ feedback: AutomaticLearningFeedback) { latest = feedback }
+    func update(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil) {
+        latest = feedback
+        self.undo = undo
+    }
+}
+
+/// 一次成功保存的收据，撤销绑定确切版本的纠正记录，不是“删除最近词条”。
+struct AutomaticLearningReceipt: Sendable {
+    let feedback: AutomaticLearningFeedback
+    let undo: AutomaticLearningUndo?
+
+    init(_ feedback: AutomaticLearningFeedback, undo: AutomaticLearningUndo? = nil) {
+        self.feedback = feedback
+        self.undo = undo
+    }
+}
+
+extension Notification.Name {
+    static let voicePolishAutomaticLearningDidUndo = Notification.Name("Muse.voicePolishAutomaticLearningDidUndo")
+}
+
+@Observable @MainActor
+final class AutomaticLearningUndo {
+    private(set) var isRunning = false
+    private(set) var didUndo = false
+    private(set) var didFail = false
+    @ObservationIgnored private let operation: @Sendable () async throws -> Void
+
+    init(operation: @escaping @Sendable () async throws -> Void) { self.operation = operation }
+
+    var canUndo: Bool { !isRunning && !didUndo }
+    var message: String? {
+        if didUndo { return L("已撤销此次记词", "Word learning undone") }
+        if didFail { return L("撤销失败，请到记录中检查", "Undo failed; check History") }
+        return nil
+    }
+
+    func perform() async {
+        guard canUndo else { return }
+        isRunning = true
+        didFail = false
+        defer { isRunning = false }
+        do {
+            try await operation()
+            didUndo = true
+            NotificationCenter.default.post(name: .voicePolishAutomaticLearningDidUndo, object: nil)
+        } catch {
+            didFail = true
+        }
+    }
 }

@@ -4,6 +4,34 @@ import XCTest
 
 @MainActor
 final class AppStateTests: XCTestCase {
+    func testUndoActionFollowsItsFeedbackAndClearsForNewRecording() async {
+        let state = AppState(initialModes: ProcessingMode.defaults)
+        let undo = AutomaticLearningUndo {}
+        let feedback = AutomaticLearningFeedback.learned([
+            TerminologyCorrectionCandidate(alias: "cloud", canonical: "Claude")
+        ], hasConflict: false)
+        state.showAutomaticLearningFeedback(feedback, undo: undo)
+        XCTAssertTrue(state.learningUndo === undo)
+        await undo.perform()
+        XCTAssertTrue(undo.didUndo)
+        XCTAssertNotNil(undo.message)
+        state.startRecording()
+        XCTAssertNil(state.learningUndo)
+        state.cancel()
+    }
+
+    func testUndoButtonBudgetPreservesBothLongWords() {
+        let feedback = AutomaticLearningFeedback.learned([
+            TerminologyCorrectionCandidate(alias: String(repeating: "错词", count: 32),
+                                           canonical: String(repeating: "正词", count: 32))
+        ], hasConflict: false)
+        let text = feedback.hudMessage(reserving: 72)
+        XCTAssertTrue(text.contains("错词"))
+        XCTAssertTrue(text.contains("正词"))
+        XCTAssertLessThanOrEqual((text as NSString).size(withAttributes: [.font: TF.hudNSFontTitle]).width + 84 + 72,
+                                 TF.barWidth)
+    }
+
     func testLearningFeedbackShowsSpecificSuccessAndFailure() {
         let state = AppState(initialModes: ProcessingMode.defaults)
         let success = AutomaticLearningFeedback.learned(
