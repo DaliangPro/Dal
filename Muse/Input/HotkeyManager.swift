@@ -162,6 +162,13 @@ final class HotkeyManager: NSObject {
     }
 
     func stop() {
+        stop(resetBusinessState: true)
+    }
+
+    /// 只拆除事件 tap 与 Carbon 注册，不改变录音业务状态。
+    /// 健康检查重建 tap 时必须走这条路径，否则活动 hold/toggle 会在
+    /// 松键前被清空，后续 keyUp 无法触发 onStop。
+    private func stop(resetBusinessState: Bool) {
         healthCheckTimer?.invalidate()
         healthCheckTimer = nil
         stopESCEventMonitors()
@@ -175,6 +182,7 @@ final class HotkeyManager: NSObject {
         eventTap = nil
         runLoopSource = nil
         lastEventTime = nil
+        guard resetBusinessState else { return }
         isSessionActive = false
         holdState = [:]
         toggleState = [:]
@@ -466,7 +474,8 @@ final class HotkeyManager: NSObject {
 
     /// Tear down and recreate the event tap from scratch.
     private func reinstallTap() {
-        stop()
+        // 只重建底层输入通道，保留正在录音的 hold/toggle 和安全计时器。
+        stop(resetBusinessState: false)
         let ok = start()
         AppLogger.log("[Muse] Tap reinstall: \(ok ? "OK" : "FAILED")")
     }
@@ -766,6 +775,11 @@ final class HotkeyManager: NSObject {
 
 #if DEBUG
 extension HotkeyManager {
+    /// 测试健康检查的保留语义，不触碰真实系统 event tap。
+    func stopTransportPreservingStateForTesting() {
+        stop(resetBusinessState: false)
+    }
+
     @discardableResult
     func handleEventForTesting(
         type: CGEventType,

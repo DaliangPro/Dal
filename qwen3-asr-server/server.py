@@ -44,6 +44,7 @@ from local_service_security import (
     validate_pcm_body,
     validate_websocket_audio_frame,
     validate_websocket_headers,
+    strip_thinking_content,
 )
 
 import re
@@ -106,6 +107,8 @@ MAX_TOTAL_AUDIO_SEC = 30 * 60
 def get_session():
     """Lazy-load the Qwen3-ASR Session (holds the model)."""
     global _session
+    if _model_path is None:
+        raise RuntimeError("ASR model is not configured")
     if _session is None:
         from mlx_qwen3_asr import Session
         _session = Session(_model_path)
@@ -274,6 +277,8 @@ def _transcribe_sync(sess, samples_i16: list[int], strip_punct: bool = False,
 @app.post("/transcribe")
 async def transcribe_http(request: Request):
     """HTTP endpoint for speculative transcription. Accepts raw PCM16-LE audio."""
+    if _model_path is None:
+        return JSONResponse({"error": "ASR model is not configured"}, status_code=503)
     try:
         body = await read_body_limited(request, maximum_bytes=MAX_HTTP_AUDIO_BYTES)
         validation = validate_pcm_body(
@@ -394,7 +399,7 @@ async def chat_completions(request: Request):
             )
         if result.get("choices"):
             text = result["choices"][0]["message"]["content"]
-            text = re.sub(r'<think>.*?</think>\s*', '', text, flags=re.DOTALL).strip()
+            text = strip_thinking_content(text)
             result["choices"][0]["message"]["content"] = text
         result["muse_thinking_mode"] = "enabled" if thinking_enabled else "disabled"
         return result

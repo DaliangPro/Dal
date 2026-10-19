@@ -29,7 +29,18 @@ enum LocalServiceAuth {
     static func serverEnvironment(
         inheriting environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> [String: String] {
-        var result = environment
+        // 本地服务只需要运行时基础变量。不要把父进程里的 API key、云凭据、
+        // 代理认证和开发工具变量带进 Python/打包服务进程。
+        let inheritedAllowlist: Set<String> = [
+            "PATH",
+            "HOME",
+            "TMPDIR",
+            "LANG",
+            "LC_ALL",
+            "LC_CTYPE",
+            "LC_MESSAGES",
+        ]
+        var result = environment.filter { inheritedAllowlist.contains($0.key) }
         result[environmentName] = token
         return result
     }

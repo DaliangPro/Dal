@@ -47,6 +47,54 @@ final class HotkeyManagerTests: XCTestCase {
         XCTAssertFalse(manager.isHoldingForTesting(modeId))
     }
 
+    func testTransportRebuildPreservesActiveHoldUntilKeyUp() {
+        let modeId = UUID()
+        let calls = HotkeyCallRecorder()
+        manager.registerBindings([
+            binding(modeId: modeId, keyCode: CGKeyCode(kVK_ANSI_A), style: .hold, calls: calls)
+        ])
+        manager.isSessionActive = true
+
+        manager.handleEventForTesting(
+            type: .keyDown,
+            keyCode: CGKeyCode(kVK_ANSI_A),
+            flags: .maskControl
+        )
+        manager.stopTransportPreservingStateForTesting()
+
+        XCTAssertTrue(manager.isHoldingForTesting(modeId))
+        XCTAssertTrue(manager.isSessionActive)
+        XCTAssertEqual(calls.stops, 0)
+
+        manager.handleEventForTesting(
+            type: .keyUp,
+            keyCode: CGKeyCode(kVK_ANSI_A)
+        )
+
+        XCTAssertEqual(calls.stops, 1)
+        XCTAssertFalse(manager.isHoldingForTesting(modeId))
+    }
+
+    func testTransportRebuildPreservesActiveToggle() {
+        let modeId = UUID()
+        let calls = HotkeyCallRecorder()
+        manager.registerBindings([
+            binding(modeId: modeId, keyCode: CGKeyCode(kVK_ANSI_B), style: .toggle, calls: calls)
+        ])
+
+        manager.handleEventForTesting(
+            type: .keyDown,
+            keyCode: CGKeyCode(kVK_ANSI_B),
+            flags: .maskControl
+        )
+        manager.stopTransportPreservingStateForTesting()
+
+        XCTAssertTrue(manager.isToggleOnForTesting(modeId))
+        XCTAssertEqual(manager.activeToggleModeIdForTesting, modeId)
+        XCTAssertEqual(calls.starts, 1)
+        XCTAssertEqual(calls.stops, 0)
+    }
+
     func testHoldBindingIgnoresWrongModifiers() {
         let modeId = UUID()
         let calls = HotkeyCallRecorder()

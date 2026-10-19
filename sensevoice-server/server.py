@@ -31,12 +31,50 @@ from local_service_security import (
     validate_http_headers,
     validate_websocket_audio_frame,
     validate_websocket_headers,
+    strip_thinking_content,
 )
 from sensevoice_model import load_model, StreamingSenseVoice
 
 app = FastAPI()
 
 _auth_token = os.environ.get(AUTH_ENV_NAME, "")
+_SENSEVOICE_MODEL_FILES = frozenset({
+    "model.pt",
+    "config.yaml",
+    "am.mvn",
+    "chn_jpn_yue_eng_ko_spectok.bpe.model",
+    "configuration.json",
+})
+
+
+def _validated_local_model_dir(raw_path: str) -> Path:
+    """只接受固定清单的绝对本地模型目录，不触发任何在线解析。"""
+
+    path = Path(raw_path).expanduser()
+    if not path.is_absolute():
+        raise ValueError("model directory must be an absolute path")
+    if path.is_symlink():
+        raise ValueError("model directory must not be a symbolic link")
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as error:
+        raise ValueError("model directory is unavailable") from error
+    if not resolved.is_dir() or resolved.is_symlink():
+        raise ValueError("model directory must be a real directory")
+
+    files = set()
+    for entry in resolved.rglob("*"):
+        if entry.is_symlink():
+            raise ValueError("model directory contains a symbolic link")
+        if entry.is_dir():
+            continue
+        if not entry.is_file():
+            raise ValueError("model directory contains an unsupported file")
+        relative = entry.relative_to(resolved).as_posix()
+        files.add(relative)
+    if files != _SENSEVOICE_MODEL_FILES:
+        raise ValueError("model directory does not match the pinned manifest")
+    return resolved
 
 
 def configure_auth_token(environment=None):
@@ -247,11 +285,10 @@ async def chat_completions(request: Request):
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        # Strip any remaining <think>...</think> tags from response
+        # 思考块不属于可交付正文；未闭合时连同后续内容一起截断。
         if result.get("choices"):
             text = result["choices"][0]["message"]["content"]
-            import re
-            text = re.sub(r'<think>.*?</think>\s*', '', text, flags=re.DOTALL).strip()
+            text = strip_thinking_content(text)
             result["choices"][0]["message"]["content"] = text
         # 仅回报实际采用的模式，不返回或记录思考内容；测试连接据此严格核对开关。
         result["muse_thinking_mode"] = "enabled" if thinking_enabled else "disabled"
@@ -276,6 +313,12 @@ def main():
     except MissingAuthToken as error:
         raise SystemExit(str(error)) from None
 
+    # FunASR/ModelScope must never turn a missing local artifact into a network
+    # download. The Swift side verifies hashes; these flags provide a second
+    # process-level offline boundary.
+    for variable in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "MODELSCOPE_OFFLINE"):
+        os.environ[variable] = "1"
+
     parser = argparse.ArgumentParser(description="SenseVoice ASR Server")
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--port", type=int, default=0, help="0 = auto-assign")
@@ -290,6 +333,11 @@ def main():
     parser.add_argument("--chunk-size", type=int, default=10, help="Encoder chunk size in LFR frames (~60ms each)")
     parser.add_argument("--llm-model", default="", help="Path to GGUF LLM model for local chat completions")
     args = parser.parse_args()
+
+    try:
+        args.model_dir = str(_validated_local_model_dir(args.model_dir))
+    except ValueError as error:
+        raise SystemExit(f"拒绝加载本地 SenseVoice 模型：{error}") from None
 
     global _model
 

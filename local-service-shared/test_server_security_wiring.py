@@ -5,6 +5,7 @@ import io
 import os
 from pathlib import Path
 import sys
+import tempfile
 import types
 import unittest
 
@@ -117,25 +118,48 @@ class ServerSecurityWiringTests(unittest.TestCase):
                 self.assertTrue(websocket.closed)
 
     def test_qwen_transcribe_rejects_odd_and_oversized_pcm(self):
-        with TestClient(self.qwen.app, base_url="http://127.0.0.1") as client:
-            headers = {
-                AUTH_HEADER_NAME: _TOKEN,
-                "Content-Type": "application/octet-stream",
-            }
-            self.assertEqual(
-                client.post("/transcribe", headers=headers, content=b"x" * 101).status_code,
-                400,
-            )
-            oversized_headers = {
-                **headers,
-                "Content-Length": str(MAX_HTTP_AUDIO_BYTES + 2),
-            }
-            response = client.post(
-                "/transcribe",
-                headers=oversized_headers,
-                content=b"",
-            )
-            self.assertEqual(response.status_code, 413)
+        previous_model_path = self.qwen._model_path
+        self.qwen._model_path = "/fixture/model"
+        try:
+            with TestClient(self.qwen.app, base_url="http://127.0.0.1") as client:
+                headers = {
+                    AUTH_HEADER_NAME: _TOKEN,
+                    "Content-Type": "application/octet-stream",
+                }
+                self.assertEqual(
+                    client.post("/transcribe", headers=headers, content=b"x" * 101).status_code,
+                    400,
+                )
+                oversized_headers = {
+                    **headers,
+                    "Content-Length": str(MAX_HTTP_AUDIO_BYTES + 2),
+                }
+                response = client.post(
+                    "/transcribe",
+                    headers=oversized_headers,
+                    content=b"",
+                )
+                self.assertEqual(response.status_code, 413)
+        finally:
+            self.qwen._model_path = previous_model_path
+
+    def test_qwen_llm_only_mode_rejects_transcription_with_503(self):
+        previous_model_path = self.qwen._model_path
+        self.qwen._model_path = None
+        try:
+            with TestClient(self.qwen.app, base_url="http://127.0.0.1") as client:
+                response = client.post(
+                    "/transcribe",
+                    headers={
+                        AUTH_HEADER_NAME: _TOKEN,
+                        "Content-Type": "application/octet-stream",
+                    },
+                    content=b"\x00\x00" * 50,
+                )
+            self.assertEqual(response.status_code, 503)
+            self.assertEqual(response.json()["error"], "ASR model is not configured")
+        finally:
+            self.qwen._model_path = previous_model_path
 
     def test_both_llm_routes_reject_malformed_and_oversized_json(self):
         for module in (self.sensevoice, self.qwen):
@@ -233,6 +257,23 @@ class ServerSecurityWiringTests(unittest.TestCase):
                         )
                 self.assertEqual(response.status_code, 401)
                 self.assertNotIn(_TOKEN, output.getvalue())
+
+    def test_sensevoice_model_path_requires_absolute_pinned_file_set(self):
+        with tempfile.TemporaryDirectory() as root:
+            model_dir = Path(root) / "SenseVoiceSmall"
+            model_dir.mkdir()
+            for name in self.sensevoice._SENSEVOICE_MODEL_FILES:
+                (model_dir / name).write_bytes(b"fixture")
+
+            self.assertEqual(
+                self.sensevoice._validated_local_model_dir(str(model_dir)),
+                model_dir.resolve(),
+            )
+            (model_dir / "unexpected.txt").write_bytes(b"extra")
+            with self.assertRaises(ValueError):
+                self.sensevoice._validated_local_model_dir(str(model_dir))
+            with self.assertRaises(ValueError):
+                self.sensevoice._validated_local_model_dir("relative/model")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import hmac
 import json
 import math
 import os
+import re
 from typing import Any, Mapping
 
 
@@ -19,6 +20,9 @@ MAX_JSON_BYTES = 2 * 1024 * 1024
 MAX_AUDIO_BYTES = 30 * 60 * 16_000 * 2
 MIN_PCM_BYTES = 100
 MAX_LLM_CONTENT_CHARS = 200_000
+
+_THINK_BLOCK_RE = re.compile(r"<think\b[^>]*>.*?</think\s*>\s*", re.IGNORECASE | re.DOTALL)
+_OPEN_THINK_RE = re.compile(r"<think\b[^>]*>", re.IGNORECASE)
 
 
 class MissingAuthToken(RuntimeError):
@@ -39,6 +43,18 @@ class WebSocketValidationError(ValueError):
     def __init__(self, close_code: int, message: str):
         super().__init__(message)
         self.close_code = close_code
+
+
+def strip_thinking_content(text: str) -> str:
+    """移除模型思考标签；未闭合标签后的内容全部视为不可交付正文。"""
+
+    if not isinstance(text, str) or not text:
+        return ""
+    cleaned = _THINK_BLOCK_RE.sub("", text)
+    unclosed = _OPEN_THINK_RE.search(cleaned)
+    if unclosed:
+        cleaned = cleaned[:unclosed.start()]
+    return cleaned.strip()
 
 
 @dataclass(frozen=True)

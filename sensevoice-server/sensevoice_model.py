@@ -705,7 +705,9 @@ class SenseVoiceSmall(nn.Module):
         from funasr import AutoModel
 
         model, kwargs = AutoModel.build_model(
-            model=model, trust_remote_code=True, **kwargs
+            # 模型目录已由 Swift/Python 两侧固定清单校验；禁止动态导入
+            # 目录内远程代码，也禁止 FunASR 检查或下载在线模型。
+            model=model, trust_remote_code=False, check_latest=False, **kwargs
         )
 
         return model, kwargs

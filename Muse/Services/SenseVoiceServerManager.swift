@@ -223,7 +223,7 @@ actor SenseVoiceServerManager {
         proc.environment = LocalServiceAuth.serverEnvironment()
         var args: [String] = []
 
-        try configureSenseVoiceServer(proc: proc, args: &args)
+        try await configureSenseVoiceServer(proc: proc, args: &args)
 
         // On Intel (no Qwen3), LLM runs on SenseVoice server
         if !Self.isAppleSilicon, let llmPath = LocalQwenLLMConfig.modelPath {
@@ -668,7 +668,7 @@ actor SenseVoiceServerManager {
 
     // MARK: - SenseVoice (Intel fallback)
 
-    private func configureSenseVoiceServer(proc: Process, args: inout [String]) throws {
+    private func configureSenseVoiceServer(proc: Process, args: inout [String]) async throws {
         let resolved = try resolveServerExecutable(name: "sensevoice-server")
 
         let bundledModel = Bundle.main.resourceURL?
@@ -676,25 +676,24 @@ actor SenseVoiceServerManager {
             .appendingPathComponent("SenseVoiceSmall")
         // 用户下载位（与 ModelManager 多文件下载落地一致）
         let userModel = AppPaths.support("Models/SenseVoiceSmall")
-        let modelDir: String
-        if let bundled = bundledModel, FileManager.default.fileExists(atPath: bundled.path) {
-            modelDir = bundled.path
-        } else if FileManager.default.fileExists(atPath: userModel.appendingPathComponent("model.pt").path) {
-            modelDir = userModel.path
-            logger.info("Using user-downloaded SenseVoice model at \(userModel.path)")
-        } else {
-            // Check ModelScope cache: if model.pt exists, use the local path directly
-            // to avoid ModelScope re-downloading due to stale metadata (.mdl corruption).
-            let cacheDir = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent(".cache/modelscope/hub/models/iic/SenseVoiceSmall")
-            let cachedModel = cacheDir.appendingPathComponent("model.pt")
-            if FileManager.default.fileExists(atPath: cachedModel.path) {
-                modelDir = cacheDir.path
-                logger.info("Using ModelScope cached model at \(cacheDir.path)")
-            } else {
-                modelDir = "iic/SenseVoiceSmall"
-                logger.info("No cached model, will download from ModelScope")
+        let candidates = [bundledModel, userModel].compactMap { $0 }
+        var modelDir: String?
+        for candidate in candidates where FileManager.default.fileExists(atPath: candidate.path) {
+            do {
+                try await ModelArtifactVerifier.verifyInstalledDirectory(
+                    at: candidate,
+                    spec: ModelArtifactManifest.senseVoice
+                )
+                modelDir = candidate.path
+                logger.info("Using verified SenseVoice model at \(candidate.path)")
+                break
+            } catch {
+                logger.warning("拒绝未通过清单校验的 SenseVoice 模型：\(candidate.path, privacy: .private(mask: .hash))")
             }
+        }
+        guard let modelDir else {
+            // 不把模型标识交给 Python/ModelScope，缺失或损坏时直接失败闭合。
+            throw ServerError.modelNotFound
         }
 
         let hotwordsPath = AppPaths.support("hotwords.txt")

@@ -19,6 +19,7 @@ from local_service_security import (
     validate_pcm_body,
     validate_websocket_headers,
     validate_websocket_audio_frame,
+    strip_thinking_content,
 )
 
 
@@ -41,6 +42,17 @@ class LocalServiceSecurityTests(unittest.TestCase):
         with self.assertRaises(MissingAuthToken):
             load_required_token({AUTH_ENV_NAME: "  "})
         self.assertEqual(load_required_token({AUTH_ENV_NAME: "secret"}), "secret")
+
+    def test_thinking_cleanup_drops_closed_blocks_and_truncates_unclosed_blocks(self):
+        self.assertEqual(
+            strip_thinking_content("<think>内部推理</think>\n最终正文"),
+            "最终正文",
+        )
+        self.assertEqual(
+            strip_thinking_content("前缀<think>内部推理尚未结束"),
+            "前缀",
+        )
+        self.assertEqual(strip_thinking_content("<think>\n"), "")
 
     def test_authorization_rejects_missing_and_wrong_tokens(self):
         self.assertFalse(is_authorized(None, "expected"))

@@ -221,6 +221,109 @@ enum ModelArtifactError: Error, LocalizedError, Sendable {
 }
 
 enum ModelArtifactVerifier {
+    /// 校验已经落地的模型目录。运行本地推理前必须重新核对清单中的
+    /// 文件集合、普通文件类型、大小和 SHA-256，避免直接信任缓存目录。
+    static func verifyInstalledDirectory(
+        at directory: URL,
+        spec: ModelArtifactSpec
+    ) async throws {
+        let task = Task.detached(priority: .utility) {
+            try verifyInstalledDirectorySynchronously(at: directory, spec: spec)
+        }
+        try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
+    private static func verifyInstalledDirectorySynchronously(
+        at directory: URL,
+        spec: ModelArtifactSpec
+    ) throws {
+        let rootValues = try directory.resourceValues(
+            forKeys: [.isDirectoryKey, .isSymbolicLinkKey]
+        )
+        guard rootValues.isDirectory == true, rootValues.isSymbolicLink != true else {
+            throw ModelArtifactError.installationFailed("模型根目录不是实体目录")
+        }
+
+        var expectedFiles = Set<String>()
+        for artifact in spec.files {
+            let relativePath = artifact.relativePath
+            guard !relativePath.isEmpty,
+                  !relativePath.hasPrefix("/"),
+                  !relativePath.split(separator: "/").contains("..") else {
+                throw ModelArtifactError.installationFailed("模型清单路径不安全：\(relativePath)")
+            }
+
+            let fileURL = directory.appendingPathComponent(relativePath, isDirectory: false)
+            let values = try fileURL.resourceValues(
+                forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
+            )
+            guard values.isRegularFile == true,
+                  values.isSymbolicLink != true else {
+                throw ModelArtifactError.installationFailed("模型文件不是普通文件：\(relativePath)")
+            }
+            let actualSize = Int64(values.fileSize ?? -1)
+            guard actualSize == artifact.expectedSize else {
+                throw ModelArtifactError.sizeMismatch(
+                    expected: artifact.expectedSize,
+                    actual: actualSize
+                )
+            }
+            let actualHash = try sha256(fileAt: fileURL, checkCancellation: {
+                try Task.checkCancellation()
+            })
+            guard actualHash == artifact.sha256.lowercased() else {
+                throw ModelArtifactError.hashMismatch(
+                    expected: artifact.sha256.lowercased(),
+                    actual: actualHash
+                )
+            }
+            expectedFiles.insert(relativePath)
+        }
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey],
+            options: []
+        ) else {
+            throw ModelArtifactError.installationFailed("无法枚举模型目录")
+        }
+        let rootPath = directory.resolvingSymlinksInPath().standardizedFileURL.path
+
+        for case let entry as URL in enumerator {
+            try Task.checkCancellation()
+            let values = try entry.resourceValues(
+                forKeys: [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
+            )
+            guard values.isSymbolicLink != true else {
+                throw ModelArtifactError.unsafeArchiveEntry(
+                    "模型目录包含符号链接：\(entry.lastPathComponent)"
+                )
+            }
+            guard values.isDirectory != true else { continue }
+            guard values.isRegularFile == true else {
+                throw ModelArtifactError.installationFailed(
+                    "模型目录包含不可执行的文件类型：\(entry.lastPathComponent)"
+                )
+            }
+            let entryPath = entry.resolvingSymlinksInPath().standardizedFileURL.path
+            guard entryPath.hasPrefix(rootPath + "/") else {
+                throw ModelArtifactError.installationFailed(
+                    "模型目录条目越出根目录：\(entry.lastPathComponent)"
+                )
+            }
+            let relative = String(entryPath.dropFirst(rootPath.count + 1))
+            guard expectedFiles.contains(relative) else {
+                throw ModelArtifactError.installationFailed(
+                    "模型目录包含清单外文件：\(relative)"
+                )
+            }
+        }
+    }
+
     static func verify(
         fileAt fileURL: URL,
         artifact: ModelArtifactFile,

@@ -376,10 +376,50 @@ cp "$PROJECT_DIR/Muse/Resources/Sounds/"*.wav "$APP_PATH/Contents/Resources/Soun
 
 # Copy SenseVoice model if available (for full DMG builds)
 SENSEVOICE_MODEL_CACHE="$HOME/.cache/modelscope/hub/models/iic/SenseVoiceSmall"
-if [ "${BUNDLE_SENSEVOICE_MODEL:-0}" = "1" ] && [ -d "$SENSEVOICE_MODEL_CACHE" ]; then
+SENSEVOICE_MODEL_FILES=(
+    "model.pt"
+    "config.yaml"
+    "am.mvn"
+    "chn_jpn_yue_eng_ko_spectok.bpe.model"
+    "configuration.json"
+)
+SENSEVOICE_MODEL_SIZES=(936291369 1855 11203 377341 396)
+SENSEVOICE_MODEL_SHA256=(
+    "833ca2dcfdf8ec91bd4f31cfac36d6124e0c459074d5e909aec9cabe6204a3ea"
+    "f71e239ba36705564b5bf2d2ffd07eece07b8e3f2bbf6d2c99d8df856339ac19"
+    "29b3c740a2c0cfc6b308126d31d7f265fa2be74f3bb095cd2f143ea970896ae5"
+    "aa87f86064c3730d799ddf7af3c04659151102cba548bce325cf06ba4da4e6a8"
+    "02810a7f8e9e8aee10370a265f7e799728ce25b4c00cdbf4602b303ee395a38e"
+)
+if [ "${BUNDLE_SENSEVOICE_MODEL:-0}" = "1" ]; then
+    if [ ! -d "$SENSEVOICE_MODEL_CACHE" ] || [ -L "$SENSEVOICE_MODEL_CACHE" ]; then
+        echo "Pinned SenseVoice model cache is missing or is a symlink" >&2
+        exit 1
+    fi
     echo "Bundling SenseVoice model..."
     mkdir -p "$APP_PATH/Contents/Resources/Models"
-    cp -R "$SENSEVOICE_MODEL_CACHE" "$APP_PATH/Contents/Resources/Models/SenseVoiceSmall"
+    SENSEVOICE_MODEL_DEST="$APP_PATH/Contents/Resources/Models/SenseVoiceSmall"
+    mkdir -p "$SENSEVOICE_MODEL_DEST"
+    for index in "${!SENSEVOICE_MODEL_FILES[@]}"; do
+        model_file="${SENSEVOICE_MODEL_FILES[$index]}"
+        model_source="$SENSEVOICE_MODEL_CACHE/$model_file"
+        model_dest="$SENSEVOICE_MODEL_DEST/$model_file"
+        if [ ! -f "$model_source" ] || [ -L "$model_source" ]; then
+            echo "Pinned SenseVoice model file is missing or is a symlink: $model_file" >&2
+            exit 1
+        fi
+        actual_size="$(/usr/bin/stat -f%z "$model_source")"
+        if [ "$actual_size" != "${SENSEVOICE_MODEL_SIZES[$index]}" ]; then
+            echo "SenseVoice model size mismatch: $model_file" >&2
+            exit 1
+        fi
+        actual_hash="$(/usr/bin/shasum -a 256 "$model_source" | /usr/bin/awk '{print $1}')"
+        if [ "$actual_hash" != "${SENSEVOICE_MODEL_SHA256[$index]}" ]; then
+            echo "SenseVoice model SHA256 mismatch: $model_file" >&2
+            exit 1
+        fi
+        /bin/cp "$model_source" "$model_dest"
+    done
     echo "SenseVoice model bundled."
 fi
 

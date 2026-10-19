@@ -351,6 +351,33 @@ final class ModelArtifactVerificationTests: XCTestCase {
         }
     }
 
+    func testInstalledDirectoryVerifierRequiresPinnedFilesAndHashes() async throws {
+        let modelDirectory = temporaryDirectory.appendingPathComponent("model", isDirectory: true)
+        try FileManager.default.createDirectory(at: modelDirectory, withIntermediateDirectories: true)
+        let payload = Data("verified local model".utf8)
+        let artifact = makeArtifact(relativePath: "model.pt", data: payload)
+        try payload.write(to: modelDirectory.appendingPathComponent("model.pt"))
+        let spec = ModelArtifactSpec(id: "fixture", revision: "revision-1", files: [artifact])
+
+        try await ModelArtifactVerifier.verifyInstalledDirectory(
+            at: modelDirectory,
+            spec: spec
+        )
+
+        try Data("unexpected file".utf8).write(
+            to: modelDirectory.appendingPathComponent("unexpected.txt")
+        )
+        do {
+            try await ModelArtifactVerifier.verifyInstalledDirectory(
+                at: modelDirectory,
+                spec: spec
+            )
+            XCTFail("清单外文件不应通过模型目录校验")
+        } catch let error as ModelArtifactError {
+            XCTAssertEqual(error.caseName, "installationFailed")
+        }
+    }
+
     private func makeArtifact(relativePath: String, data: Data) -> ModelArtifactFile {
         ModelArtifactFile(
             relativePath: relativePath,

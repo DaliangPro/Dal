@@ -249,17 +249,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     case .transcript(let transcript):
                         appState.setLiveTranscript(transcript)
                     case .completed:
-                        if appState.barPhase == .recording {
+                        switch appState.barPhase {
+                        case .recording:
+                            // 服务端提前关流只代表采集结束，旧会话仍在执行
+                            // stopRecording → fallback/LLM/injection。保持处理中
+                            // 占用，避免用户立刻开始新会话触发 forceReset。
                             appState.stopRecording()
-                        } else if appState.barPhase == .preparing {
+                            self.hotkeyManager.isProcessing = true
+                            DebugFileLogger.log("completed entered processing; hotkey state retained")
+                            return
+                        case .preparing:
                             // 用户在录音启动完成前就松键：会话已取消，HUD 也必须
                             // 从 preparing 收起，不能留下一个没有结果的假等待状态。
                             appState.cancel()
-                        } else {
+                            self.hotkeyManager.isProcessing = false
+                            self.hotkeyManager.isSessionActive = false
+                            self.safeResetHotkeyState()
+                        case .processing:
+                            // 旧会话的迟到 completed 不能清理当前收尾中的热键状态。
+                            DebugFileLogger.log("completed ignored in processing; hotkey state retained")
+                        default:
                             DebugFileLogger.log("completed ignored in barPhase=\(String(describing: appState.barPhase))")
+                            self.hotkeyManager.isProcessing = false
+                            self.hotkeyManager.isSessionActive = false
+                            self.safeResetHotkeyState()
                         }
-                        self.hotkeyManager.isProcessing = false
-                        self.safeResetHotkeyState()
                     case .processingResult(let text):
                         appState.showProcessingResult(text)
                         self.hotkeyManager.isProcessing = true

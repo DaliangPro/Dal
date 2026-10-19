@@ -35,12 +35,16 @@ final class LocalServiceAuthTests: XCTestCase {
             inheriting: [
                 "PATH": "/usr/bin",
                 "EXISTING": "kept",
+                "OPENAI_API_KEY": "must-not-cross-process-boundary",
+                "AWS_SECRET_ACCESS_KEY": "must-not-cross-process-boundary",
                 LocalServiceAuth.environmentName: "stale-parent-token",
             ]
         )
 
         XCTAssertEqual(environment["PATH"], "/usr/bin")
-        XCTAssertEqual(environment["EXISTING"], "kept")
+        XCTAssertNil(environment["EXISTING"])
+        XCTAssertNil(environment["OPENAI_API_KEY"])
+        XCTAssertNil(environment["AWS_SECRET_ACCESS_KEY"])
         XCTAssertEqual(
             environment[LocalServiceAuth.environmentName],
             LocalServiceAuth.token
