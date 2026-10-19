@@ -96,13 +96,17 @@ final class CIWorkflowTests: XCTestCase {
         }
     }
 
-    func testOptionalToolsSkipOnlyWhenUnavailableAndFailWhenInstalledToolFails() throws {
+    func testStaticToolsAreInstalledAndRequiredInCI() throws {
         let source = try workflowSource("ci.yml")
 
-        XCTAssertTrue(source.contains("command -v shellcheck"), source)
+        XCTAssertTrue(source.contains("MUSE_REQUIRE_STATIC_TOOLS: \"1\""), source)
+        XCTAssertTrue(source.contains("brew install shellcheck swiftlint"), source)
+        XCTAssertTrue(source.contains("brew tap peripheryapp/periphery"), source)
         XCTAssertTrue(source.contains("shellcheck scripts/*.sh"), source)
-        XCTAssertTrue(source.contains("command -v swiftlint"), source)
-        XCTAssertTrue(source.contains("swiftlint"), source)
+        XCTAssertTrue(source.contains("swiftlint lint --strict --config .swiftlint.yml"), source)
+        XCTAssertTrue(source.contains("periphery scan --disable-update-check"), source)
+        XCTAssertTrue(source.contains("local-service-boundary:"), source)
+        XCTAssertTrue(source.contains("python3 -m unittest discover -s local-service-shared"), source)
         XCTAssertFalse(source.contains("|| true"), source)
         XCTAssertFalse(source.contains("continue-on-error"), source)
     }

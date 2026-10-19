@@ -176,6 +176,13 @@ run_optional_tool() {
   shift 2
   if command -v "$command_name" >/dev/null 2>&1; then
     run_step "$name" "$@"
+  elif [ "${MUSE_REQUIRE_STATIC_TOOLS:-0}" = "1" ]; then
+    echo
+    echo "==> $name"
+    echo "ERROR: $command_name not installed; CI static quality gate is mandatory"
+    echo "TOOL:$name EXIT:MISSING DURATION:0s"
+    FAILED=1
+    return 1
   else
     skip_step "$name" "$command_name not installed"
   fi

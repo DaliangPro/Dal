@@ -48,6 +48,13 @@ struct RecognitionSessionID: Hashable, Sendable {
     let rawValue: UInt64
 }
 
+/// 跨 actor/UI 的事件身份包装。旧的 `setOnASREvent` API 保留给现有测试与
+/// 内部调用；AppState 事件桥必须使用此身份，拒绝旧会话迟到事件。
+struct RecognitionEventEnvelope: Sendable {
+    let sessionID: RecognitionSessionID?
+    let event: RecognitionEvent
+}
+
 /// REPAIR_PLAN K4：ASR 连接的会话级超时（底层 URLSession 默认 60s 过长）
 struct ASRConnectTimeoutError: Error, LocalizedError {
     var errorDescription: String? {
@@ -63,6 +70,15 @@ private struct LLMPostProcessingResult: Sendable {
     var voicePolishHistoryStatus: String?
     var voicePolishPerformance: VoicePolishPerformanceMeasurement?
     var voicePolishVocabularyContext: VocabularyStorageContext?
+}
+
+/// Config 与 client 必须来自同一个 provider 快照。配置加载会跨 actor
+/// 挂起，不能在 await 前后分别读取全局 provider，否则用户切换模型时会把
+/// A provider 的凭证交给 B provider 的 client。
+private struct LLMRequestSnapshot: Sendable {
+    let provider: LLMProvider
+    let config: LLMConfig
+    let client: any LLMClient
 }
 
 actor RecognitionSession {
@@ -191,14 +207,6 @@ actor RecognitionSession {
     /// URLSession 默认 60s 会让用户对着无字幕的 HUD 干等，10s 即判失败走报错路径。
     static let asrConnectTimeout: Duration = .seconds(10)
 
-    /// Return the appropriate LLM client for the currently selected provider.
-    private func currentLLMClient() -> any LLMClient {
-        if let llmClientFactory { return llmClientFactory() }
-        return LLMProviderRegistry.makeClient(for: KeychainService.selectedPolishProvider(
-            for: .resolve(currentMode.voicePolishQualityMode)
-        ))
-    }
-
     private func loadASRConfigOffActor(for provider: ASRProvider) async -> (any ASRProviderConfig)? {
         DebugFileLogger.log("ASR config load start provider=\(provider.rawValue)")
         let result: TimedValue<any ASRProviderConfig> = await AsyncTimeout.value(.milliseconds(900)) {
@@ -212,12 +220,25 @@ actor RecognitionSession {
         return result.value
     }
 
-    private func loadLLMConfigOffActor() async -> LLMConfig? {
+    private func makeLLMRequestSnapshot(
+        role: PolishModelRole? = nil
+    ) async -> LLMRequestSnapshot? {
+        let resolvedRole = role ?? PolishModelRole.resolve(currentMode.voicePolishQualityMode)
+        let provider = KeychainService.selectedPolishProvider(for: resolvedRole)
+        guard let config = await loadLLMConfigOffActor(role: resolvedRole, provider: provider) else {
+            return nil
+        }
+        let client = llmClientFactory?() ?? LLMProviderRegistry.makeClient(for: provider)
+        return LLMRequestSnapshot(provider: provider, config: config, client: client)
+    }
+
+    private func loadLLMConfigOffActor(
+        role: PolishModelRole,
+        provider: LLMProvider
+    ) async -> LLMConfig? {
         if let llmConfigLoader {
             return await llmConfigLoader()
         }
-        let role = PolishModelRole.resolve(currentMode.voicePolishQualityMode)
-        let provider = KeychainService.selectedPolishProvider(for: role)
         DebugFileLogger.log("LLM config load start provider=\(provider.rawValue)")
         let result: TimedValue<LLMConfig> = await AsyncTimeout.value(.milliseconds(900)) {
             KeychainService.loadPolishConfig(for: role)
@@ -249,9 +270,31 @@ actor RecognitionSession {
     /// Called on every ASR event so the UI layer can update.
     /// Set by AppDelegate to bridge actor → @MainActor.
     private var onASREvent: (@Sendable (RecognitionEvent) -> Void)?
+    private var onASREventWithSession: (@Sendable (RecognitionEventEnvelope) -> Void)?
+    private var onSessionStarted: (@Sendable (RecognitionSessionID) -> Void)?
 
     func setOnASREvent(_ handler: @escaping @Sendable (RecognitionEvent) -> Void) {
         onASREvent = handler
+    }
+
+    func setOnASREventWithSession(
+        _ handler: @escaping @Sendable (RecognitionEventEnvelope) -> Void
+    ) {
+        onASREventWithSession = handler
+    }
+
+    func setOnSessionStarted(_ handler: @escaping @Sendable (RecognitionSessionID) -> Void) {
+        onSessionStarted = handler
+    }
+
+    private func emitASREvent(
+        _ event: RecognitionEvent,
+        sessionID: RecognitionSessionID? = nil
+    ) {
+        onASREvent?(event)
+        onASREventWithSession?(
+            RecognitionEventEnvelope(sessionID: sessionID ?? currentSessionID, event: event)
+        )
     }
 
     /// Called with normalized audio level (0..1) for UI visualization.
@@ -382,6 +425,7 @@ actor RecognitionSession {
         let sessionID = makeSessionID()
         let effectiveMode = ASRProviderRegistry.resolvedMode(for: mode, provider: provider)
         currentSessionID = sessionID
+        onSessionStarted?(sessionID)
         activeProvider = provider
         currentMode = effectiveMode
         recordingStartTime = nil
@@ -600,8 +644,8 @@ actor RecognitionSession {
             recordingStartTime = nil
             recordingStartSessionID = nil
         }
-        onASREvent?(.error(error))
-        onASREvent?(.completed)
+        emitASREvent(.error(error), sessionID: sessionID)
+        emitASREvent(.completed, sessionID: sessionID)
 
         if let clientToDisconnect {
             Task.detached { await clientToDisconnect.disconnect() }
@@ -869,15 +913,12 @@ actor RecognitionSession {
     /// Pre-warm LLM connection for modes with post-processing
     private func prewarmLLMIfNeeded(sessionID: RecognitionSessionID) async {
         guard currentMode.requiresLLM else { return }
-        let llmConfig = await loadLLMConfigOffActor()
+        guard let snapshot = await makeLLMRequestSnapshot() else { return }
         guard isCurrent(sessionID), state == .recording else {
             DebugFileLogger.log("startRecording: cancelled during LLM prewarm config load, bailing")
             return
         }
-        if let llmConfig {
-            let client = currentLLMClient()
-            Task { await client.warmUp(baseURL: llmConfig.baseURL) }
-        }
+        Task { await snapshot.client.warmUp(baseURL: snapshot.config.baseURL) }
     }
 
     /// Switch the processing mode before stopping. Used for cross-mode hotkey stops.
@@ -895,12 +936,13 @@ actor RecognitionSession {
     func abortCurrentSession() async {
         guard state != .idle else {
             DebugFileLogger.log("abortCurrentSession idle: emit completed for UI cleanup")
-            onASREvent?(.completed)
+            emitASREvent(.completed)
             return
         }
+        let abortedSessionID = currentSessionID
         DebugFileLogger.log("abortCurrentSession: force reset from state=\(state)")
         forceReset()
-        onASREvent?(.completed)
+        emitASREvent(.completed, sessionID: abortedSessionID)
     }
 
     func stopRecording(expectedSessionID: RecognitionSessionID? = nil) async {
@@ -912,8 +954,9 @@ actor RecognitionSession {
         }
         if state == .starting {
             DebugFileLogger.log("stopRecording during starting: cancelling pending session")
+            let cancelledSessionID = currentSessionID
             forceReset()
-            onASREvent?(.completed)
+            emitASREvent(.completed, sessionID: cancelledSessionID)
             return
         }
         guard state == .recording, let sessionID = currentSessionID else {
@@ -1031,12 +1074,12 @@ actor RecognitionSession {
             )
             guard isStillCurrent(sessionID, stage: "empty completion") else { return }
             if recoveryResult == .failed, audioSummary.hasMeaningfulSpeech {
-                onASREvent?(.error(ASRRecoveryError.noTranscript(
+                emitASREvent(.error(ASRRecoveryError.noTranscript(
                     provider: provider.displayName
                 )))
             } else {
-                onASREvent?(.processingResult(text: ""))
-                onASREvent?(.completed)
+                emitASREvent(.processingResult(text: ""))
+                emitASREvent(.completed)
             }
         }
 
@@ -1101,7 +1144,7 @@ actor RecognitionSession {
             )
         }
         guard isStillCurrent(sessionID, stage: "post-injection") else { return false }
-        onASREvent?(.finalized(text: llmResult.finalText, injection: injectionOutcome))
+        emitASREvent(.finalized(text: llmResult.finalText, injection: injectionOutcome))
         let shouldObserveEditLearning = PostInjectionEditLearningMonitor.shouldObserve(
             kind: currentMode.kind,
             injection: injectionOutcome,
@@ -1109,7 +1152,7 @@ actor RecognitionSession {
         )
         guard isStillCurrent(sessionID, stage: "edit learning capture") else { return false }
         if recoveryResult == .failed {
-            onASREvent?(.error(ASRRecoveryError.partialTextPreserved(
+            emitASREvent(.error(ASRRecoveryError.partialTextPreserved(
                 provider: provider.displayName
             )))
         }
@@ -1238,7 +1281,8 @@ actor RecognitionSession {
             return specTask
         }
 
-        guard let llmConfig = await loadLLMConfigOffActor() else { return nil }
+        guard let snapshot = await makeLLMRequestSnapshot() else { return nil }
+        let llmConfig = snapshot.config
         guard isCurrent(sessionID) else {
             DebugFileLogger.log("stopRecording: superseded during fresh llm config, bailing")
             return nil
@@ -1253,7 +1297,7 @@ actor RecognitionSession {
         let prompt = mode.applyingLLMFormatGuard(
             to: promptContext.expandContextVariables(mode.prompt)
         )
-        let client = currentLLMClient()
+        let client = snapshot.client
         state = .postProcessing
         if finalASRText != speculativeLLMText {
             DebugFileLogger.log("stop: final transcript changed (spec=\(speculativeLLMText.count)chars final=\(finalASRText.count)chars), firing fresh LLM")
@@ -1472,7 +1516,7 @@ actor RecognitionSession {
             voicePolishProcessingSessionID = nil
             outcome.llmFailed = true
             outcome.voicePolishHistoryStatus = "voice_polish_fallback"
-            onASREvent?(.processingResult(text: outcome.finalText))
+            emitASREvent(.processingResult(text: outcome.finalText))
             return .finished(LLMPostProcessingResult(
                 finalText: outcome.finalText,
                 processedText: nil,
@@ -1485,8 +1529,8 @@ actor RecognitionSession {
             ))
         }
 
-        var loadedLLMConfig = await loadLLMConfigOffActor()
-        while loadedLLMConfig == nil, allowsVoicePolishUserChoice {
+        var loadedLLMSnapshot = await makeLLMRequestSnapshot(role: .standard)
+        while loadedLLMSnapshot == nil, allowsVoicePolishUserChoice {
             performance.recordSetupFailure()
             let waitingAt = ContinuousClock.now
             let choice = await waitForVoicePolishChoice(reason: .setupFailed, sessionID: sessionID)
@@ -1494,7 +1538,7 @@ actor RecognitionSession {
             switch choice {
             case .retry:
                 performance.userRetryCount += 1
-                loadedLLMConfig = await loadLLMConfigOffActor()
+                loadedLLMSnapshot = await makeLLMRequestSnapshot(role: .standard)
             case .cancel:
                 await saveCancelledVoicePolishHistory(
                     rawText: rawText, canonicalText: outcome.finalText,
@@ -1503,15 +1547,15 @@ actor RecognitionSession {
                 return .abort
             }
         }
-        if let llmConfig = loadedLLMConfig {
+        if let snapshot = loadedLLMSnapshot {
             guard isCurrent(sessionID) else {
                 DebugFileLogger.log("stopRecording: superseded during voice polish config, bailing")
                 return .abort
             }
             guard let request = prepared.request else { return .abort }
-            let voicePolishConfig = llmConfig
+            let voicePolishConfig = snapshot.config
             let pipeline = VoicePolishEditingPipeline(
-                client: currentLLMClient(),
+                client: snapshot.client,
                 config: voicePolishConfig,
                 onStage: { [weak self] stage in
                     Task { [weak self] in
@@ -1521,7 +1565,7 @@ actor RecognitionSession {
             )
             var prefetched = polishPrefetch.take(session: sessionID, key: .init(
                 text: request.fallbackText, requirements: request.preferences.additionalRequirements,
-                provider: KeychainService.selectedPolishProvider(for: .standard),
+                provider: snapshot.provider,
                 config: voicePolishConfig))
             if prefetched != nil {
                 performance.reusedPrefetch = true
@@ -1592,7 +1636,7 @@ actor RecognitionSession {
             outcome.llmFailed = result.usedFallback
             outcome.voicePolishHistoryStatus = Self.voicePolishHistoryStatus(for: result)
             // 先把已完成结果同步给HUD，再执行非关键的近期输入记忆。
-            onASREvent?(.processingResult(text: result.text))
+            emitASREvent(.processingResult(text: result.text))
             if VoicePolishSettings.recentInputContextEnabled(defaults: vocabularyContext.userDefaults), !result.usedFallback {
                 await voicePolishRecentInputStore.remember(
                     result.text,
@@ -1608,7 +1652,7 @@ actor RecognitionSession {
             DebugFileLogger.log("stop: no LLM credentials for voice polish, falling back")
             outcome.llmFailed = true
             outcome.voicePolishHistoryStatus = "voice_polish_fallback"
-            onASREvent?(.processingResult(text: envelope.fallbackText))
+            emitASREvent(.processingResult(text: envelope.fallbackText))
             outcome.finalText = envelope.fallbackText
             outcome.voicePolishPerformance = VoicePolishPerformanceMeasurement(
                 outcome: .setupFailure
@@ -1643,13 +1687,13 @@ actor RecognitionSession {
             DebugFileLogger.log("stop: early LLM result received \(result.count) chars +\(ContinuousClock.now - stopT0)")
             outcome.processedText = result
             outcome.finalText = result
-            onASREvent?(.processingResult(text: result))
+            emitASREvent(.processingResult(text: result))
         } else {
             let err = pendingLLMError ?? LLMError.emptyResponse(nil)
             DebugFileLogger.log("stop: early LLM failed, falling back to canonical text: \(err)")
             pendingLLMError = nil
             outcome.llmFailed = true
-            onASREvent?(.processingResult(text: outcome.finalText))
+            emitASREvent(.processingResult(text: outcome.finalText))
         }
         return .continue
     }
@@ -1659,7 +1703,7 @@ actor RecognitionSession {
         outcome: inout PostProcessingOutcome
     ) async -> PostProcessingStep {
         state = .postProcessing
-        if let llmConfig = await loadLLMConfigOffActor() {
+        if let snapshot = await makeLLMRequestSnapshot() {
             guard isCurrent(sessionID) else {
                 DebugFileLogger.log("stopRecording: superseded during sync llm config, bailing")
                 return .abort
@@ -1669,9 +1713,9 @@ actor RecognitionSession {
             let prompt = mode.applyingLLMFormatGuard(
                 to: promptContext.expandContextVariables(mode.prompt)
             )
-            DebugFileLogger.log("stop: sync LLM firing mode=\(mode.name) model=\(llmConfig.model) with \(outcome.finalText.count) chars")
+            DebugFileLogger.log("stop: sync LLM firing mode=\(mode.name) provider=\(snapshot.provider.rawValue) model=\(snapshot.config.model) with \(outcome.finalText.count) chars")
             do {
-                let client = currentLLMClient()
+                let client = snapshot.client
                 // REPAIR_PLAN J12：同 early 路径，包会话级硬超时防涓流拖死
                 let textForLLM = outcome.finalText
                 let timed = await AsyncTimeout.asyncValue(Self.llmPostProcessTimeout) {
@@ -1681,7 +1725,7 @@ actor RecognitionSession {
                             text: textForLLM,
                             prompt: prompt,
                             context: .processingMode,
-                            config: llmConfig
+                            config: snapshot.config
                         ))
                     } catch {
                         return .failure(error)
@@ -1699,11 +1743,11 @@ actor RecognitionSession {
                 if cleanedResult.isEmpty {
                     DebugFileLogger.log("stop: sync LLM empty result, falling back to canonical text")
                     outcome.llmFailed = true
-                    onASREvent?(.processingResult(text: outcome.finalText))
+                    emitASREvent(.processingResult(text: outcome.finalText))
                 } else {
                     outcome.processedText = cleanedResult
                     outcome.finalText = cleanedResult
-                    onASREvent?(.processingResult(text: cleanedResult))
+                    emitASREvent(.processingResult(text: cleanedResult))
                 }
             } catch {
                 guard isCurrent(sessionID) else {
@@ -1713,12 +1757,12 @@ actor RecognitionSession {
                 logger.error("LLM failed: \(error)")
                 DebugFileLogger.log("stop: sync LLM FAILED, falling back to canonical text: \(error)")
                 outcome.llmFailed = true
-                onASREvent?(.processingResult(text: outcome.finalText))
+                emitASREvent(.processingResult(text: outcome.finalText))
             }
         } else {
             DebugFileLogger.log("stop: no LLM credentials, falling back to canonical text")
             outcome.llmFailed = true
-            onASREvent?(.processingResult(text: outcome.finalText))
+            emitASREvent(.processingResult(text: outcome.finalText))
         }
         return .continue
     }
@@ -1731,7 +1775,7 @@ actor RecognitionSession {
               state == .postProcessing,
               voicePolishProcessingSessionID == sessionID,
               voicePolishChoiceSessionID == nil else { return }
-        onASREvent?(.voicePolishStage(stage))
+        emitASREvent(.voicePolishStage(stage))
     }
 
     private func waitForVoicePolishChoice(
@@ -1749,7 +1793,7 @@ actor RecognitionSession {
         return await withCheckedContinuation { continuation in
             voicePolishChoiceSessionID = sessionID
             voicePolishChoiceContinuation = continuation
-            onASREvent?(.voicePolishUnavailable(reason: reason))
+            emitASREvent(.voicePolishUnavailable(reason: reason))
         }
     }
 
@@ -2091,7 +2135,7 @@ actor RecognitionSession {
         }
         let provider = activeProvider
 
-        onASREvent?(.processingResult(text: partialText.isEmpty ? "重新识别中..." : partialText))
+        emitASREvent(.processingResult(text: partialText.isEmpty ? "重新识别中..." : partialText))
         guard let batchText = await attemptBatchFallback(
             audio: fullAudio,
             config: config,
@@ -2191,7 +2235,7 @@ actor RecognitionSession {
             if state == .recording {
                 AppLogger.log("[Session] Server closed ASR while recording, initiating stop")
                 DebugFileLogger.log("server-initiated stop from recording state")
-                onASREvent?(.completed)
+                emitASREvent(.completed)
                 Task { await self.stopRecording(expectedSessionID: sessionID) }
             } else {
                 DebugFileLogger.log("ASR stream closed in state=\(state); completed not forwarded")
@@ -2211,7 +2255,7 @@ actor RecognitionSession {
                 polishPrefetch.invalidate()
             }
             currentTranscript = transcript
-            onASREvent?(event)
+            emitASREvent(event)
             logger.info("Transcript updated chars=\(transcript.displayText.count, privacy: .public) segments=\(transcript.confirmedSegments.count, privacy: .public) final=\(transcript.isFinal, privacy: .public)")
             if state == .recording, currentMode.requiresLLM {
                 scheduleSpeculativeLLM(sessionID: sessionID)
@@ -2230,11 +2274,11 @@ actor RecognitionSession {
                     "ASR terminal error preserved local audio state=\(state); batch fallback required"
                 )
                 if state == .recording {
-                    onASREvent?(.streamingInterrupted)
+                    emitASREvent(.streamingInterrupted)
                 }
                 return
             }
-            onASREvent?(event)
+            emitASREvent(event)
             if state == .recording || state == .starting {
                 Task { await self.failActiveSessionAfterASRError(sessionID: sessionID) }
             }
@@ -2243,11 +2287,11 @@ actor RecognitionSession {
             // REPAIR_PLAN B7b：客户端静默重连成功也会发此事件——重连期间的
             // 语音服务端没听到，标记降级让停止流程批量复核全文
             streamingDegraded = true
-            onASREvent?(event)
+            emitASREvent(event)
             logger.warning("streaming degraded (interrupted/reconnected); batch fallback will verify at stop")
 
         case .processingResult, .voicePolishStage, .voicePolishUnavailable, .finalized:
-            onASREvent?(event)
+            emitASREvent(event)
             break
         }
     }
@@ -2257,7 +2301,7 @@ actor RecognitionSession {
         guard state == .recording || state == .starting else { return }
         DebugFileLogger.log("ASR error forced session teardown state=\(state)")
         forceReset()
-        onASREvent?(.completed)
+        emitASREvent(.completed, sessionID: sessionID)
     }
 
     // MARK: - Internal helpers
@@ -2333,7 +2377,7 @@ actor RecognitionSession {
         recordingStartTime = Date()
         recordingStartSessionID = sessionID
         DebugFileLogger.log("session emitting ready")
-        onASREvent?(.ready)
+        emitASREvent(.ready)
         logger.info("Recording started")
     }
 
@@ -2376,7 +2420,8 @@ actor RecognitionSession {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let text = canonicalText(for: rawText, sessionID: sessionID)
         guard !text.isEmpty, text != speculativeLLMText else { return }
-        guard let llmConfig = await loadLLMConfigOffActor() else { return }
+        guard let snapshot = await makeLLMRequestSnapshot() else { return }
+        let llmConfig = snapshot.config
         guard isCurrent(sessionID), state == .recording else { return }
 
         // Cancel previous speculative call if text changed
@@ -2389,7 +2434,7 @@ actor RecognitionSession {
             to: promptContext.expandContextVariables(mode.prompt)
         )
 
-        let client = currentLLMClient()
+        let client = snapshot.client
         DebugFileLogger.log("speculative LLM: firing mode=\(mode.name) model=\(llmConfig.model) with \(text.count) chars")
         let task: Task<String?, Never> = Task {
             do {
@@ -2419,26 +2464,28 @@ actor RecognitionSession {
         let transcript = currentTranscript
         let raw = transcript.composedText
         let mode = currentMode
-        let provider = KeychainService.selectedPolishProvider(for: .standard)
+        let selectedProvider = KeychainService.selectedPolishProvider(for: .standard)
         // 仅云端预生成；与正式路径共享上下文纠错及完整正文构造。
-        guard mode.kind == .voicePolish, !provider.isLocal,
+        guard mode.kind == .voicePolish, !selectedProvider.isLocal,
               let writingContext = await polishWritingContext(
                 sessionID: sessionID, vocabularyContext: vocabularyContext
               ),
-              let config = await loadLLMConfigOffActor(),
+              let snapshot = await makeLLMRequestSnapshot(role: .standard),
               isCurrent(sessionID), state == .recording,
               currentMode == mode, currentTranscript == transcript,
-              KeychainService.selectedPolishProvider(for: .standard) == provider else { return }
+              snapshot.provider == selectedProvider,
+              snapshot.provider == KeychainService.selectedPolishProvider(for: .standard) else { return }
+        let config = snapshot.config
         let prepared = preparePolishRequest(
             rawText: raw, transcript: transcript, mode: mode, writingContext: writingContext,
             durationMs: 0, provider: activeProvider, sessionID: sessionID,
             vocabularyContext: vocabularyContext
         )
         guard let request = prepared.request else { return }
-        let pipeline = VoicePolishEditingPipeline(client: currentLLMClient(), config: config)
+        let pipeline = VoicePolishEditingPipeline(client: snapshot.client, config: config)
         polishPrefetch.start(session: sessionID, key: .init(
             text: request.fallbackText, requirements: request.preferences.additionalRequirements,
-            provider: provider, config: config
+            provider: snapshot.provider, config: config
         )) {
             await pipeline.process(request)
         }

@@ -416,9 +416,16 @@ struct LLMStreamingParser: Sendable {
             isComplete = true
             return
         }
-        guard let data = payload.data(using: .utf8),
-              let chunk = try? JSONDecoder().decode(ChatStreamChunk.self, from: data)
-        else { return }
+        guard let data = payload.data(using: .utf8) else {
+            throw LLMError.malformedResponse
+        }
+        let chunk: ChatStreamChunk
+        do {
+            chunk = try JSONDecoder().decode(ChatStreamChunk.self, from: data)
+        } catch {
+            DebugFileLogger.log("OpenAI-compatible streaming chunk decode failed bytes=\(data.count)")
+            throw LLMError.malformedResponse
+        }
 
         if (chunk.usage?.completion_tokens_details?.reasoning_tokens ?? 0) > 0 {
             reasoningObserved = true

@@ -2,6 +2,28 @@ import XCTest
 @testable import Muse
 
 final class LLMStreamingParserTests: XCTestCase {
+    func testMalformedOpenAICompatibleChunkRaisesExplicitError() throws {
+        var parser = LLMStreamingParser()
+        try parser.consume(line: "data: {not-json}")
+
+        XCTAssertThrowsError(try parser.consume(line: "")) { error in
+            guard case LLMError.malformedResponse = error else {
+                return XCTFail("unexpected error: \(error)")
+            }
+        }
+    }
+
+    func testMalformedClaudeEventRaisesExplicitError() throws {
+        var parser = ClaudeStreamingParser()
+        try parser.consume(line: "data: {not-json}")
+
+        XCTAssertThrowsError(try parser.consume(line: "")) { error in
+            guard case LLMError.malformedResponse = error else {
+                return XCTFail("unexpected error: \(error)")
+            }
+        }
+    }
+
     func testThinkingProbeAcceptsTokenLimitOnlyWithReasoningAndTerminalEvent() throws {
         for content in ["", "尚未完成的答案"] {
             var parser = LLMStreamingParser()

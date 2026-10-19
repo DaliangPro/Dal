@@ -33,6 +33,7 @@ actor HistoryStore {
     static let baselineTypingCharactersPerMinute: Double = 50
 
     private var db: OpaquePointer?
+    private let databasePath: String
 
     init(path: String? = nil) {
         let dbPath: String
@@ -42,8 +43,17 @@ actor HistoryStore {
             AppPaths.ensureSupportDir()
             dbPath = AppPaths.historyDBPath
         }
+        databasePath = dbPath
+
+        let databaseURL = URL(fileURLWithPath: dbPath)
+        guard !SecureFilePermissions.isSymbolicLink(at: databaseURL) else {
+            AppLogger.log("[HistoryStore] 拒绝打开符号链接数据库: \(dbPath)")
+            db = nil
+            return
+        }
 
         if sqlite3_open(dbPath, &db) == SQLITE_OK {
+            _ = SecureFilePermissions.setOwnerOnlyPermissions(at: databaseURL, permissions: 0o600)
             let sql = """
             CREATE TABLE IF NOT EXISTS recognition_history (
                 id TEXT PRIMARY KEY,
@@ -100,6 +110,7 @@ actor HistoryStore {
                 "CREATE INDEX IF NOT EXISTS idx_voice_polish_corrections_created_at ON voice_polish_corrections(created_at);",
                 nil, nil, nil
             )
+            secureDatabaseFiles()
         } else {
             // REPAIR_PLAN B5：打开失败不再静默——之后所有读写都会变 no-op，
             // 必须留下可诊断的痕迹并允许上层感知
@@ -871,8 +882,22 @@ actor HistoryStore {
     }
 
     private func postDidChangeNotification() {
+        secureDatabaseFiles()
         Task { @MainActor in
             NotificationCenter.default.post(name: .historyStoreDidChange, object: nil)
         }
+    }
+
+    /// SQLite 的 WAL/SHM 文件在首次写入时才出现，因此每次写入通知前都
+    /// 再次收紧三件套权限，覆盖升级旧库和运行中首次创建 WAL 的情况。
+    nonisolated private func secureDatabaseFiles() {
+        let databaseURL = URL(fileURLWithPath: databasePath)
+        _ = SecureFilePermissions.setOwnerOnlyPermissions(at: databaseURL, permissions: 0o600)
+        _ = SecureFilePermissions.setOwnerOnlyPermissions(
+            at: URL(fileURLWithPath: databasePath + "-wal"), permissions: 0o600
+        )
+        _ = SecureFilePermissions.setOwnerOnlyPermissions(
+            at: URL(fileURLWithPath: databasePath + "-shm"), permissions: 0o600
+        )
     }
 }

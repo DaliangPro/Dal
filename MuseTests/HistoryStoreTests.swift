@@ -33,6 +33,22 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(all.first?.tokenCount, 4)
     }
 
+    func testDatabaseAndWALFilesUseOwnerOnlyPermissions() async {
+        await store.insert(HistoryRecord(
+            id: "permissions", createdAt: Date(), durationSeconds: 1,
+            rawText: "权限测试", processingMode: nil, processedText: nil,
+            finalText: "权限测试", status: "completed", characterCount: 4
+        ))
+
+        let fileManager = FileManager.default
+        for path in [testPath!, testPath! + "-wal", testPath! + "-shm"]
+            where fileManager.fileExists(atPath: path) {
+            let attributes = try? fileManager.attributesOfItem(atPath: path)
+            let permissions = (attributes?[.posixPermissions] as? NSNumber)?.intValue
+            XCTAssertEqual(permissions, 0o600, "权限不应超过用户本人: \(path)")
+        }
+    }
+
     func testInsertWithProcessedText() async {
         let record = HistoryRecord(
             id: UUID().uuidString, createdAt: Date(), durationSeconds: 2.0,

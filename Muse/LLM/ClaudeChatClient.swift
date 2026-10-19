@@ -502,7 +502,7 @@ private struct ClaudeDelta: Decodable, Sendable {
     let stop_reason: String?
 }
 
-private struct ClaudeStreamingParser: Sendable {
+struct ClaudeStreamingParser: Sendable {
     private var events = SSEEventAccumulator()
     private var result = ""
     private var resultBytes = 0
@@ -559,9 +559,16 @@ private struct ClaudeStreamingParser: Sendable {
             isComplete = true
             return
         }
-        guard let data = payload.data(using: .utf8),
-              let event = try? JSONDecoder().decode(ClaudeStreamEvent.self, from: data)
-        else { return }
+        guard let data = payload.data(using: .utf8) else {
+            throw LLMError.malformedResponse
+        }
+        let event: ClaudeStreamEvent
+        do {
+            event = try JSONDecoder().decode(ClaudeStreamEvent.self, from: data)
+        } catch {
+            DebugFileLogger.log("Claude streaming event decode failed bytes=\(data.count)")
+            throw LLMError.malformedResponse
+        }
 
         switch event.type {
         case "content_block_start":

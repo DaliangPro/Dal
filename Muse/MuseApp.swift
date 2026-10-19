@@ -163,6 +163,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hudDebugPresenter = HUDDebugPresenter()
     private let hotkeyManager = HotkeyManager()
     private let session = RecognitionSession()
+    /// AppState 只接受当前会话的事件；旧会话的 MainActor 任务即使迟到也会被丢弃。
+    private var activeSessionID: RecognitionSessionID?
     private let settingsWindowPresenter = AppWindowPresenter(windowID: "settings")
     private let setupWindowPresenter = AppWindowPresenter(windowID: "setup")
     private let menuBarVisibilityMonitor = MenuBarVisibilityMonitor()
@@ -231,9 +233,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        Task {
-            await session.setOnASREvent { event in
+        Task { [weak self] in
+            guard let self else { return }
+            await session.setOnSessionStarted { [weak self] sessionID in
                 Task { @MainActor in
+                    self?.activeSessionID = sessionID
+                }
+            }
+            await session.setOnASREventWithSession { [weak self] envelope in
+                Task { @MainActor in
+                    guard let self else { return }
+                    guard self.activeSessionID == envelope.sessionID else {
+                        DebugFileLogger.log(
+                            "ignored stale UI ASR event session=\(String(describing: envelope.sessionID?.rawValue)) active=\(String(describing: self.activeSessionID?.rawValue))"
+                        )
+                        return
+                    }
+                    let event = envelope.event
                     switch event {
                     case .ready:
                         AppLogger.log("[Muse] ready event received")
@@ -264,6 +280,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             appState.cancel()
                             self.hotkeyManager.isProcessing = false
                             self.hotkeyManager.isSessionActive = false
+                            self.activeSessionID = nil
                             self.safeResetHotkeyState()
                         case .processing:
                             // 旧会话的迟到 completed 不能清理当前收尾中的热键状态。
@@ -272,6 +289,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             DebugFileLogger.log("completed ignored in barPhase=\(String(describing: appState.barPhase))")
                             self.hotkeyManager.isProcessing = false
                             self.hotkeyManager.isSessionActive = false
+                            self.activeSessionID = nil
                             self.safeResetHotkeyState()
                         }
                     case .processingResult(let text):
@@ -286,12 +304,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     case .finalized(let text, let injection):
                         appState.finalize(text: text, outcome: injection)
                         self.hotkeyManager.isProcessing = false
+                        self.activeSessionID = nil
                         self.safeResetHotkeyState()
                     case .streamingInterrupted:
                         appState.showStreamingInterrupted()
                     case .error(let error):
                         appState.showError(AppErrorMessageFormatter.userFacingMessage(for: error))
                         self.hotkeyManager.isProcessing = false
+                        self.activeSessionID = nil
                         self.safeResetHotkeyState()
                     }
                 }
@@ -600,6 +620,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             : mode
         appState.currentMode = effectiveMode
         if InteractiveTestRuntime.isLiveLearningAcceptanceEnabled {
+            activeSessionID = nil
             hotkeyManager.isSessionActive = true
         }
         appState.startRecording()
@@ -693,7 +714,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let resolvedMode = ASRProviderRegistry.resolvedMode(for: capturedMode, provider: selectedProvider)
                     let storedMode = availableModes.first(where: { $0.id == resolvedMode.id }) ?? resolvedMode
                     let effectiveMode = VoiceInputModes.resolve(storedMode, in: availableModes)
-                    MainActor.assumeIsolated { self.hotkeyManager.isSessionActive = true }
+                    MainActor.assumeIsolated {
+                        self.activeSessionID = nil
+                        self.hotkeyManager.isSessionActive = true
+                    }
                     AppLogger.log("[Muse] >>> HOTKEY: Record START (mode: \(effectiveMode.name))")
                     DebugFileLogger.log("hotkey record start mode=\(effectiveMode.name)")
                     Task { @MainActor in
@@ -743,6 +767,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let phase = self.appState.barPhase
                 AppLogger.log("[Muse] >>> HOTKEY: ESC abort session (phase=\(String(describing: phase)))")
                 DebugFileLogger.log("hotkey ESC abort session phase=\(phase)")
+                self.activeSessionID = nil
                 self.hotkeyManager.isSessionActive = false
                 self.appState.showCancelled()
                 await self.session.abortCurrentSession()

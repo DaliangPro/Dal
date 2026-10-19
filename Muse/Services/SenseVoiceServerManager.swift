@@ -76,7 +76,16 @@ actor SenseVoiceServerManager {
         let dir = AppPaths.ensureSupportDir()
         let path = dir.appendingPathComponent("hotwords.txt")
         let content = words.joined(separator: "\n")
-        try? content.write(to: path, atomically: true, encoding: .utf8)
+        guard !SecureFilePermissions.isSymbolicLink(at: path) else {
+            DebugFileLogger.log("拒绝写入符号链接热词文件: \(path.path)")
+            return
+        }
+        do {
+            try content.write(to: path, atomically: true, encoding: .utf8)
+            _ = SecureFilePermissions.setOwnerOnlyPermissions(at: path, permissions: 0o600)
+        } catch {
+            DebugFileLogger.log("写入热词文件失败: \(error.localizedDescription)")
+        }
         DebugFileLogger.log("Synced \(words.count) hotwords to hotwords.txt")
     }
 

@@ -25,10 +25,34 @@ enum AppPaths {
     @discardableResult
     static func ensureSupportDir() -> URL {
         let dir = supportDir
+        guard !SecureFilePermissions.isSymbolicLink(at: dir) else { return dir }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        _ = SecureFilePermissions.setOwnerOnlyPermissions(at: dir, permissions: 0o700)
         return dir
     }
 
     /// 识别历史数据库路径。该文件内另有已下线资产提炼功能的表，数据原样保留。
     static var historyDBPath: String { support("history.db").path }
+}
+
+/// 持久化文件的最小权限与符号链接检查，避免用户输入、历史记录和本地
+/// 服务热词被同机其他用户读取或被重定向到应用目录之外。
+enum SecureFilePermissions {
+    static func isSymbolicLink(at url: URL) -> Bool {
+        (try? FileManager.default.destinationOfSymbolicLink(atPath: url.path)) != nil
+    }
+
+    @discardableResult
+    static func setOwnerOnlyPermissions(at url: URL, permissions: Int) -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else { return false }
+        do {
+            try FileManager.default.setAttributes(
+                [.posixPermissions: NSNumber(value: permissions)],
+                ofItemAtPath: url.path
+            )
+            return true
+        } catch {
+            return false
+        }
+    }
 }

@@ -18,6 +18,8 @@ jobs:
   verify:
     runs-on: macos-26
     timeout-minutes: 90
+    env:
+      MUSE_REQUIRE_STATIC_TOOLS: "1"
     defaults:
       run:
         shell: bash
@@ -54,6 +56,15 @@ jobs:
       - name: 手动发布流程回归
         run: python3 -m unittest discover -s scripts -p 'test_publish_release.py' -v
 
+      - name: 安装静态检查工具
+        run: |
+          brew install shellcheck swiftlint
+          brew tap peripheryapp/periphery
+          brew install periphery
+          shellcheck --version
+          swiftlint version
+          periphery version
+
       - name: 仓库健康检查
         run: bash scripts/health-check.sh
 
@@ -74,18 +85,42 @@ jobs:
           local-service-shared/test_local_service_security.py
           local-service-shared/test_server_security_wiring.py
 
-      - name: ShellCheck（安装时强制）
+      - name: Periphery 与静态质量门禁
         run: |
-          if command -v shellcheck >/dev/null 2>&1; then
-            shellcheck scripts/*.sh
-          else
-            echo "SKIP: shellcheck not installed"
-          fi
+          shellcheck scripts/*.sh
+          swiftlint lint --strict --config .swiftlint.yml
+          periphery scan --disable-update-check
 
-      - name: SwiftLint（安装时强制）
+  local-service-boundary:
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: 记录工具链
         run: |
-          if command -v swiftlint >/dev/null 2>&1; then
-            swiftlint lint --strict --config .swiftlint.yml
-          else
-            echo "SKIP: swiftlint not installed"
-          fi
+          swift --version
+          swift --version | grep -F 'Apple Swift version 6.2'
+
+      - name: 配置本地服务边界测试环境
+        run: |
+          python3 -m venv "$RUNNER_TEMP/muse-python-boundary"
+          "$RUNNER_TEMP/muse-python-boundary/bin/python" -m pip install --disable-pip-version-check \
+            fastapi==0.136.3 \
+            httpx==0.28.1 \
+            numpy==2.4.6 \
+            uvicorn==0.49.0
+          echo "$RUNNER_TEMP/muse-python-boundary/bin" >> "$GITHUB_PATH"
+
+      - name: 本地服务鉴权与启动边界
+        run: python3 -m unittest discover -s local-service-shared -p 'test_*.py' -v
+
+      - name: 本地模型清单与 Swift 生命周期边界
+        run: swift test --filter 'ModelArtifactVerificationTests|SenseVoiceWSLifecycleTests|LocalServiceAuthTests'

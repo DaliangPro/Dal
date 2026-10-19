@@ -40,6 +40,26 @@ final class AudioChunkUploadPipelineTests: XCTestCase {
         XCTAssertTrue(pipeline.failed)
         XCTAssertEqual(recorder.values, ["streamingInterrupted"])
     }
+
+    func testBoundedQueueInterruptsWhenSenderCannotKeepUp() async {
+        let client = SlowPipelineSpeechRecognizer()
+        let recorder = PipelineEventRecorder()
+        let pipeline = AudioChunkUploadPipeline(
+            client: client,
+            audioInput: .pcmData,
+            emitInterrupted: { recorder.record($0) },
+            maxBufferedChunks: 2,
+            sendTimeout: .seconds(30)
+        )
+
+        for value in 0..<8 {
+            pipeline.yield(Data([UInt8(value)]))
+        }
+        let failed = await pipeline.finish(timeout: .milliseconds(100))
+
+        XCTAssertTrue(failed)
+        XCTAssertEqual(recorder.values, ["streamingInterrupted"])
+    }
 }
 
 private enum PipelineSendError: Error {
@@ -65,6 +85,27 @@ private actor PipelineSpeechRecognizerSpy: SpeechRecognizer {
             throw sendError
         }
         audioData.append(data)
+    }
+
+    func endAudio() async throws {}
+
+    func disconnect() async {}
+
+    var events: AsyncStream<RecognitionEvent> {
+        get async {
+            AsyncStream { continuation in
+                continuation.finish()
+            }
+        }
+    }
+}
+
+private actor SlowPipelineSpeechRecognizer: SpeechRecognizer {
+    func connect(config: any ASRProviderConfig, options: ASRRequestOptions) async throws {}
+
+    func sendAudio(_ data: Data) async throws {
+        _ = data
+        try await Task.sleep(for: .seconds(60))
     }
 
     func endAudio() async throws {}

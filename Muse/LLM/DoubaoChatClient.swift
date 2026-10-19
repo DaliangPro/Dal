@@ -944,6 +944,7 @@ enum LLMError: Error, LocalizedError {
     case invalidURL
     case requestFailed(Int)
     case requestRejected(Int, String)
+    case malformedResponse
     case emptyResponse(String?)
     case truncatedResponse(Int)
     case responseTooLarge(Int)
@@ -960,6 +961,8 @@ enum LLMError: Error, LocalizedError {
             return Self.requestFailureDescription(code: code)
         case .requestRejected(let code, _):
             return Self.requestFailureDescription(code: code)
+        case .malformedResponse:
+            return L("LLM 返回了无法解析的流式响应", "LLM returned a malformed streaming response")
         case .emptyResponse(let raw):
             _ = raw
             return L("LLM 未返回内容", "LLM returned no content")
