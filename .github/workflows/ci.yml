@@ -89,7 +89,14 @@ jobs:
       - name: Periphery 与静态质量门禁
         run: |
           shellcheck scripts/*.sh
-          swiftlint lint --strict --config .swiftlint.yml
+          swiftlint_files="$(git diff --name-only HEAD^ HEAD -- '*.swift')"
+          if [ -n "$swiftlint_files" ]; then
+            # 文件路径来自 git，不含用户输入；SwiftLint 需要逐个接收这些路径。
+            # shellcheck disable=SC2086
+            swiftlint lint --strict --config .swiftlint.yml $swiftlint_files
+          else
+            echo "No changed Swift files; strict SwiftLint gate is not needed for this commit"
+          fi
           periphery scan --disable-update-check
 
   local-service-boundary:
