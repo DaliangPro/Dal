@@ -2,6 +2,18 @@ import XCTest
 @testable import Muse
 
 final class AudioChunkUploadPipelineTests: XCTestCase {
+    func testDrainTimeoutMarksFailureWithoutQueueOverflow() async {
+        let recorder = PipelineEventRecorder()
+        let pipeline = AudioChunkUploadPipeline(
+            client: SlowPipelineSpeechRecognizer(), audioInput: .pcmData,
+            emitInterrupted: { recorder.record($0) }, sendTimeout: .seconds(30)
+        )
+        pipeline.yield(Data([1, 2]))
+        let failed = await pipeline.finish(timeout: .milliseconds(50))
+        XCTAssertTrue(failed)
+        XCTAssertEqual(recorder.values, ["streamingInterrupted"])
+    }
+
     func testFinishDrainsPCMDataInOrder() async {
         let client = PipelineSpeechRecognizerSpy()
         let pipeline = AudioChunkUploadPipeline(

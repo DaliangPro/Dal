@@ -57,14 +57,7 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_publish_release.py' -v
 
       - name: 安装静态检查工具
-        run: |
-          brew install shellcheck swiftlint
-          brew tap peripheryapp/periphery
-          brew trust peripheryapp/periphery
-          brew install periphery
-          shellcheck --version
-          swiftlint version
-          periphery version
+        run: bash scripts/install-ci-static-tools.sh
 
       - name: 仓库健康检查
         run: bash scripts/health-check.sh
@@ -86,18 +79,7 @@ jobs:
           local-service-shared/test_local_service_security.py
           local-service-shared/test_server_security_wiring.py
 
-      - name: Periphery 与静态质量门禁
-        run: |
-          shellcheck scripts/*.sh
-          swiftlint_files="$(git diff-tree --no-commit-id --name-only -r HEAD -- '*.swift')"
-          if [ -n "$swiftlint_files" ]; then
-            # 文件路径来自 git，不含用户输入；SwiftLint 需要逐个接收这些路径。
-            # shellcheck disable=SC2086
-            swiftlint lint --strict --config .swiftlint.yml $swiftlint_files
-          else
-            echo "No changed Swift files; strict SwiftLint gate is not needed for this commit"
-          fi
-          periphery scan --disable-update-check
+      # 静态工具由健康检查全仓执行，缺失或失败均阻断 verify。
 
   local-service-boundary:
     needs: verify
@@ -127,8 +109,14 @@ jobs:
             uvicorn==0.49.0
           echo "$RUNNER_TEMP/muse-python-boundary/bin" >> "$GITHUB_PATH"
 
+      - name: 准备固定版本真实本地 ASR Framework
+        run: bash scripts/prepare-ci-sherpa.sh
+
+      - name: 带本地 ASR Framework 的构建
+        run: swift build
+
       - name: 本地服务鉴权与启动边界
         run: python3 -m unittest discover -s local-service-shared -p 'test_*.py' -v
 
       - name: 本地模型清单与 Swift 生命周期边界
-        run: swift test --filter 'ModelArtifactVerificationTests|SenseVoiceWSLifecycleTests|LocalServiceAuthTests'
+        run: swift test --filter 'ModelArtifactVerificationTests|SenseVoiceWSLifecycleTests|LocalServiceAuthTests|PackageScriptTests|ServerExecutableResolutionTests'

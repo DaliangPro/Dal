@@ -301,3 +301,24 @@ final class LLMStreamingParserTests: XCTestCase {
         XCTAssertTrue(response.hitOutputTokenLimit)
     }
 }
+
+extension LLMStreamingParserTests {
+    func testNonCoreMetadataCannotDiscardValidBody() throws {
+        var parser = LLMStreamingParser()
+        try parser.consume(line: "data: " + """
+        {"choices":[{"delta":{"content":"正文","thinking":{},"reasoning_details":{}},"finish_reason":"stop"}],
+        "usage":{"completion_tokens_details":"custom"}}
+        """)
+        try parser.consume(line: "")
+        XCTAssertEqual(try parser.finish(), "正文")
+    }
+
+    func testMalformedBodyAfterPrefixCannotReturnSuccessfulPrefix() throws {
+        var parser = LLMStreamingParser()
+        try parser.consume(line: #"data: {"choices":[{"delta":{"content":"前缀"}}]}"#)
+        try parser.consume(line: "")
+        try parser.consume(line: #"data: {"choices":[{"delta":{"content":{}}}]}"#)
+        XCTAssertThrowsError(try parser.consume(line: ""))
+    }
+
+}

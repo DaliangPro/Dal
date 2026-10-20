@@ -59,7 +59,7 @@ final class CIWorkflowTests: XCTestCase {
     }
 
     func testSwiftLintUsesStrictScopedBaselineWithoutLenientBypass() throws {
-        let ci = try workflowSource("ci.yml")
+        let workflow = try workflowSource("ci.yml")
         let health = try source(at: "scripts/health-check.sh")
         let config = try source(at: ".swiftlint.yml")
         let baselineURL = repositoryRoot.appendingPathComponent(".swiftlint-baseline.json")
@@ -86,7 +86,8 @@ final class CIWorkflowTests: XCTestCase {
             )
         }
 
-        for source in [ci, health] {
+        XCTAssertTrue(workflow.contains("bash scripts/health-check.sh"))
+        for source in [health] {
             XCTAssertTrue(
                 source.contains("swiftlint lint --strict --config .swiftlint.yml"),
                 source
@@ -97,18 +98,22 @@ final class CIWorkflowTests: XCTestCase {
     }
 
     func testStaticToolsAreInstalledAndRequiredInCI() throws {
-        let source = try workflowSource("ci.yml")
-
-        XCTAssertTrue(source.contains("MUSE_REQUIRE_STATIC_TOOLS: \"1\""), source)
-        XCTAssertTrue(source.contains("brew install shellcheck swiftlint"), source)
-        XCTAssertTrue(source.contains("brew tap peripheryapp/periphery"), source)
-        XCTAssertTrue(source.contains("shellcheck scripts/*.sh"), source)
-        XCTAssertTrue(source.contains("swiftlint lint --strict --config .swiftlint.yml"), source)
-        XCTAssertTrue(source.contains("periphery scan --disable-update-check"), source)
-        XCTAssertTrue(source.contains("local-service-boundary:"), source)
-        XCTAssertTrue(source.contains("python3 -m unittest discover -s local-service-shared"), source)
-        XCTAssertFalse(source.contains("|| true"), source)
-        XCTAssertFalse(source.contains("continue-on-error"), source)
+        let workflow = try workflowSource("ci.yml")
+        let install = try source(at: "scripts/install-ci-static-tools.sh")
+        let health = try source(at: "scripts/health-check.sh")
+        XCTAssertTrue(workflow.contains("MUSE_REQUIRE_STATIC_TOOLS: \"1\""))
+        XCTAssertTrue(workflow.contains("bash scripts/install-ci-static-tools.sh"))
+        XCTAssertTrue(install.contains("0.65.0/portable_swiftlint.zip"))
+        XCTAssertTrue(install.contains("shasum -a 256 --check"))
+        XCTAssertTrue(install.contains("brew install shellcheck periphery"))
+        XCTAssertTrue(health.contains("shellcheck scripts/*.sh"))
+        XCTAssertTrue(health.contains("swiftlint lint --strict --config .swiftlint.yml --no-cache"))
+        XCTAssertFalse(health.contains("diff-tree"), "浅克隆不能替代全仓静态检查")
+        XCTAssertFalse(health.contains("changed_files"))
+        XCTAssertTrue(workflow.contains("local-service-boundary:"))
+        XCTAssertTrue(workflow.contains("bash scripts/prepare-ci-sherpa.sh"))
+        XCTAssertTrue(workflow.contains("PackageScriptTests|ServerExecutableResolutionTests"))
+        XCTAssertFalse(workflow.contains("continue-on-error"))
     }
 
     func testWorkflowsPinAllActionsToImmutableCommitSHAs() throws {

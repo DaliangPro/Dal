@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 /// 应用所有持久化路径的单一来源。
 ///
@@ -44,15 +45,9 @@ enum SecureFilePermissions {
 
     @discardableResult
     static func setOwnerOnlyPermissions(at url: URL, permissions: Int) -> Bool {
-        guard FileManager.default.fileExists(atPath: url.path) else { return false }
-        do {
-            try FileManager.default.setAttributes(
-                [.posixPermissions: NSNumber(value: permissions)],
-                ofItemAtPath: url.path
-            )
-            return true
-        } catch {
-            return false
-        }
+        let descriptor = open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        guard descriptor >= 0 else { return false }
+        defer { close(descriptor) }
+        return fchmod(descriptor, mode_t(permissions)) == 0
     }
 }

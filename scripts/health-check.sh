@@ -189,18 +189,6 @@ run_optional_tool() {
   fi
 }
 
-swiftlint_changed_files() {
-  local files
-  files="$(git diff-tree --no-commit-id --name-only -r HEAD -- '*.swift')"
-  if [ -z "$files" ]; then
-    echo "No changed Swift files; strict SwiftLint gate is not needed for this commit"
-    return 0
-  fi
-  # 文件路径来自 git，不含用户输入；SwiftLint 需要逐个接收这些路径。
-  # shellcheck disable=SC2086
-  swiftlint lint --strict --config .swiftlint.yml $files
-}
-
 echo "CODE HEALTH CHECK"
 echo "Project: Muse"
 echo "Branch:  $(git branch --show-current 2>/dev/null || echo unknown)"
@@ -219,7 +207,7 @@ run_step "python-service-tests" python_service_tests
 run_step "voice-polish-quality-test-set" python3 scripts/validate-voice-polish-quality-test-set.py
 
 run_optional_tool "shellcheck" shellcheck shellcheck scripts/*.sh
-run_optional_tool "swiftlint" swiftlint swiftlint_changed_files
+run_optional_tool "swiftlint" swiftlint swiftlint lint --strict --config .swiftlint.yml --no-cache
 run_optional_tool "periphery" periphery periphery scan
 
 echo

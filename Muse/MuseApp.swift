@@ -164,7 +164,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyManager = HotkeyManager()
     private let session = RecognitionSession()
     /// AppState 只接受当前会话的事件；旧会话的 MainActor 任务即使迟到也会被丢弃。
-    private var activeSessionID: RecognitionSessionID?
+    private var activeUIRequestID: UUID?
     private let settingsWindowPresenter = AppWindowPresenter(windowID: "settings")
     private let setupWindowPresenter = AppWindowPresenter(windowID: "setup")
     private let menuBarVisibilityMonitor = MenuBarVisibilityMonitor()
@@ -234,87 +234,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         Task { [weak self] in
-            guard let self else { return }
-            await session.setOnSessionStarted { [weak self] sessionID in
-                Task { @MainActor in
-                    self?.activeSessionID = sessionID
-                }
-            }
-            await session.setOnASREventWithSession { [weak self] envelope in
-                Task { @MainActor in
-                    guard let self else { return }
-                    guard self.activeSessionID == envelope.sessionID else {
-                        DebugFileLogger.log(
-                            "ignored stale UI ASR event session=\(String(describing: envelope.sessionID?.rawValue)) active=\(String(describing: self.activeSessionID?.rawValue))"
-                        )
-                        return
-                    }
-                    let event = envelope.event
-                    switch event {
-                    case .ready:
-                        AppLogger.log("[Muse] ready event received")
-                        DebugFileLogger.log("ready event received, current barPhase=\(String(describing: appState.barPhase))")
-                        appState.markRecordingReady()
-                        guard appState.barPhase == .recording else {
-                            DebugFileLogger.log("playStart skipped, barPhase=\(String(describing: appState.barPhase))")
-                            return
-                        }
-                        AppLogger.log("[Muse] playStart firing")
-                        DebugFileLogger.log("playStart firing")
-                        SoundFeedback.playStart()
-                    case .transcript(let transcript):
-                        appState.setLiveTranscript(transcript)
-                    case .completed:
-                        switch appState.barPhase {
-                        case .recording:
-                            // 服务端提前关流只代表采集结束，旧会话仍在执行
-                            // stopRecording → fallback/LLM/injection。保持处理中
-                            // 占用，避免用户立刻开始新会话触发 forceReset。
-                            appState.stopRecording()
-                            self.hotkeyManager.isProcessing = true
-                            DebugFileLogger.log("completed entered processing; hotkey state retained")
-                            return
-                        case .preparing:
-                            // 用户在录音启动完成前就松键：会话已取消，HUD 也必须
-                            // 从 preparing 收起，不能留下一个没有结果的假等待状态。
-                            appState.cancel()
-                            self.hotkeyManager.isProcessing = false
-                            self.hotkeyManager.isSessionActive = false
-                            self.activeSessionID = nil
-                            self.safeResetHotkeyState()
-                        case .processing:
-                            // 旧会话的迟到 completed 不能清理当前收尾中的热键状态。
-                            DebugFileLogger.log("completed ignored in processing; hotkey state retained")
-                        default:
-                            DebugFileLogger.log("completed ignored in barPhase=\(String(describing: appState.barPhase))")
-                            self.hotkeyManager.isProcessing = false
-                            self.hotkeyManager.isSessionActive = false
-                            self.activeSessionID = nil
-                            self.safeResetHotkeyState()
-                        }
-                    case .processingResult(let text):
-                        appState.showProcessingResult(text)
-                        self.hotkeyManager.isProcessing = true
-                    case .voicePolishStage(let stage):
-                        appState.showVoicePolishStage(stage)
-                        self.hotkeyManager.isProcessing = true
-                    case .voicePolishUnavailable(let reason):
-                        appState.showVoicePolishUnavailable(reason)
-                        self.hotkeyManager.isProcessing = true
-                    case .finalized(let text, let injection):
-                        appState.finalize(text: text, outcome: injection)
-                        self.hotkeyManager.isProcessing = false
-                        self.activeSessionID = nil
-                        self.safeResetHotkeyState()
-                    case .streamingInterrupted:
-                        appState.showStreamingInterrupted()
-                    case .error(let error):
-                        appState.showError(AppErrorMessageFormatter.userFacingMessage(for: error))
-                        self.hotkeyManager.isProcessing = false
-                        self.activeSessionID = nil
-                        self.safeResetHotkeyState()
-                    }
-                }
+            let (events, continuation) = AsyncStream<RecognitionEventEnvelope>.makeStream()
+            await session.setOnASREventWithSession { continuation.yield($0) }
+            // 单一消费者保持事件顺序，避免空结果清理或终态与字幕互相越过。
+            for await envelope in events {
+                guard let self else { break }
+                self.handleUIASREvent(envelope)
             }
         }
 
@@ -405,6 +330,93 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         installMenuBarItem()
         menuBarVisibilityMonitor.start()
+    }
+
+    private func ownsUIEvent(_ envelope: RecognitionEventEnvelope) -> Bool {
+        guard let requestID = activeUIRequestID else { return false }
+        return requestID == envelope.uiRequestID
+    }
+
+    private func handleUIASREvent(_ envelope: RecognitionEventEnvelope) {
+        guard ownsUIEvent(envelope) else {
+            DebugFileLogger.log(
+                "ignored stale UI ASR event; UI request no longer active"
+            )
+            return
+        }
+        let event = envelope.event
+        switch event {
+        case .ready:
+            handleUIReady()
+        case .transcript(let transcript):
+            appState.setLiveTranscript(transcript)
+        case .completed:
+            handleUICompleted()
+        case .processingResult(let text):
+            appState.showProcessingResult(text)
+            self.hotkeyManager.isProcessing = true
+        case .voicePolishStage(let stage):
+            appState.showVoicePolishStage(stage)
+            self.hotkeyManager.isProcessing = true
+        case .voicePolishUnavailable(let reason):
+            appState.showVoicePolishUnavailable(reason)
+            self.hotkeyManager.isProcessing = true
+        case .finalized(let text, let injection):
+            appState.finalize(text: text, outcome: injection)
+            self.hotkeyManager.isProcessing = false
+            self.activeUIRequestID = nil
+            self.safeResetHotkeyState()
+        case .streamingInterrupted:
+            appState.showStreamingInterrupted()
+        case .error(let error):
+            appState.showError(AppErrorMessageFormatter.userFacingMessage(for: error))
+            self.hotkeyManager.isProcessing = false
+            self.activeUIRequestID = nil
+            self.safeResetHotkeyState()
+        }
+    }
+
+    private func handleUIReady() {
+        AppLogger.log("[Muse] ready event received")
+        DebugFileLogger.log("ready event received, current barPhase=\(String(describing: appState.barPhase))")
+        appState.markRecordingReady()
+        guard appState.barPhase == .recording else {
+            DebugFileLogger.log("playStart skipped, barPhase=\(String(describing: appState.barPhase))")
+            return
+        }
+        AppLogger.log("[Muse] playStart firing")
+        DebugFileLogger.log("playStart firing")
+        SoundFeedback.playStart()
+    }
+
+    private func handleUICompleted() {
+        switch appState.barPhase {
+        case .recording:
+            // 服务端提前关流只代表采集结束，旧会话仍在执行
+            // stopRecording → fallback/LLM/injection。保持处理中
+            // 占用，避免用户立刻开始新会话触发 forceReset。
+            appState.stopRecording()
+            self.hotkeyManager.isProcessing = true
+            DebugFileLogger.log("completed entered processing; hotkey state retained")
+            return
+        case .preparing:
+            // 用户在录音启动完成前就松键：会话已取消，HUD 也必须
+            // 从 preparing 收起，不能留下一个没有结果的假等待状态。
+            appState.cancel()
+            self.hotkeyManager.isProcessing = false
+            self.hotkeyManager.isSessionActive = false
+            self.activeUIRequestID = nil
+            self.safeResetHotkeyState()
+        case .processing:
+            // 旧会话的迟到 completed 不能清理当前收尾中的热键状态。
+            DebugFileLogger.log("completed ignored in processing; hotkey state retained")
+        default:
+            DebugFileLogger.log("completed ignored in barPhase=\(String(describing: appState.barPhase))")
+            self.hotkeyManager.isProcessing = false
+            self.hotkeyManager.isSessionActive = false
+            self.activeUIRequestID = nil
+            self.safeResetHotkeyState()
+        }
     }
 
     private func installMenuBarItem() {
@@ -619,12 +631,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                        provider: KeychainService.selectedASRProvider)
             : mode
         appState.currentMode = effectiveMode
+        let requestID = UUID()
+        activeUIRequestID = requestID
         if InteractiveTestRuntime.isLiveLearningAcceptanceEnabled {
-            activeSessionID = nil
             hotkeyManager.isSessionActive = true
         }
         appState.startRecording()
-        Task { await session.startRecording(mode: effectiveMode) }
+        Task { await session.startRecording(mode: effectiveMode, uiRequestID: requestID) }
     }
 
     @objc private func stopInteractiveRecording() {
@@ -714,8 +727,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let resolvedMode = ASRProviderRegistry.resolvedMode(for: capturedMode, provider: selectedProvider)
                     let storedMode = availableModes.first(where: { $0.id == resolvedMode.id }) ?? resolvedMode
                     let effectiveMode = VoiceInputModes.resolve(storedMode, in: availableModes)
+                    let requestID = UUID()
                     MainActor.assumeIsolated {
-                        self.activeSessionID = nil
+                        self.activeUIRequestID = requestID
                         self.hotkeyManager.isSessionActive = true
                     }
                     AppLogger.log("[Muse] >>> HOTKEY: Record START (mode: \(effectiveMode.name))")
@@ -724,7 +738,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         self.appState.currentMode = effectiveMode
                         self.appState.startRecording()
                     }
-                    Task { await self.session.startRecording(mode: effectiveMode) }
+                    Task { await self.session.startRecording(mode: effectiveMode, uiRequestID: requestID) }
                 },
                 onStop: { [weak self] in
                     guard let self else { return }
@@ -767,7 +781,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let phase = self.appState.barPhase
                 AppLogger.log("[Muse] >>> HOTKEY: ESC abort session (phase=\(String(describing: phase)))")
                 DebugFileLogger.log("hotkey ESC abort session phase=\(phase)")
-                self.activeSessionID = nil
+                self.activeUIRequestID = nil
                 self.hotkeyManager.isSessionActive = false
                 self.appState.showCancelled()
                 await self.session.abortCurrentSession()
