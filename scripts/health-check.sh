@@ -191,7 +191,7 @@ run_optional_tool() {
 
 swiftlint_changed_files() {
   local files
-  files="$(git diff --name-only HEAD^ HEAD -- '*.swift')"
+  files="$(git diff-tree --no-commit-id --name-only -r HEAD -- '*.swift')"
   if [ -z "$files" ]; then
     echo "No changed Swift files; strict SwiftLint gate is not needed for this commit"
     return 0
