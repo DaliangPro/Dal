@@ -3,6 +3,15 @@ import XCTest
 @testable import Dal
 
 final class LogRedactionTests: XCTestCase {
+    func testBothLegacyAndDalLocalAuthHeadersAreRedacted() {
+        for name in ["X-Muse-Local-Token", "X-Dal-Local-Token"] {
+            let message = "{\"\(name)\":\"synthetic-test-credential\"}"
+            XCTAssertFalse(LogRedactor.redact(message).contains("synthetic-test-credential"))
+            let arguments = LogRedactor.redactedArguments(["--\(name)", "synthetic-test-credential"])
+            XCTAssertFalse(arguments.contains("synthetic-test-credential"))
+        }
+    }
+
     private let fileManager = FileManager.default
 
     func testRedactionRemovesCredentialsPromptSpeechTextAndURLQuery() {

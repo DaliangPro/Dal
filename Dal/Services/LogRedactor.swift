@@ -3,7 +3,10 @@ import Foundation
 /// AppLogger 与落盘 debug.log 共用的保守脱敏器。
 /// 只要字段可能承载凭证、Prompt 或语音正文，就隐藏整个值；诊断日志保留字段名与结构。
 enum LogRedactor {
-    private static let sensitiveName = #"(?:authorization|api[ _-]?key|access[ _-]?key|access[ _-]?token|auth[ _-]?token|local[ _-]?token|x[ _-]?dal[ _-]?local[ _-]?token|client[ _-]?secret|password|credential|token|prompt|speech[ _-]?text|raw[ _-]?text|final[ _-]?text|transcript)"#
+    private static let sensitiveName =
+        #"(?:authorization|api[ _-]?key|access[ _-]?key|access[ _-]?token|auth[ _-]?token|"#
+        + #"local[ _-]?token|x[ _-]?(?:dal|muse)[ _-]?local[ _-]?token|client[ _-]?secret|"#
+        + #"password|credential|token|prompt|speech[ _-]?text|raw[ _-]?text|final[ _-]?text|transcript)"#
     private static let contentName = #"(?:prompt|speech[ _-]?text|raw[ _-]?text|final[ _-]?text|transcript)"#
 
     static func redact(_ message: String) -> String {
@@ -73,7 +76,7 @@ enum LogRedactor {
         sensitiveFlagName(flag).map { normalized in
             [
                 "authorization", "apikey", "accesskey", "accesstoken", "authtoken",
-                "localtoken", "xdallocaltoken", "clientsecret", "password", "credential",
+                "localtoken", "xdallocaltoken", "xmuselocaltoken", "clientsecret", "password", "credential",
                 "token", "prompt", "speechtext", "rawtext", "finaltext", "transcript",
             ].contains { normalized.contains($0) }
         } ?? false

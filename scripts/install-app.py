@@ -115,10 +115,12 @@ def install(candidate, destination, *, migrate_legacy=False, launch=True):
     require(trash.is_dir() and not trash.is_symlink(), "废纸篓不可用，保留备份")
     for index, legacy in enumerate(legacy_apps):
         owned_bundle(legacy, trusted=True)
-        subprocess.run([
+        unregister = subprocess.run([
             "/System/Library/Frameworks/CoreServices.framework/Frameworks/"
             "LaunchServices.framework/Support/lsregister", "-u", str(legacy)
-        ], check=True, capture_output=True)
+        ], check=False, capture_output=True)
+        if unregister.returncode:
+            print("旧应用索引未确认注销；仍将已验明身份的旧包禁用归档。")
         # 归档禁用扩展名，防止启动台重新收录旧版本。
         legacy.rename(trash / f"Dal-legacy-{transaction}-{index}.app.disabled")
     if backup.exists():
