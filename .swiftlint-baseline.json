@@ -3660,214 +3660,184 @@
     }
   },
   {
-    "text": "            let m = NSAttributedString(",
     "violation": {
-      "ruleIdentifier": "identifier_name",
-      "ruleDescription": "Identifier names should only contain alphanumeric characters and start with a lowercase character or should only contain capital letters. In an exception to the above, variable names may start with a capital letter when they are declared as static. Variable names should not be too long or too short.",
+      "ruleName": "Identifier Name",
       "severity": "error",
       "location": {
+        "character": 17,
         "line": 40,
-        "file": "Muse/MuseApp.swift",
-        "character": 17
+        "file": "Muse/MuseApp.swift"
       },
+      "ruleDescription": "Identifier names should only contain alphanumeric characters and start with a lowercase character or should only contain capital letters. In an exception to the above, variable names may start with a capital letter when they are declared as static. Variable names should not be too long or too short.",
       "reason": "Variable name 'm' should be between 3 and 40 characters long",
-      "ruleName": "Identifier Name"
-    }
+      "ruleIdentifier": "identifier_name"
+    },
+    "text": "            let m = NSAttributedString("
   },
   {
-    "text": "        \"NSStatusItem Visible Item-0\",",
     "violation": {
-      "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
+      "ruleIdentifier": "trailing_comma",
+      "ruleName": "Trailing Comma",
       "severity": "error",
       "location": {
-        "line": 59,
         "file": "Muse/MuseApp.swift",
-        "character": 38
+        "character": 38,
+        "line": 59
       },
-      "reason": "Collection literals should not have trailing commas",
-      "ruleName": "Trailing Comma"
-    }
+      "reason": "Collection literals should not have trailing commas"
+    },
+    "text": "        \"NSStatusItem Visible Item-0\","
   },
   {
-    "text": "final class AppDelegate: NSObject, NSApplicationDelegate {",
     "violation": {
+      "severity": "error",
+      "location": {
+        "file": "Muse/MuseApp.swift",
+        "character": 7,
+        "line": 155
+      },
       "ruleIdentifier": "type_body_length",
+      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 682 lines",
       "ruleDescription": "Type bodies should not span too many lines",
-      "severity": "error",
-      "location": {
-        "line": 155,
-        "file": "Muse/MuseApp.swift",
-        "character": 7
-      },
-      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 670 lines",
       "ruleName": "Type Body Length"
-    }
+    },
+    "text": "final class AppDelegate: NSObject, NSApplicationDelegate {"
   },
   {
-    "text": "    func applicationDidFinishLaunching(_ notification: Notification) {",
     "violation": {
+      "severity": "error",
+      "location": {
+        "file": "Muse/MuseApp.swift",
+        "character": 5,
+        "line": 174
+      },
       "ruleIdentifier": "cyclomatic_complexity",
+      "reason": "Function should have complexity 10 or less; currently complexity is 13",
       "ruleDescription": "Complexity of function bodies should be limited.",
-      "severity": "error",
-      "location": {
-        "line": 174,
-        "file": "Muse/MuseApp.swift",
-        "character": 5
-      },
-      "reason": "Function should have complexity 10 or less; currently complexity is 28",
       "ruleName": "Cyclomatic Complexity"
-    }
+    },
+    "text": "    func applicationDidFinishLaunching(_ notification: Notification) {"
   },
   {
-    "text": "    func applicationDidFinishLaunching(_ notification: Notification) {",
     "violation": {
+      "severity": "error",
+      "location": {
+        "file": "Muse/MuseApp.swift",
+        "character": 5,
+        "line": 174
+      },
       "ruleIdentifier": "function_body_length",
+      "reason": "Function body should span 100 lines or less excluding comments and whitespace: currently spans 131 lines",
       "ruleDescription": "Function bodies should not span too many lines",
-      "severity": "error",
-      "location": {
-        "line": 174,
-        "file": "Muse/MuseApp.swift",
-        "character": 5
-      },
-      "reason": "Function body should span 100 lines or less excluding comments and whitespace: currently spans 196 lines",
       "ruleName": "Function Body Length"
-    }
+    },
+    "text": "    func applicationDidFinishLaunching(_ notification: Notification) {"
   },
   {
-    "text": "                        DebugFileLogger.log(\"ready event received, current barPhase=\\(String(describing: appState.barPhase))\")",
     "violation": {
-      "ruleIdentifier": "line_length",
-      "ruleDescription": "Lines should not span too many characters.",
       "severity": "error",
       "location": {
-        "line": 251,
         "file": "Muse/MuseApp.swift",
-        "character": 1
-      },
-      "reason": "Line should be 120 characters or less; currently it has 126 characters",
-      "ruleName": "Line Length"
-    }
-  },
-  {
-    "text": "                            DebugFileLogger.log(\"completed ignored in barPhase=\\(String(describing: appState.barPhase))\")",
-    "violation": {
-      "ruleIdentifier": "line_length",
-      "ruleDescription": "Lines should not span too many characters.",
-      "severity": "error",
-      "location": {
-        "line": 284,
-        "file": "Muse/MuseApp.swift",
-        "character": 1
-      },
-      "reason": "Line should be 120 characters or less; currently it has 121 characters",
-      "ruleName": "Line Length"
-    }
-  },
-  {
-    "text": "            (\"退出测试\", #selector(AppDelegate.quitFromStatusMenu)),",
-    "violation": {
-      "ruleIdentifier": "trailing_comma",
-      "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
-      "severity": "error",
-      "location": {
-        "line": 516,
-        "file": "Muse/MuseApp.swift",
+        "line": 524,
         "character": 64
       },
-      "reason": "Collection literals should not have trailing commas",
-      "ruleName": "Trailing Comma"
-    }
-  },
-  {
-    "text": "            (\"关闭验收面板\", #selector(AppDelegate.closeLiveLearningAcceptancePanel)),",
-    "violation": {
       "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
-      "severity": "error",
+      "ruleName": "Trailing Comma",
+      "reason": "Collection literals should not have trailing commas"
+    },
+    "text": "            (\"退出测试\", #selector(AppDelegate.quitFromStatusMenu)),"
+  },
+  {
+    "violation": {
       "location": {
-        "line": 533,
         "file": "Muse/MuseApp.swift",
-        "character": 80
+        "character": 80,
+        "line": 541
       },
       "reason": "Collection literals should not have trailing commas",
-      "ruleName": "Trailing Comma"
-    }
+      "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
+      "ruleName": "Trailing Comma",
+      "severity": "error",
+      "ruleIdentifier": "trailing_comma"
+    },
+    "text": "            (\"关闭验收面板\", #selector(AppDelegate.closeLiveLearningAcceptancePanel)),"
   },
   {
     "text": "                \"interactive permissions asrStatus=\\(asrStatus) asrReadable=\\(asrReadable) llmStatus=\\(llmStatus) llmReadable=\\(llmReadable) microphone=\\(microphoneAllowed) accessibility=\\(accessibilityAllowed)\"",
     "violation": {
       "ruleIdentifier": "line_length",
       "ruleDescription": "Lines should not span too many characters.",
+      "ruleName": "Line Length",
       "severity": "error",
       "location": {
-        "line": 568,
+        "line": 576,
         "file": "Muse/MuseApp.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 211 characters",
-      "ruleName": "Line Length"
+      "reason": "Line should be 200 characters or less; currently it has 211 characters"
     }
   },
   {
     "text": "                \"全部允许后，请关闭此提示，点选空白输入框，再从测试面板开始录音。\",",
     "violation": {
       "ruleIdentifier": "trailing_comma",
-      "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
-      "severity": "error",
-      "location": {
-        "line": 577,
-        "file": "Muse/MuseApp.swift",
-        "character": 51
-      },
       "reason": "Collection literals should not have trailing commas",
-      "ruleName": "Trailing Comma"
+      "location": {
+        "character": 51,
+        "file": "Muse/MuseApp.swift",
+        "line": 585
+      },
+      "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
+      "ruleName": "Trailing Comma",
+      "severity": "error"
     }
   },
   {
-    "text": "    private func registerHotkeys(for provider: ASRProvider) {",
     "violation": {
-      "ruleIdentifier": "function_body_length",
-      "ruleDescription": "Function bodies should not span too many lines",
       "severity": "error",
       "location": {
-        "line": 679,
         "file": "Muse/MuseApp.swift",
-        "character": 13
+        "character": 13,
+        "line": 696
       },
+      "ruleIdentifier": "function_body_length",
       "reason": "Function body should span 50 lines or less excluding comments and whitespace: currently spans 91 lines",
+      "ruleDescription": "Function bodies should not span too many lines",
       "ruleName": "Function Body Length"
-    }
+    },
+    "text": "    private func registerHotkeys(for provider: ASRProvider) {"
   },
   {
     "text": "            let ok = hotkeyManager.start()",
     "violation": {
       "ruleIdentifier": "identifier_name",
-      "ruleDescription": "Identifier names should only contain alphanumeric characters and start with a lowercase character or should only contain capital letters. In an exception to the above, variable names may start with a capital letter when they are declared as static. Variable names should not be too long or too short.",
-      "severity": "error",
       "location": {
-        "line": 815,
         "file": "Muse/MuseApp.swift",
+        "line": 823,
         "character": 17
       },
-      "reason": "Variable name 'ok' should be between 3 and 40 characters long",
-      "ruleName": "Identifier Name"
+      "ruleName": "Identifier Name",
+      "ruleDescription": "Identifier names should only contain alphanumeric characters and start with a lowercase character or should only contain capital letters. In an exception to the above, variable names may start with a capital letter when they are declared as static. Variable names should not be too long or too short.",
+      "severity": "error",
+      "reason": "Variable name 'ok' should be between 3 and 40 characters long"
     }
   },
   {
-    "text": "}",
     "violation": {
-      "ruleIdentifier": "file_length",
-      "ruleDescription": "Files should not span too many lines.",
       "severity": "error",
       "location": {
-        "line": 939,
         "file": "Muse/MuseApp.swift",
-        "character": 1
+        "character": 1,
+        "line": 956
       },
-      "reason": "File should contain 400 lines or less: currently contains 939",
+      "ruleIdentifier": "file_length",
+      "reason": "File should contain 400 lines or less: currently contains 956",
+      "ruleDescription": "Files should not span too many lines.",
       "ruleName": "File Length"
-    }
+    },
+    "text": "}"
   },
   {
     "text": "            \"heartbeat\": true,",
