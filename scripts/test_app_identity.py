@@ -93,6 +93,12 @@ class IdentityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             identity.owned_bundle(app, trusted=True)
 
+    def test_explicit_requirement_is_parsed_as_expression(self):
+        app = self.app("Dal.app")
+        identity.verify_signature(app, f'identifier "{identity.BUNDLE_ID}"')
+        with self.assertRaises(ValueError):
+            identity.verify_signature(app, 'identifier "com.meta.endo"')
+
     def test_tampered_signature_is_rejected(self):
         app = self.app("Dal.app")
         (app / "Contents/Info.plist").write_bytes(

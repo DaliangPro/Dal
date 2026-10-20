@@ -47,7 +47,7 @@ def metadata(path):
 def verify_signature(path, requirement=None):
     command = ["/usr/bin/codesign", "--verify", "--deep", "--strict"]
     if requirement:
-        command += ["-R", requirement]
+        command += ["-R", "=" + requirement]
     result = subprocess.run(command + [str(path)], capture_output=True)
     require(result.returncode == 0, "应用签名无效或不属于可信的 Dal 开发者")
 
