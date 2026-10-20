@@ -9,9 +9,9 @@ let hasSherpaFramework = FileManager.default.fileExists(
 
 var targets: [Target] = [
     .executableTarget(
-        name: "Muse",
+        name: "Dal",
         dependencies: hasSherpaFramework ? ["SherpaOnnxLib"] : [],
-        path: "Muse",
+        path: "Dal",
         exclude: ["Resources"],
         cSettings: hasSherpaFramework ? [.headerSearchPath("Bridge")] : [],
         swiftSettings: [
@@ -24,9 +24,9 @@ var targets: [Target] = [
         ] : []
     ),
     .testTarget(
-        name: "MuseTests",
-        dependencies: ["Muse"],
-        path: "MuseTests"
+        name: "DalTests",
+        dependencies: ["Dal"],
+        path: "DalTests"
     ),
 ]
 
@@ -38,7 +38,7 @@ if hasSherpaFramework {
 }
 
 let package = Package(
-    name: "Muse",
+    name: "Dal",
     platforms: [.macOS(.v14)],
     targets: targets
 )

@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DATASET = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Core-Semantic-Test-Set.json"
+DEFAULT_DATASET = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Core-Semantic-Test-Set.json"
 FORBIDDEN_INPUT_FIELDS = {
     "acceptable_variations",
     "automatic_checks",
@@ -66,7 +66,7 @@ def build_run_input(dataset: dict[str, Any], dataset_raw: bytes) -> dict[str, An
         result.append(item)
     return {
         "schema_version": 1,
-        "name": "Muse 语音润色核心语义 Runner 输入 V1",
+        "name": "Dal 语音润色核心语义 Runner 输入 V1",
         "source_dataset_sha256": sha256(dataset_raw),
         "requested_input_count": len(result),
         "inputs": result,

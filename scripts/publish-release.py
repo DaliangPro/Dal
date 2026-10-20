@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Muse 单人维护发布入口：固定源码、CI、签名、草稿复验、公开及清单同步。"""
+"""Dal 单人维护发布入口：固定源码、CI、签名、草稿复验、公开及清单同步。"""
 
 import argparse
 import fcntl
@@ -14,7 +14,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "DaliangPro/Muse"
+REPO = "DaliangPro/Dal"
 VERSION = re.compile(r"(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})")
 
 
@@ -90,8 +90,8 @@ def clean_checkout():
             "存在未提交修改，请先提交；发布不能包含未审阅的代码")
     require(command("git", "branch", "--show-current") == "main", "请在 main 分支运行发布入口")
     require(command("git", "remote", "get-url", "origin") in (
-        "https://github.com/DaliangPro/Muse.git", "git@github.com:DaliangPro/Muse.git"),
-        "origin 不是 Muse 正式仓库")
+        "https://github.com/DaliangPro/Dal.git", "git@github.com:DaliangPro/Dal.git"),
+        "origin 不是 Dal 正式仓库")
     command("git", "fetch", "origin", "main")
     command("git", "merge", "--ff-only", "origin/main")
     require(command("git", "rev-parse", "HEAD") == command("git", "rev-parse", "origin/main"),
@@ -116,11 +116,11 @@ def verify_dmg(path, version, commit, build=None):
               if "mount-point" in item]
     require(len(mounts) == 1, "安装镜像的挂载点不唯一")
     try:
-        app = Path(mounts[0]) / "Muse.app"
+        app = Path(mounts[0]) / "Dal.app"
         info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
         require(info["CFBundleIdentifier"] == "pro.daliang.muse", "安装包 Bundle 不匹配")
         require(info["CFBundleShortVersionString"] == version, "安装包版本不匹配")
-        require(info["MuseSourceCommit"] == commit, "安装包源码与固定提交不一致")
+        require(info["DalSourceCommit"] == commit, "安装包源码与固定提交不一致")
         if build is not None:
             require(str(info["CFBundleVersion"]) == build, "安装包 Build 不匹配")
         command("codesign", "--verify", "--deep", "--strict", str(app))
@@ -136,7 +136,7 @@ def verify_dmg(path, version, commit, build=None):
 
 
 def verify_checksums(directory, version, expected_hash=None):
-    name = f"Muse-v{version}.dmg"
+    name = f"Dal-v{version}.dmg"
     image = directory / name
     digest = sha256(image)
     require((directory / "SHA256SUMS.txt").read_text().strip() == f"{digest}  {name}",
@@ -148,13 +148,13 @@ def verify_checksums(directory, version, expected_hash=None):
 
 def verify_assets(directory, version, commit, expected_hash=None, build=None):
     digest = verify_checksums(directory, version, expected_hash)
-    image = directory / f"Muse-v{version}.dmg"
+    image = directory / f"Dal-v{version}.dmg"
     verify_dmg(image, version, commit, build)
     return digest
 
 
 def release_source(release, version):
-    expected = {f"Muse-v{version}.dmg", "SHA256SUMS.txt"}
+    expected = {f"Dal-v{version}.dmg", "SHA256SUMS.txt"}
     names = [item["name"] for item in release["assets"]]
     require(len(names) == len(expected) and set(names) == expected,
             "Release 附件不完整、重复或含未知文件")
@@ -204,7 +204,7 @@ def publish_draft(state, output, notes_file):
         require(not existing["prerelease"], "拒绝把预发布版本误作正式版本")
         if existing["draft"]:
             require(state["marker"] in existing["body"], "已有草稿不属于本次发布，拒绝覆盖")
-            expected = {f"Muse-v{state['version']}.dmg", "SHA256SUMS.txt"}
+            expected = {f"Dal-v{state['version']}.dmg", "SHA256SUMS.txt"}
             present = {item["name"] for item in existing["assets"]}
             require(present <= expected, "已有草稿含未知附件，拒绝接管")
             missing = expected - present
@@ -214,9 +214,9 @@ def publish_draft(state, output, notes_file):
                 existing = release_for(tag)
                 require(existing is not None and existing["draft"], "补齐附件后草稿状态变化，请核对后继续")
     else:
-        gh("release", "create", tag, str(output / f"Muse-v{state['version']}.dmg"),
+        gh("release", "create", tag, str(output / f"Dal-v{state['version']}.dmg"),
            str(output / "SHA256SUMS.txt"), "--draft", "--target", state["commit"],
-           "--title", f"Muse v{state['version']}", "--notes-file", str(notes_file))
+           "--title", f"Dal v{state['version']}", "--notes-file", str(notes_file))
         existing = release_for(tag)
         require(existing is not None, "创建草稿后无法读取，可用相同命令续跑")
     # 续跑也核对服务端指纹；本机候选已验签，只有校验信息不足或异常才下载。
@@ -320,13 +320,13 @@ def perform(args):
         attempt = work / f"build-{uuid.uuid4().hex[:8]}"
         attempt.mkdir()
         # 只允许选定的本机签名路线；构建脚本保持干净源码和严格签名要求。
-        env = {key: value for key, value in os.environ.items() if not key.startswith("MUSE_")}
+        env = {key: value for key, value in os.environ.items() if not key.startswith("DAL_")}
         env.update(APP_VERSION=args.version, APP_BUILD=args.build,
                    ARTIFACT_KIND="cloud", ALLOW_LOCAL_SIGNING="1", CODESIGN_IDENTITY="Muse Local",
-                   DIST_DIR=str(attempt), DMG_NAME=f"Muse-v{args.version}.dmg")
+                   DIST_DIR=str(attempt), DMG_NAME=f"Dal-v{args.version}.dmg")
         print("构建并严格验证 Muse Local 安装包……", flush=True)
         command("bash", "scripts/build-dmg.sh", env=env, capture=False)
-        image = attempt / f"Muse-v{args.version}.dmg"
+        image = attempt / f"Dal-v{args.version}.dmg"
         digest = sha256(image)
         (attempt / "SHA256SUMS.txt").write_text(f"{digest}  {image.name}\n")
         verify_assets(attempt, args.version, commit, digest, args.build)
@@ -334,7 +334,7 @@ def perform(args):
         require(not command("git", "diff", "--name-only", "HEAD"), "构建期间出现未提交修改，候选不晋升")
         state = dict(version=args.version, build=args.build, commit=commit, ci_run=ci_id,
                      sha256=digest, notes_sha256=sha256(notes), smoke_sha256=sha256(smoke),
-                     marker=f"<!-- muse-manual-release:{uuid.uuid4()} -->")
+                     marker=f"<!-- dal-manual-release:{uuid.uuid4()} -->")
         # 整个候选目录原子晋升；即使进程中断也不会留下只有一半文件的候选。
         (attempt / "state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
         attempt.rename(output)
@@ -359,7 +359,7 @@ def main():
     try:
         # 锁文件常驻 git 内部目录，不入库；退出或中断会自动释放，不留假死锁。
         git_dir = Path(command("git", "rev-parse", "--absolute-git-dir"))
-        with (git_dir / "muse-manual-release.lock").open("a") as lock:
+        with (git_dir / "dal-manual-release.lock").open("a") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             perform(args)
     except (ReleaseError, OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:

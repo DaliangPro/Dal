@@ -6,10 +6,10 @@ fail() {
     exit 1
 }
 
-MUSE_NOTARIZATION_MODE="${MUSE_NOTARIZATION_MODE:-}"
-case "$MUSE_NOTARIZATION_MODE" in
+DAL_NOTARIZATION_MODE="${DAL_NOTARIZATION_MODE:-}"
+case "$DAL_NOTARIZATION_MODE" in
     submit|verify) ;;
-    *) fail "MUSE_NOTARIZATION_MODE must be submit or verify" ;;
+    *) fail "DAL_NOTARIZATION_MODE must be submit or verify" ;;
 esac
 
 CLOUD_DMG="${CLOUD_DMG:-}"
@@ -22,16 +22,16 @@ done
 
 XCRUN_BIN="/usr/bin/xcrun"
 SPCTL_BIN="/usr/sbin/spctl"
-if [ "${MUSE_NOTARIZATION_TEST_MODE:-0}" = "1" ]; then
-    XCRUN_BIN="${MUSE_NOTARIZATION_XCRUN_BIN:-$XCRUN_BIN}"
-    SPCTL_BIN="${MUSE_NOTARIZATION_SPCTL_BIN:-$SPCTL_BIN}"
-elif [ "${MUSE_NOTARIZATION_TEST_MODE:-0}" != "0" ]; then
+if [ "${DAL_NOTARIZATION_TEST_MODE:-0}" = "1" ]; then
+    XCRUN_BIN="${DAL_NOTARIZATION_XCRUN_BIN:-$XCRUN_BIN}"
+    SPCTL_BIN="${DAL_NOTARIZATION_SPCTL_BIN:-$SPCTL_BIN}"
+elif [ "${DAL_NOTARIZATION_TEST_MODE:-0}" != "0" ]; then
     fail "invalid notarization test-mode flag"
 fi
 [ -f "$XCRUN_BIN" ] && [ -x "$XCRUN_BIN" ] || fail "xcrun is unavailable"
 [ -f "$SPCTL_BIN" ] && [ -x "$SPCTL_BIN" ] || fail "spctl is unavailable"
 
-if [ "$MUSE_NOTARIZATION_MODE" = "submit" ]; then
+if [ "$DAL_NOTARIZATION_MODE" = "submit" ]; then
     NOTARY_KEY_PATH="${NOTARY_KEY_PATH:-}"
     NOTARY_KEY_ID="${NOTARY_KEY_ID:-}"
     NOTARY_ISSUER_ID="${NOTARY_ISSUER_ID:-}"
@@ -44,7 +44,7 @@ if [ "$MUSE_NOTARIZATION_MODE" = "submit" ]; then
 fi
 
 for artifact in "$CLOUD_DMG" "$LOCAL_DMG"; do
-    if [ "$MUSE_NOTARIZATION_MODE" = "submit" ]; then
+    if [ "$DAL_NOTARIZATION_MODE" = "submit" ]; then
         "$XCRUN_BIN" notarytool submit "$artifact" \
             --key "$NOTARY_KEY_PATH" \
             --key-id "$NOTARY_KEY_ID" \
@@ -58,4 +58,4 @@ for artifact in "$CLOUD_DMG" "$LOCAL_DMG"; do
         --verbose=4 "$artifact"
 done
 
-echo "NOTARIZATION_RESULT: PASS ($MUSE_NOTARIZATION_MODE)"
+echo "NOTARIZATION_RESULT: PASS ($DAL_NOTARIZATION_MODE)"

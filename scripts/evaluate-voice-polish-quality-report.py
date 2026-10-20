@@ -21,7 +21,7 @@ from voice_polish_quality_checks import fact_group_is_preserved, relation_blocks
 
 
 QUALITY_DATASET_SCHEMA_VERSION = 7
-QUALITY_DATASET_NAME = "Muse 语音润色多维产品质量测试集 V3.2"
+QUALITY_DATASET_NAME = "Dal 语音润色多维产品质量测试集 V3.2"
 QUALITY_DATASET_CASE_COUNT = 89
 QUALITY_DATASET_STRESS_VARIANT_COUNT = 41
 QUALITY_DATASET_TOTAL_INPUT_COUNT = 130
@@ -203,7 +203,7 @@ def validated_build_manifest(
         raise ValueError("质量构建 manifest 必须是 JSON 对象")
     if document.get("schema_version") != 1:
         raise ValueError("质量构建 manifest schema_version 不是 1")
-    if document.get("artifact_kind") != "muse_voice_polish_quality_candidate":
+    if document.get("artifact_kind") != "dal_voice_polish_quality_candidate":
         raise ValueError("质量构建 manifest artifact_kind 无效")
     if document.get("package_mode") != "production":
         raise ValueError("质量验收只接受 production 打包阶段冻结的 manifest")
@@ -262,9 +262,9 @@ def candidate_app_evidence(app_path: Path) -> dict:
     executable_path = app_path / "Contents" / "MacOS" / executable_name
     if not executable_path.is_file() or executable_path.is_symlink():
         raise ValueError(f"候选应用二进制不存在或是符号链接：{executable_path}")
-    source_commit = info.get("MuseSourceCommit")
+    source_commit = info.get("DalSourceCommit")
     if not isinstance(source_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", source_commit):
-        raise ValueError("候选应用缺少 40 位 MuseSourceCommit")
+        raise ValueError("候选应用缺少 40 位 DalSourceCommit")
     return {
         "executable_path": executable_path,
         "executable_sha256": sha256_file(executable_path),

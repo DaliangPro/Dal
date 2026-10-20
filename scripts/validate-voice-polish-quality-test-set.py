@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验 Muse 语音润色 V3 多维测试集的结构、覆盖和自动检查定义。"""
+"""校验 Dal 语音润色 V3 多维测试集的结构、覆盖和自动检查定义。"""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ from voice_polish_quality_checks import fact_group_is_preserved, relation_blocks
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Set.json"
-RUN_PATH = PROJECT_ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Run-Template.csv"
+DATA_PATH = PROJECT_ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json"
+RUN_PATH = PROJECT_ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Run-Template.csv"
 
 REQUIRED_BLIND_CATEGORIES = {
     "proper_noun", "self_correction", "aside", "disordered",

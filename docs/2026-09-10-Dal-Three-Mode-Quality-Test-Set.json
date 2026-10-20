@@ -1,0 +1,3851 @@
+{
+  "schema_version": 1,
+  "name": "Dal 三档语音输入质量测试集",
+  "created": "2026-09-10",
+  "input_count": 172,
+  "maximum_input_characters": 1000,
+  "modes": [
+    "direct",
+    "light",
+    "standard"
+  ],
+  "suite_counts": {
+    "acceptance127": 127,
+    "core_regression37": 37,
+    "mode_boundary8": 8
+  },
+  "sources": [
+    {
+      "name": "acceptance-input.json",
+      "path": "build/2026-09-10-voice-polish-repair-040746/round4-1k-094414/acceptance-input.json",
+      "sha256": "81bdaf0fd859df182dbdaf9efa6da8b4e94a17958b1903bbc01a0b0874be4b75"
+    },
+    {
+      "name": "regression-input.json",
+      "path": "build/2026-09-10-voice-polish-repair-040746/round4-1k-094414/regression-input.json",
+      "sha256": "98d2f6cdd0ea2084d0c0984c050fa0fd8cd21b99503c704b65b6f996565c051f"
+    }
+  ],
+  "input_provenance": [
+    {
+      "test_input_id": "chat-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-01",
+      "source_input_sha256": "8dd476822bc6e5c6d190b5cac60d4bfc89dec459cb6c0d7e90e5ea7651720a52",
+      "input_sha256": "8dd476822bc6e5c6d190b5cac60d4bfc89dec459cb6c0d7e90e5ea7651720a52"
+    },
+    {
+      "test_input_id": "chat-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-02",
+      "source_input_sha256": "272b037b9d3c5bf3a16e899a3fab563cdff4a470091d160d3b6df31a92ddb33c",
+      "input_sha256": "272b037b9d3c5bf3a16e899a3fab563cdff4a470091d160d3b6df31a92ddb33c"
+    },
+    {
+      "test_input_id": "chat-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-03",
+      "source_input_sha256": "e00dd932eec5d7b3aa3ac716f9958f8c5f01f097582a73abaac97f471fc165b2",
+      "input_sha256": "e00dd932eec5d7b3aa3ac716f9958f8c5f01f097582a73abaac97f471fc165b2"
+    },
+    {
+      "test_input_id": "chat-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-04",
+      "source_input_sha256": "4c78e4ab75c253765aca021b0707be378b85020dad6d245610aefbf7a564d47c",
+      "input_sha256": "4c78e4ab75c253765aca021b0707be378b85020dad6d245610aefbf7a564d47c"
+    },
+    {
+      "test_input_id": "chat-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-05",
+      "source_input_sha256": "6dc934c99324301fb7bdf068a670ff8196cacacccecfe9e0221c68375acd90eb",
+      "input_sha256": "6dc934c99324301fb7bdf068a670ff8196cacacccecfe9e0221c68375acd90eb"
+    },
+    {
+      "test_input_id": "work-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-01",
+      "source_input_sha256": "a5fa120d1ad519baddc3c6d27353c1e9b25e4c3d610dcc2c910c158a4e891bd9",
+      "input_sha256": "a5fa120d1ad519baddc3c6d27353c1e9b25e4c3d610dcc2c910c158a4e891bd9"
+    },
+    {
+      "test_input_id": "work-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-02",
+      "source_input_sha256": "c95a4e10bb61725228bc5d9ddeb51fba55b6a3a71b880812a9f281762d8c9be3",
+      "input_sha256": "c95a4e10bb61725228bc5d9ddeb51fba55b6a3a71b880812a9f281762d8c9be3"
+    },
+    {
+      "test_input_id": "work-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-03",
+      "source_input_sha256": "9ad686131b3061bffab3deb32181e8eeada21012f5e314f2d839afea612ca99f",
+      "input_sha256": "9ad686131b3061bffab3deb32181e8eeada21012f5e314f2d839afea612ca99f"
+    },
+    {
+      "test_input_id": "work-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-04",
+      "source_input_sha256": "921936aa28da6ad8776947c696afaa34b4c1b7955d5b21e8de9fae9ee4f811b4",
+      "input_sha256": "921936aa28da6ad8776947c696afaa34b4c1b7955d5b21e8de9fae9ee4f811b4"
+    },
+    {
+      "test_input_id": "work-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-05",
+      "source_input_sha256": "916699fb3574ca163fee3d8ff4183f1178311a7d7645c4d8f65644f680c61fd2",
+      "input_sha256": "916699fb3574ca163fee3d8ff4183f1178311a7d7645c4d8f65644f680c61fd2"
+    },
+    {
+      "test_input_id": "email-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-01",
+      "source_input_sha256": "3d5a621ed380a87cb4d16c9cc58f052b3265da7e332c69a161e211e6a21ee0ee",
+      "input_sha256": "3d5a621ed380a87cb4d16c9cc58f052b3265da7e332c69a161e211e6a21ee0ee"
+    },
+    {
+      "test_input_id": "email-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-02",
+      "source_input_sha256": "a6e93eebcbeb2091a9a6de739652bc19a2dec478a7cb1fb61818e6c77da2e9b4",
+      "input_sha256": "a6e93eebcbeb2091a9a6de739652bc19a2dec478a7cb1fb61818e6c77da2e9b4"
+    },
+    {
+      "test_input_id": "email-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-03",
+      "source_input_sha256": "48c12f288a0c650ce722aa9d46ec8c384c5b13102969c9545ab737833184c58d",
+      "input_sha256": "48c12f288a0c650ce722aa9d46ec8c384c5b13102969c9545ab737833184c58d"
+    },
+    {
+      "test_input_id": "email-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-04",
+      "source_input_sha256": "15fee324722a5417a78763969b41134dc5d1fec504632cd7aae92418d34a7dcf",
+      "input_sha256": "15fee324722a5417a78763969b41134dc5d1fec504632cd7aae92418d34a7dcf"
+    },
+    {
+      "test_input_id": "email-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-05",
+      "source_input_sha256": "98c5d6535501570af656ae2e695d1c3241cc2ac6ede185d7b6a1bb182c51f63d",
+      "input_sha256": "98c5d6535501570af656ae2e695d1c3241cc2ac6ede185d7b6a1bb182c51f63d"
+    },
+    {
+      "test_input_id": "note-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-01",
+      "source_input_sha256": "9715aaf1b8a8e2e4fc9a3a526041a6382a5c816d60be2db04bc891a7b5eed161",
+      "input_sha256": "9715aaf1b8a8e2e4fc9a3a526041a6382a5c816d60be2db04bc891a7b5eed161"
+    },
+    {
+      "test_input_id": "note-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-02",
+      "source_input_sha256": "ae99e63066300a1c08e462b5e3fb03669eac3f2206df1af3fcf29caa9a70a2be",
+      "input_sha256": "ae99e63066300a1c08e462b5e3fb03669eac3f2206df1af3fcf29caa9a70a2be"
+    },
+    {
+      "test_input_id": "note-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-03",
+      "source_input_sha256": "8648a2462710e74b5de65b1ff03172cb5b9ada52cc0091c34a07661436e08004",
+      "input_sha256": "8648a2462710e74b5de65b1ff03172cb5b9ada52cc0091c34a07661436e08004"
+    },
+    {
+      "test_input_id": "note-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-04",
+      "source_input_sha256": "ce81e28c524b89d94c568b7b5e18cf4cda613bdc86990dda9951b7bbd0b21c05",
+      "input_sha256": "ce81e28c524b89d94c568b7b5e18cf4cda613bdc86990dda9951b7bbd0b21c05"
+    },
+    {
+      "test_input_id": "note-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-05",
+      "source_input_sha256": "461833ecbbfd024aa6d12d69656efc12747063dbc4ecc2dd178bc764f68938e7",
+      "input_sha256": "461833ecbbfd024aa6d12d69656efc12747063dbc4ecc2dd178bc764f68938e7"
+    },
+    {
+      "test_input_id": "prompt-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-01",
+      "source_input_sha256": "f0b93ff5e3e9f6656f6f566aac30a3a654475c34d09d195a2f5e437810a2c1f3",
+      "input_sha256": "f0b93ff5e3e9f6656f6f566aac30a3a654475c34d09d195a2f5e437810a2c1f3"
+    },
+    {
+      "test_input_id": "prompt-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-02",
+      "source_input_sha256": "caaac0f803861f9bb2e7808576a33791ea79378f6984f459777cc87fdb7ede88",
+      "input_sha256": "caaac0f803861f9bb2e7808576a33791ea79378f6984f459777cc87fdb7ede88"
+    },
+    {
+      "test_input_id": "prompt-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-03",
+      "source_input_sha256": "100172c08dc4643a87dc8fa12e026111967bf7e68aeaeae6a9da8ad53eb0fdeb",
+      "input_sha256": "100172c08dc4643a87dc8fa12e026111967bf7e68aeaeae6a9da8ad53eb0fdeb"
+    },
+    {
+      "test_input_id": "prompt-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-04",
+      "source_input_sha256": "ec4df0223dbcdf3272d61ea8fe9ef97c88a2d9848cf4da2fc91ce0b22f735885",
+      "input_sha256": "ec4df0223dbcdf3272d61ea8fe9ef97c88a2d9848cf4da2fc91ce0b22f735885"
+    },
+    {
+      "test_input_id": "prompt-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-05",
+      "source_input_sha256": "be45b7a80cac2352b39ca8e7f2a286402f2b0bf5627b6b611fcb058dfba52ab6",
+      "input_sha256": "be45b7a80cac2352b39ca8e7f2a286402f2b0bf5627b6b611fcb058dfba52ab6"
+    },
+    {
+      "test_input_id": "social-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-01",
+      "source_input_sha256": "24e34aa84c59387c0f60cf92965647e2c3d9dff9632136cf6b7592c57a05d1b5",
+      "input_sha256": "24e34aa84c59387c0f60cf92965647e2c3d9dff9632136cf6b7592c57a05d1b5"
+    },
+    {
+      "test_input_id": "social-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-02",
+      "source_input_sha256": "dc8c6b0af2f379462816dadcd859ade77cb7e225ec1e711e17ba94453d07a175",
+      "input_sha256": "dc8c6b0af2f379462816dadcd859ade77cb7e225ec1e711e17ba94453d07a175"
+    },
+    {
+      "test_input_id": "social-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-03",
+      "source_input_sha256": "40f10154d9dac9e89f07096ed22e04b00cfa5136a8205fcc1d2c35e209b89578",
+      "input_sha256": "40f10154d9dac9e89f07096ed22e04b00cfa5136a8205fcc1d2c35e209b89578"
+    },
+    {
+      "test_input_id": "social-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-04",
+      "source_input_sha256": "f35856e5a597c31fe4939ddb08bb62ff313fab5a0cedafe6d4c9acb2ee012cdd",
+      "input_sha256": "f35856e5a597c31fe4939ddb08bb62ff313fab5a0cedafe6d4c9acb2ee012cdd"
+    },
+    {
+      "test_input_id": "social-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-05",
+      "source_input_sha256": "c0acc90f45bf9d4ec89e9cad14f3869a27ce5151a536402641b87a2b120419c9",
+      "input_sha256": "c0acc90f45bf9d4ec89e9cad14f3869a27ce5151a536402641b87a2b120419c9"
+    },
+    {
+      "test_input_id": "code-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-01",
+      "source_input_sha256": "652ce6f4dcf191f881634d74c2ced922eddbe041ab2fed1d09d32b0c98008aec",
+      "input_sha256": "652ce6f4dcf191f881634d74c2ced922eddbe041ab2fed1d09d32b0c98008aec"
+    },
+    {
+      "test_input_id": "code-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-02",
+      "source_input_sha256": "fd43c46abd206de0c55ac34e4b4299e81587f4871366089edde040e701322abe",
+      "input_sha256": "fd43c46abd206de0c55ac34e4b4299e81587f4871366089edde040e701322abe"
+    },
+    {
+      "test_input_id": "code-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-03",
+      "source_input_sha256": "96fd87cb7ad5333317cb6cd74f3b7e0328b17398f8d0418d663fc038e0df64cc",
+      "input_sha256": "96fd87cb7ad5333317cb6cd74f3b7e0328b17398f8d0418d663fc038e0df64cc"
+    },
+    {
+      "test_input_id": "code-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-04",
+      "source_input_sha256": "373ce293372af3c8494a00d108e3832d6b65cd598d30d489ed138f93c2c79791",
+      "input_sha256": "373ce293372af3c8494a00d108e3832d6b65cd598d30d489ed138f93c2c79791"
+    },
+    {
+      "test_input_id": "code-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-05",
+      "source_input_sha256": "f3dc8d3742303a496f039e9547cc7d59313335cf6fb5aad3de55947e1be53ba4",
+      "input_sha256": "f3dc8d3742303a496f039e9547cc7d59313335cf6fb5aad3de55947e1be53ba4"
+    },
+    {
+      "test_input_id": "support-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-01",
+      "source_input_sha256": "f640acdf0a8dfc974a47c32619a3362a453098af4498f360a4f291482f7b72ef",
+      "input_sha256": "f640acdf0a8dfc974a47c32619a3362a453098af4498f360a4f291482f7b72ef"
+    },
+    {
+      "test_input_id": "support-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-02",
+      "source_input_sha256": "3ade9d43b8f2e5a4485856688a828ed7bf62620d67e590e06a8aed1a45f17265",
+      "input_sha256": "3ade9d43b8f2e5a4485856688a828ed7bf62620d67e590e06a8aed1a45f17265"
+    },
+    {
+      "test_input_id": "support-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-03",
+      "source_input_sha256": "84c5a2acf4b7789c468be6de707611708c8a4948e6c8aace3d5cc26c70195a3d",
+      "input_sha256": "84c5a2acf4b7789c468be6de707611708c8a4948e6c8aace3d5cc26c70195a3d"
+    },
+    {
+      "test_input_id": "support-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-04",
+      "source_input_sha256": "f27243fc256ef44ccdd7c994e5e828a22481260db4e8e67c21f0111368ef662e",
+      "input_sha256": "f27243fc256ef44ccdd7c994e5e828a22481260db4e8e67c21f0111368ef662e"
+    },
+    {
+      "test_input_id": "support-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-05",
+      "source_input_sha256": "1477781ee266c533bb77d29873c6dd35a7b48ef1e750003cd35f46b6769f45cb",
+      "input_sha256": "1477781ee266c533bb77d29873c6dd35a7b48ef1e750003cd35f46b6769f45cb"
+    },
+    {
+      "test_input_id": "micro-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-01",
+      "source_input_sha256": "6fd6a483d902a2ec49dbb9df9f9c15dc3ee3fe610a2518e178943469001d38d2",
+      "input_sha256": "6fd6a483d902a2ec49dbb9df9f9c15dc3ee3fe610a2518e178943469001d38d2"
+    },
+    {
+      "test_input_id": "micro-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-02",
+      "source_input_sha256": "10aa5529322d08a8c84011bec8533dc2ac0737dc794098dccfe5a41e2ba87a12",
+      "input_sha256": "10aa5529322d08a8c84011bec8533dc2ac0737dc794098dccfe5a41e2ba87a12"
+    },
+    {
+      "test_input_id": "micro-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-03",
+      "source_input_sha256": "694c1a5492906c0c952566501e2131872fe105ee06a1a2b382ab42f7c0b83582",
+      "input_sha256": "694c1a5492906c0c952566501e2131872fe105ee06a1a2b382ab42f7c0b83582"
+    },
+    {
+      "test_input_id": "micro-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-04",
+      "source_input_sha256": "65b32d512b791bd4804e32777b30ea9fd2608f39697eb29ff53824a238297c2d",
+      "input_sha256": "65b32d512b791bd4804e32777b30ea9fd2608f39697eb29ff53824a238297c2d"
+    },
+    {
+      "test_input_id": "micro-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-05",
+      "source_input_sha256": "a8ef4418dab29a26312793362cbfc74d18d02627bc35704a6a5a4c191d7657a3",
+      "input_sha256": "a8ef4418dab29a26312793362cbfc74d18d02627bc35704a6a5a4c191d7657a3"
+    },
+    {
+      "test_input_id": "micro-06",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-06",
+      "source_input_sha256": "f8b9bb0deb4922fbfd0125c77c5c29819fd141e16cd11338b027a9fd836f4a98",
+      "input_sha256": "f8b9bb0deb4922fbfd0125c77c5c29819fd141e16cd11338b027a9fd836f4a98"
+    },
+    {
+      "test_input_id": "micro-07",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-07",
+      "source_input_sha256": "5b5548a6c96725ea0798f42b81ecd254790d465ed0acd96fd7e354482dc89dab",
+      "input_sha256": "5b5548a6c96725ea0798f42b81ecd254790d465ed0acd96fd7e354482dc89dab"
+    },
+    {
+      "test_input_id": "micro-08",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-08",
+      "source_input_sha256": "22fa997bcc2c0afa03f82eebc7aaa1b390f5ecabac5a159d68333d44908e1df7",
+      "input_sha256": "22fa997bcc2c0afa03f82eebc7aaa1b390f5ecabac5a159d68333d44908e1df7"
+    },
+    {
+      "test_input_id": "micro-09",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-09",
+      "source_input_sha256": "df95b6400b209ac88dcfd5df6bebb2b554b79cd42c21fe63685eed7b3feaaa23",
+      "input_sha256": "df95b6400b209ac88dcfd5df6bebb2b554b79cd42c21fe63685eed7b3feaaa23"
+    },
+    {
+      "test_input_id": "micro-10",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-10",
+      "source_input_sha256": "a2e8ff81366e0a696f026198cc04035001456476460a91d51b4a826f6840f27e",
+      "input_sha256": "a2e8ff81366e0a696f026198cc04035001456476460a91d51b4a826f6840f27e"
+    },
+    {
+      "test_input_id": "micro-11",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-11",
+      "source_input_sha256": "c1f4fa79f05bad9c35f7563e68d5dc41bb04c6daefd24893f9ad88768873f9ec",
+      "input_sha256": "c1f4fa79f05bad9c35f7563e68d5dc41bb04c6daefd24893f9ad88768873f9ec"
+    },
+    {
+      "test_input_id": "micro-12",
+      "suite": "acceptance127",
+      "source_test_input_id": "micro-12",
+      "source_input_sha256": "e27f4ef142ae0150dccd0324739e418c6afae03257a6f53c45917bf61ee67745",
+      "input_sha256": "e27f4ef142ae0150dccd0324739e418c6afae03257a6f53c45917bf61ee67745"
+    },
+    {
+      "test_input_id": "context-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-01",
+      "source_input_sha256": "de31fc00231813734fb3a9a59e7cf3ee9c34a60146df760660b52f605bdee731",
+      "input_sha256": "de31fc00231813734fb3a9a59e7cf3ee9c34a60146df760660b52f605bdee731"
+    },
+    {
+      "test_input_id": "context-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-02",
+      "source_input_sha256": "f94f31ad003fb89bd3944bab01c3e7805636a65f0735e68b8b72f33a50979764",
+      "input_sha256": "f94f31ad003fb89bd3944bab01c3e7805636a65f0735e68b8b72f33a50979764"
+    },
+    {
+      "test_input_id": "context-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-03",
+      "source_input_sha256": "e101117255ae2c6224cf3633bc480543b9dbeb5c5c8baafcb36c68b0ad68fc1b",
+      "input_sha256": "e101117255ae2c6224cf3633bc480543b9dbeb5c5c8baafcb36c68b0ad68fc1b"
+    },
+    {
+      "test_input_id": "context-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-04",
+      "source_input_sha256": "b3d69e10f6d69f562e8127a3154c0f17f1c7f99b0704bb5de1e5237f4ac9483d",
+      "input_sha256": "b3d69e10f6d69f562e8127a3154c0f17f1c7f99b0704bb5de1e5237f4ac9483d"
+    },
+    {
+      "test_input_id": "context-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-05",
+      "source_input_sha256": "8d1b06ede8c1b42eaad5280d8165cde4983f08eb825c1ddc4ba3fe1abb91a0a9",
+      "input_sha256": "8d1b06ede8c1b42eaad5280d8165cde4983f08eb825c1ddc4ba3fe1abb91a0a9"
+    },
+    {
+      "test_input_id": "context-06",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-06",
+      "source_input_sha256": "667813cb9286f41196eadc74c435128c49e6588522d618af32999190f8ea6140",
+      "input_sha256": "667813cb9286f41196eadc74c435128c49e6588522d618af32999190f8ea6140"
+    },
+    {
+      "test_input_id": "context-07",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-07",
+      "source_input_sha256": "aa8cb42ed031c4f855ecfd691e75d13b8faf2527421062e1aab197ffdd1a3489",
+      "input_sha256": "aa8cb42ed031c4f855ecfd691e75d13b8faf2527421062e1aab197ffdd1a3489"
+    },
+    {
+      "test_input_id": "context-08",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-08",
+      "source_input_sha256": "955ca10f219e4ab4e3915b2c5f3a2d632043ba8fa5a5f2dbffa75e555377437d",
+      "input_sha256": "955ca10f219e4ab4e3915b2c5f3a2d632043ba8fa5a5f2dbffa75e555377437d"
+    },
+    {
+      "test_input_id": "context-09",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-09",
+      "source_input_sha256": "059166ba823c424312bff0d517443c867e21d1bf472bc236579652b2f9d3e36a",
+      "input_sha256": "059166ba823c424312bff0d517443c867e21d1bf472bc236579652b2f9d3e36a"
+    },
+    {
+      "test_input_id": "context-10",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-10",
+      "source_input_sha256": "43d62bd1a792a0a3eae98f47ea203d803754fc0267009e970fad65b7761576f7",
+      "input_sha256": "43d62bd1a792a0a3eae98f47ea203d803754fc0267009e970fad65b7761576f7"
+    },
+    {
+      "test_input_id": "context-11",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-11",
+      "source_input_sha256": "58e66f8c2803081076ee621aa9ab8e02725f4dcc8302b9114f93c6a3bdc902b0",
+      "input_sha256": "58e66f8c2803081076ee621aa9ab8e02725f4dcc8302b9114f93c6a3bdc902b0"
+    },
+    {
+      "test_input_id": "context-12",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-12",
+      "source_input_sha256": "d10d9e7c2ab56f6e7903d085ff163752e553e2127904456b549bfca71a874582",
+      "input_sha256": "d10d9e7c2ab56f6e7903d085ff163752e553e2127904456b549bfca71a874582"
+    },
+    {
+      "test_input_id": "context-13",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-13",
+      "source_input_sha256": "e585f37b9a9f0738a9292ebdc8c420af09830cdc396e806a4703eac6da665713",
+      "input_sha256": "e585f37b9a9f0738a9292ebdc8c420af09830cdc396e806a4703eac6da665713"
+    },
+    {
+      "test_input_id": "context-14",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-14",
+      "source_input_sha256": "62fe95b84866a0b6127e3c552ff1fb5865642424c493d3215fad569240a57ba0",
+      "input_sha256": "62fe95b84866a0b6127e3c552ff1fb5865642424c493d3215fad569240a57ba0"
+    },
+    {
+      "test_input_id": "context-15",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-15",
+      "source_input_sha256": "1de088039773244882dad8171eb527b22a172961a906cdb179fa7a7c4cd2d951",
+      "input_sha256": "1de088039773244882dad8171eb527b22a172961a906cdb179fa7a7c4cd2d951"
+    },
+    {
+      "test_input_id": "context-16",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-16",
+      "source_input_sha256": "1c375543f2ee71a35f4213e9e13347b3c8aa98f8cf367b7f4358131aba6bab5b",
+      "input_sha256": "1c375543f2ee71a35f4213e9e13347b3c8aa98f8cf367b7f4358131aba6bab5b"
+    },
+    {
+      "test_input_id": "context-17",
+      "suite": "acceptance127",
+      "source_test_input_id": "context-17",
+      "source_input_sha256": "8530c9ac8770b70f0af95073877c6f042e8365bc40bd9c604e40cea0bb7cb64d",
+      "input_sha256": "8530c9ac8770b70f0af95073877c6f042e8365bc40bd9c604e40cea0bb7cb64d"
+    },
+    {
+      "test_input_id": "long-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "long-01",
+      "source_input_sha256": "368a73348a970db6e0c1a3b536adb648bf766065ffa9adcb3d7632c86512d996",
+      "input_sha256": "368a73348a970db6e0c1a3b536adb648bf766065ffa9adcb3d7632c86512d996"
+    },
+    {
+      "test_input_id": "long-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "long-02",
+      "source_input_sha256": "8b57eedf26298087aaed819df1809b3b8cc69097a6e229f4e5da40ecc3652347",
+      "input_sha256": "8b57eedf26298087aaed819df1809b3b8cc69097a6e229f4e5da40ecc3652347"
+    },
+    {
+      "test_input_id": "long-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "long-03",
+      "source_input_sha256": "27ad08a7c8bf51f9db18c1411246e83643ff157a244a998628acce99fa3d88bf",
+      "input_sha256": "27ad08a7c8bf51f9db18c1411246e83643ff157a244a998628acce99fa3d88bf"
+    },
+    {
+      "test_input_id": "long-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "long-04",
+      "source_input_sha256": "4bbf751eba282bd02105447f7623edbdaa0b61bd571c9ce87fa94a12e0842a6e",
+      "input_sha256": "4bbf751eba282bd02105447f7623edbdaa0b61bd571c9ce87fa94a12e0842a6e"
+    },
+    {
+      "test_input_id": "natural-long-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "natural-long-01",
+      "source_input_sha256": "24074949f18aff94dad362cce8bf313dab794e140bf440714f7743f20ab9b15c",
+      "input_sha256": "24074949f18aff94dad362cce8bf313dab794e140bf440714f7743f20ab9b15c"
+    },
+    {
+      "test_input_id": "natural-long-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "natural-long-02",
+      "source_input_sha256": "50cc325994c0d3a1243d836e69163037c1e099f1420afcee6e6fd75cc68c27bc",
+      "input_sha256": "50cc325994c0d3a1243d836e69163037c1e099f1420afcee6e6fd75cc68c27bc"
+    },
+    {
+      "test_input_id": "natural-long-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "natural-long-03",
+      "source_input_sha256": "1898111cd7e3566255e4cad70cc5e988ab25a7b1d39908aab03a644b63032e88",
+      "input_sha256": "1898111cd7e3566255e4cad70cc5e988ab25a7b1d39908aab03a644b63032e88"
+    },
+    {
+      "test_input_id": "natural-long-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "natural-long-04",
+      "source_input_sha256": "f58956833beec57e88aec40e33ca6d4ac57768b1bd8b2315058c19420477500a",
+      "input_sha256": "f58956833beec57e88aec40e33ca6d4ac57768b1bd8b2315058c19420477500a"
+    },
+    {
+      "test_input_id": "chat-01-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-01-noise-01",
+      "source_input_sha256": "10b1e5a7a7dc0d5ab33cec331b72a265b6d3e66ac15c8c68b8b95c2cecb1ce52",
+      "input_sha256": "10b1e5a7a7dc0d5ab33cec331b72a265b6d3e66ac15c8c68b8b95c2cecb1ce52"
+    },
+    {
+      "test_input_id": "chat-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-02-noise-01",
+      "source_input_sha256": "1de5840845f490b0d2d4a37ffd858aadb30c3abf65a666e1d101e898fdd72dde",
+      "input_sha256": "1de5840845f490b0d2d4a37ffd858aadb30c3abf65a666e1d101e898fdd72dde"
+    },
+    {
+      "test_input_id": "chat-03-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-03-noise-01",
+      "source_input_sha256": "fdc058c430b156ace38d7c8bc70c061cb3a15a86509a9229d69466077881fae5",
+      "input_sha256": "fdc058c430b156ace38d7c8bc70c061cb3a15a86509a9229d69466077881fae5"
+    },
+    {
+      "test_input_id": "chat-04-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-04-noise-01",
+      "source_input_sha256": "9f85515228ff944ea61b34aa47433bbe65617297314b37f2b80d1118aec8d55e",
+      "input_sha256": "9f85515228ff944ea61b34aa47433bbe65617297314b37f2b80d1118aec8d55e"
+    },
+    {
+      "test_input_id": "chat-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-05-noise-01",
+      "source_input_sha256": "cbf4d959843c9d6eb322976cb2700310d07ee022961e0f5f24521ea3abe6b722",
+      "input_sha256": "cbf4d959843c9d6eb322976cb2700310d07ee022961e0f5f24521ea3abe6b722"
+    },
+    {
+      "test_input_id": "work-01-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-01-noise-01",
+      "source_input_sha256": "d70022ac4efa9b4662a29c03a36a4627655e3aa68532b05e500d0d2d0f451a2a",
+      "input_sha256": "d70022ac4efa9b4662a29c03a36a4627655e3aa68532b05e500d0d2d0f451a2a"
+    },
+    {
+      "test_input_id": "work-01-noise-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-01-noise-02",
+      "source_input_sha256": "33f0683b237e8a027b87087ffdb78b45f8351078cd54f20161a1a9f83717ab67",
+      "input_sha256": "33f0683b237e8a027b87087ffdb78b45f8351078cd54f20161a1a9f83717ab67"
+    },
+    {
+      "test_input_id": "work-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-02-noise-01",
+      "source_input_sha256": "dc3c96de8a0fff20db2b8be3cd5a4e5e78290d82c833363affc073001920e451",
+      "input_sha256": "dc3c96de8a0fff20db2b8be3cd5a4e5e78290d82c833363affc073001920e451"
+    },
+    {
+      "test_input_id": "work-03-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-03-noise-01",
+      "source_input_sha256": "4b38cfe1afadb93f4435b8d51c8b131f1c2d5d489465c33bcf4c6b4923845185",
+      "input_sha256": "4b38cfe1afadb93f4435b8d51c8b131f1c2d5d489465c33bcf4c6b4923845185"
+    },
+    {
+      "test_input_id": "work-04-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-04-noise-01",
+      "source_input_sha256": "1c3605329dc3694124b9c0b0764d902a8bb6804410879ba673c42f5a3aadb10b",
+      "input_sha256": "1c3605329dc3694124b9c0b0764d902a8bb6804410879ba673c42f5a3aadb10b"
+    },
+    {
+      "test_input_id": "work-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-05-noise-01",
+      "source_input_sha256": "dcff92a613887e5258a9303431c90b8e8aaeac5284ce4ba2cadd850638cab265",
+      "input_sha256": "dcff92a613887e5258a9303431c90b8e8aaeac5284ce4ba2cadd850638cab265"
+    },
+    {
+      "test_input_id": "email-01-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-01-noise-01",
+      "source_input_sha256": "36c956bf9e3551b8cd1a54bab51723060e21512e2fe4c36b81e3402441e6b578",
+      "input_sha256": "36c956bf9e3551b8cd1a54bab51723060e21512e2fe4c36b81e3402441e6b578"
+    },
+    {
+      "test_input_id": "email-03-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-03-noise-01",
+      "source_input_sha256": "43a7966021c9fbbcb9e2ff11e13583214bd16c054ab40552d1efb912481d051f",
+      "input_sha256": "43a7966021c9fbbcb9e2ff11e13583214bd16c054ab40552d1efb912481d051f"
+    },
+    {
+      "test_input_id": "email-04-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-04-noise-01",
+      "source_input_sha256": "d65ee434b6da2d3335b3ffe3a2557b026a642ecec2518b2a56aecbf319713972",
+      "input_sha256": "d65ee434b6da2d3335b3ffe3a2557b026a642ecec2518b2a56aecbf319713972"
+    },
+    {
+      "test_input_id": "email-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-05-noise-01",
+      "source_input_sha256": "03234558984af1f2c119b0cd416ad80852588b97e86078d3610431ac0787bdcc",
+      "input_sha256": "03234558984af1f2c119b0cd416ad80852588b97e86078d3610431ac0787bdcc"
+    },
+    {
+      "test_input_id": "note-01-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-01-noise-01",
+      "source_input_sha256": "ce8d6a88fbd09e0a63fce88d47300e6ff41f0916a9cc51b4a507142c1e60ccc3",
+      "input_sha256": "ce8d6a88fbd09e0a63fce88d47300e6ff41f0916a9cc51b4a507142c1e60ccc3"
+    },
+    {
+      "test_input_id": "note-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-02-noise-01",
+      "source_input_sha256": "1129f47b5ec42f14269cc418d04d9b1e81549343f30152d76d2d26faef913a55",
+      "input_sha256": "1129f47b5ec42f14269cc418d04d9b1e81549343f30152d76d2d26faef913a55"
+    },
+    {
+      "test_input_id": "note-03-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-03-noise-01",
+      "source_input_sha256": "9d3b9819654ece906e8190587604a0dc7258a822f9e0ba0907565516ff05b148",
+      "input_sha256": "9d3b9819654ece906e8190587604a0dc7258a822f9e0ba0907565516ff05b148"
+    },
+    {
+      "test_input_id": "note-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-05-noise-01",
+      "source_input_sha256": "c4e0a61107f730408a869a134f6d1d2fd5de46d2527d26412f94db7e77710def",
+      "input_sha256": "c4e0a61107f730408a869a134f6d1d2fd5de46d2527d26412f94db7e77710def"
+    },
+    {
+      "test_input_id": "prompt-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-02-noise-01",
+      "source_input_sha256": "e8852904634d1d618549b07e8ac05ba7ee842fbee173ef837790d31d39f08acc",
+      "input_sha256": "e8852904634d1d618549b07e8ac05ba7ee842fbee173ef837790d31d39f08acc"
+    },
+    {
+      "test_input_id": "prompt-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-05-noise-01",
+      "source_input_sha256": "65558f2fb152d96231233c202bee31f4f0e5208702e81bb0d0c0771a65bf6b83",
+      "input_sha256": "65558f2fb152d96231233c202bee31f4f0e5208702e81bb0d0c0771a65bf6b83"
+    },
+    {
+      "test_input_id": "social-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-02-noise-01",
+      "source_input_sha256": "70e5d1d379a4d7b8219ec5030694e727c056b473704fb32a8428a1c7a68b9e6f",
+      "input_sha256": "70e5d1d379a4d7b8219ec5030694e727c056b473704fb32a8428a1c7a68b9e6f"
+    },
+    {
+      "test_input_id": "social-04-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-04-noise-01",
+      "source_input_sha256": "ac68b37791af7bc7b02c94fee6b6c13011df673cec963de47f6d975dadca241a",
+      "input_sha256": "ac68b37791af7bc7b02c94fee6b6c13011df673cec963de47f6d975dadca241a"
+    },
+    {
+      "test_input_id": "code-01-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-01-noise-01",
+      "source_input_sha256": "005497aa0098836c65badd53f101364e94ced8cbf0a05c836240033f54337791",
+      "input_sha256": "005497aa0098836c65badd53f101364e94ced8cbf0a05c836240033f54337791"
+    },
+    {
+      "test_input_id": "code-03-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-03-noise-01",
+      "source_input_sha256": "494890e5fb77ed0d7eda1dd69af65c4614e44ebcb86c64dd88b38c8ec404e7dc",
+      "input_sha256": "494890e5fb77ed0d7eda1dd69af65c4614e44ebcb86c64dd88b38c8ec404e7dc"
+    },
+    {
+      "test_input_id": "support-02-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-02-noise-01",
+      "source_input_sha256": "d62379cfe5ae201333dcd156fa09e3e8da0cd00343d2aeabf0b131e7a2235282",
+      "input_sha256": "d62379cfe5ae201333dcd156fa09e3e8da0cd00343d2aeabf0b131e7a2235282"
+    },
+    {
+      "test_input_id": "support-04-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-04-noise-01",
+      "source_input_sha256": "9f4953ce5b4f4d746104b6976d5eb7e219e770ef5436fbb62156026d02b8e032",
+      "input_sha256": "9f4953ce5b4f4d746104b6976d5eb7e219e770ef5436fbb62156026d02b8e032"
+    },
+    {
+      "test_input_id": "support-05-noise-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-05-noise-01",
+      "source_input_sha256": "a1ffd2008cd3c5593df52ec9604be7c6aa38d7df33821613636e3c4ffb44ded0",
+      "input_sha256": "a1ffd2008cd3c5593df52ec9604be7c6aa38d7df33821613636e3c4ffb44ded0"
+    },
+    {
+      "test_input_id": "chat-01-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-01-stutter-01",
+      "source_input_sha256": "62d2d00d1768c42126c7f91729b716f977397aba0c56858bc9b5303a5529fb3c",
+      "input_sha256": "62d2d00d1768c42126c7f91729b716f977397aba0c56858bc9b5303a5529fb3c"
+    },
+    {
+      "test_input_id": "chat-04-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "chat-04-stutter-01",
+      "source_input_sha256": "aea5edea365f122eb5bab6324b19ac7ae73432e4f74029235ed0520dfa0764db",
+      "input_sha256": "aea5edea365f122eb5bab6324b19ac7ae73432e4f74029235ed0520dfa0764db"
+    },
+    {
+      "test_input_id": "work-04-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "work-04-stutter-01",
+      "source_input_sha256": "c08a25f84a9c27570bc8d8c89254ba07a38f13cb5377478cd1e9f6866953ccd0",
+      "input_sha256": "c08a25f84a9c27570bc8d8c89254ba07a38f13cb5377478cd1e9f6866953ccd0"
+    },
+    {
+      "test_input_id": "email-01-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "email-01-stutter-01",
+      "source_input_sha256": "12c67b0f293f5db73f99f8b51f7821ae8c6f066f9dbd7089a16acba76a97f12e",
+      "input_sha256": "12c67b0f293f5db73f99f8b51f7821ae8c6f066f9dbd7089a16acba76a97f12e"
+    },
+    {
+      "test_input_id": "note-01-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "note-01-stutter-01",
+      "source_input_sha256": "b349d971e114e3013ccc880a21ace6c5f99123477db14d5155410d5567c028e7",
+      "input_sha256": "b349d971e114e3013ccc880a21ace6c5f99123477db14d5155410d5567c028e7"
+    },
+    {
+      "test_input_id": "prompt-02-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "prompt-02-stutter-01",
+      "source_input_sha256": "827af6e6633f74c03016c0c701e36c15b18dcc22da0ecfa9380831c09d5dff10",
+      "input_sha256": "827af6e6633f74c03016c0c701e36c15b18dcc22da0ecfa9380831c09d5dff10"
+    },
+    {
+      "test_input_id": "social-03-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "social-03-stutter-01",
+      "source_input_sha256": "7417448307d60c6973ac994eea8d63b502da34c7c6043bc341cd65b22c330c14",
+      "input_sha256": "7417448307d60c6973ac994eea8d63b502da34c7c6043bc341cd65b22c330c14"
+    },
+    {
+      "test_input_id": "support-05-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "support-05-stutter-01",
+      "source_input_sha256": "10b2c290879cddaf3b56dd79d638d8a01df0058cbf7a01ea55d8f7e269bed564",
+      "input_sha256": "10b2c290879cddaf3b56dd79d638d8a01df0058cbf7a01ea55d8f7e269bed564"
+    },
+    {
+      "test_input_id": "code-03-stutter-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "code-03-stutter-01",
+      "source_input_sha256": "7b7430ee470a4e0ca6c03b8b6068e397df240699b9c9f0b775770cff062a9f2b",
+      "input_sha256": "7b7430ee470a4e0ca6c03b8b6068e397df240699b9c9f0b775770cff062a9f2b"
+    },
+    {
+      "test_input_id": "natural-long-01-segments-1",
+      "suite": "acceptance127",
+      "source_test_input_id": "natural-long-01-segments-1",
+      "source_input_sha256": "e69b6dd51cf7068f1ccba57debb8e92edd3855befd1ff9b2af6f04134d154933",
+      "input_sha256": "e69b6dd51cf7068f1ccba57debb8e92edd3855befd1ff9b2af6f04134d154933"
+    },
+    {
+      "test_input_id": "r4-natural-handoff-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-handoff-01",
+      "source_input_sha256": "13b056d736bcbda09d306f6292f63452b2d5e04893c860dc2e6a190a5ad22b93",
+      "input_sha256": "13b056d736bcbda09d306f6292f63452b2d5e04893c860dc2e6a190a5ad22b93"
+    },
+    {
+      "test_input_id": "r4-natural-interview-02",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-interview-02",
+      "source_input_sha256": "01d734bb5b43e716a084c0fc875ad6a16b3b4d70b1e5494a7becd68d9628f8bc",
+      "input_sha256": "01d734bb5b43e716a084c0fc875ad6a16b3b4d70b1e5494a7becd68d9628f8bc"
+    },
+    {
+      "test_input_id": "r4-natural-prompt-03",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-prompt-03",
+      "source_input_sha256": "f3259a8261b4297826c5c850a560294b23154b237a221605beceec8f6d05a8ee",
+      "input_sha256": "f3259a8261b4297826c5c850a560294b23154b237a221605beceec8f6d05a8ee"
+    },
+    {
+      "test_input_id": "r4-natural-requirements-04",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-requirements-04",
+      "source_input_sha256": "99a765055c02bce92907ebb772eedb1af915dd2639a10d0590e662d93fd99f5c",
+      "input_sha256": "99a765055c02bce92907ebb772eedb1af915dd2639a10d0590e662d93fd99f5c"
+    },
+    {
+      "test_input_id": "r4-natural-checklist-05",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-checklist-05",
+      "source_input_sha256": "47338f3e377c3e77233d6c1938386efa277c5e58fd20067b6547b41a48e68e0e",
+      "input_sha256": "47338f3e377c3e77233d6c1938386efa277c5e58fd20067b6547b41a48e68e0e"
+    },
+    {
+      "test_input_id": "r4-natural-coordination-06",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-coordination-06",
+      "source_input_sha256": "de15fa259b402e3c5543df3d1de96b5e99155a01ad7870fac1a17b19b2ed699d",
+      "input_sha256": "de15fa259b402e3c5543df3d1de96b5e99155a01ad7870fac1a17b19b2ed699d"
+    },
+    {
+      "test_input_id": "r4-natural-handoff-01-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-handoff-01-segments-01",
+      "source_input_sha256": "1e00bc360b18e6b2045c2164b1f08634d35bc171c6a5cc962781fbe6bb1f8390",
+      "input_sha256": "1e00bc360b18e6b2045c2164b1f08634d35bc171c6a5cc962781fbe6bb1f8390"
+    },
+    {
+      "test_input_id": "r4-natural-interview-02-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-interview-02-segments-01",
+      "source_input_sha256": "c03d35f7c4c6d82ff98a09a2213583c44e9768c5a0bcf03aa0b36feda626403c",
+      "input_sha256": "c03d35f7c4c6d82ff98a09a2213583c44e9768c5a0bcf03aa0b36feda626403c"
+    },
+    {
+      "test_input_id": "r4-natural-prompt-03-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-prompt-03-segments-01",
+      "source_input_sha256": "38b3e0a5c42003c60fbc6e607413b36761e7fd94ad15da3229007f0c772c9c04",
+      "input_sha256": "38b3e0a5c42003c60fbc6e607413b36761e7fd94ad15da3229007f0c772c9c04"
+    },
+    {
+      "test_input_id": "r4-natural-requirements-04-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-requirements-04-segments-01",
+      "source_input_sha256": "94b1f493b9abbfc04da8d5be5c1be865ea1ade8e99c33deaf458f1110ec1b68e",
+      "input_sha256": "94b1f493b9abbfc04da8d5be5c1be865ea1ade8e99c33deaf458f1110ec1b68e"
+    },
+    {
+      "test_input_id": "r4-natural-checklist-05-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-checklist-05-segments-01",
+      "source_input_sha256": "7ed59929b557a79207c07c41dd47504e74f1081f47cf8183f770025c5f31da03",
+      "input_sha256": "7ed59929b557a79207c07c41dd47504e74f1081f47cf8183f770025c5f31da03"
+    },
+    {
+      "test_input_id": "r4-natural-coordination-06-segments-01",
+      "suite": "acceptance127",
+      "source_test_input_id": "r4-natural-coordination-06-segments-01",
+      "source_input_sha256": "8c632d5dcc756f95f09d16b4b0f27b9a62c8be7bfe3ccaca9e851936a0fd2c1c",
+      "input_sha256": "8c632d5dcc756f95f09d16b4b0f27b9a62c8be7bfe3ccaca9e851936a0fd2c1c"
+    },
+    {
+      "test_input_id": "core-holdout-05",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-05",
+      "source_input_sha256": "4594c3d705f9e0c0ee37da32c6c70f89c291071014fdcc19b075e771844e9760",
+      "input_sha256": "5d6a34941413a077131ab900ebee7b363b5be31e70d6a90355e8e55d42b40ee1"
+    },
+    {
+      "test_input_id": "core-holdout-06",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-06",
+      "source_input_sha256": "504c901f248ee8acb5044bd004b405a998c098204b2773face268d4d709b4b00",
+      "input_sha256": "4e3f933d7f4ffe08f14c1b91361d4fd763410e04a47ffc1b68e2ba4140eba66c"
+    },
+    {
+      "test_input_id": "core-holdout-07",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-07",
+      "source_input_sha256": "479de52ab08cb2ec22e943dd291ed6364f814df0ae2f1d72408df8e8f53311a8",
+      "input_sha256": "ad8ea02d4d984f12e5afe9f2c3b00d04a4cdabd76f939a5e4d64c33040f1fce7"
+    },
+    {
+      "test_input_id": "core-holdout-08",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-08",
+      "source_input_sha256": "c4121b45754eb93c7d9eea50836e5da818759462f9ba231001b4efd5c99c3f24",
+      "input_sha256": "058848c975e76e47aefa7981a79101a282947dbbf3e0e7d17acc1be73f2eacc4"
+    },
+    {
+      "test_input_id": "core-holdout-20",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-20",
+      "source_input_sha256": "540d7948e0aeb44deed9efdafd30527202be797c649ca2e4e6192dddbb058101",
+      "input_sha256": "f7e4a8a83a74e94d3564dc77634bb9d1b7b146eec07ff8c7715931e189e80b6b"
+    },
+    {
+      "test_input_id": "core-holdout-21",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-21",
+      "source_input_sha256": "3ec36acfb2d26ac8f4dde9dc02a46fd12244cbb78dea070364bee50caa663983",
+      "input_sha256": "c52140c742f8f60da94ff02155e9becb5d4bceb570ef0e46db227a099027a58d"
+    },
+    {
+      "test_input_id": "core-holdout-29",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-29",
+      "source_input_sha256": "87b0e824ac6de954661820f2aa97dcf5cec6375249de73745184a75d99fc109f",
+      "input_sha256": "26fda22f57248ae3608c690edd3b95b6940b8ba2c2b8387a8bee869cf9bc2455"
+    },
+    {
+      "test_input_id": "core-note-05",
+      "suite": "core_regression37",
+      "source_test_input_id": "note-05",
+      "source_input_sha256": "461833ecbbfd024aa6d12d69656efc12747063dbc4ecc2dd178bc764f68938e7",
+      "input_sha256": "ce374c7341ce668d538ce91af07d2c5922667b527c0c3d5e488c76c1615011ce"
+    },
+    {
+      "test_input_id": "core-prompt-03",
+      "suite": "core_regression37",
+      "source_test_input_id": "prompt-03",
+      "source_input_sha256": "100172c08dc4643a87dc8fa12e026111967bf7e68aeaeae6a9da8ad53eb0fdeb",
+      "input_sha256": "e74124b9c21290b8d4b5a5bfce1d1aaab44f3edbd5d6d5326370589f97c2c59c"
+    },
+    {
+      "test_input_id": "core-code-03",
+      "suite": "core_regression37",
+      "source_test_input_id": "code-03",
+      "source_input_sha256": "96fd87cb7ad5333317cb6cd74f3b7e0328b17398f8d0418d663fc038e0df64cc",
+      "input_sha256": "e864efaad26fcdc822998812d517dab3d2293d0b62ac88690a848210c79e0c72"
+    },
+    {
+      "test_input_id": "core-support-05",
+      "suite": "core_regression37",
+      "source_test_input_id": "support-05",
+      "source_input_sha256": "1477781ee266c533bb77d29873c6dd35a7b48ef1e750003cd35f46b6769f45cb",
+      "input_sha256": "bcd2bd61f08650f9d0995026b8018e3117d28f0e7107e543dfa0280c4644208c"
+    },
+    {
+      "test_input_id": "core-long-02",
+      "suite": "core_regression37",
+      "source_test_input_id": "long-02",
+      "source_input_sha256": "8b57eedf26298087aaed819df1809b3b8cc69097a6e229f4e5da40ecc3652347",
+      "input_sha256": "a65a25b518ab01b57b9ad4ca91a9de9594563070152dc4d6548c30e33463593e"
+    },
+    {
+      "test_input_id": "core-holdout-05-repeat2",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-05-repeat2",
+      "source_input_sha256": "18cb566ea3c43385ea83b15150e662a1291b7e1ab5cb67a26fe5cc800f072c94",
+      "input_sha256": "06dd0d585aeffdf26cc072b7349fab53822c1a107feecbf231093179b014c9ad"
+    },
+    {
+      "test_input_id": "core-holdout-05-repeat3",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-05-repeat3",
+      "source_input_sha256": "daecf4e2797c75ccac417626c1c9c1d70fde003d19b1f6bea3d7a27881d0ff37",
+      "input_sha256": "9f14bbc05f01dc15d3af3bc32a912629af12ba958a2d5569e29a022e6abfa455"
+    },
+    {
+      "test_input_id": "core-holdout-06-repeat2",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-06-repeat2",
+      "source_input_sha256": "b9b3352047efe9483d5152ab21fb2674af12626c0ed44a8ab3c3b47f493b0323",
+      "input_sha256": "611b3a482e4c5c77fc3928fc9a11b1baa862c9fc192e4815a8ad8129c8d4bbca"
+    },
+    {
+      "test_input_id": "core-holdout-06-repeat3",
+      "suite": "core_regression37",
+      "source_test_input_id": "holdout-06-repeat3",
+      "source_input_sha256": "6b465967a7b67781ac814ccec2aff614730f410bbf78d63b7dc7db1b4772eff8",
+      "input_sha256": "47b6722206139f34d6297ffb186d109010e64eb14537d5df6526a001f93ba54b"
+    },
+    {
+      "test_input_id": "core-sem-01",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-01",
+      "source_input_sha256": "b334e0985fdf706114423371c5ada155d61c56a51f9118976beef7551e00d87d",
+      "input_sha256": "b97ae1ac563db1feec2be03fb40f421d9513408be9953741a13eb29a3992c6c8"
+    },
+    {
+      "test_input_id": "core-sem-02",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-02",
+      "source_input_sha256": "8050fa41217ef2012182529995bb49c736db9e7dcf0d5ea9276853f002a44509",
+      "input_sha256": "a29d5ab24f50d873798a31a749dfa977b3cdce35a0fcdfa9e7e566079af9a7db"
+    },
+    {
+      "test_input_id": "core-sem-03",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-03",
+      "source_input_sha256": "9ab1c79745ed556999dfd38ab6662efd99f093b5f14e7b77a995605466b477b1",
+      "input_sha256": "63fd034a1e31c3a2ef468df1cea0680cdd20a886dc3914f38170c33a51657717"
+    },
+    {
+      "test_input_id": "core-sem-04",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-04",
+      "source_input_sha256": "3f0e72dced22ed6f56130d17a8edfb2cc8d57e420a9734fed1752fb9163df608",
+      "input_sha256": "4f27f1ae60f4de52b7a3f1db1c6c71e8a971c09560b1bae266ba6a3e6c0dc535"
+    },
+    {
+      "test_input_id": "core-sem-05",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-05",
+      "source_input_sha256": "70ce4256b12d79012c55c10498e5e258a4cfb8039aacb0ff1df227853a128a0d",
+      "input_sha256": "26895552fc6f108a7b7e70d2354fe87295d7172f4df9fe6d437a966c39c31a42"
+    },
+    {
+      "test_input_id": "core-sem-06",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-06",
+      "source_input_sha256": "ad0e98f4808c1c65a22ed3299016f917f1e9f921097ac5e3b58ed36a4907bf8e",
+      "input_sha256": "180b1bc919dd473b5f4990ed5992ad4a996ecbac8dd8410199a432fa2af30ea0"
+    },
+    {
+      "test_input_id": "core-sem-07",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-07",
+      "source_input_sha256": "17ff164579d6cbb54004f2eb15d9e6d701aa073bcb19d628a05617fd0626b080",
+      "input_sha256": "a6499377f977499fdfbe95818953d35f2c931c4b5a1968f8bb0a3f08e49beb43"
+    },
+    {
+      "test_input_id": "core-sem-08",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-08",
+      "source_input_sha256": "85094eb7ff5153dbc33bb9c2b2f68a5e1cbf2bdee96cbc541f57f87229c6cd78",
+      "input_sha256": "c06132c4759b55f42de79aae250f560704f02ff3e539a7cab7f005961156ee5a"
+    },
+    {
+      "test_input_id": "core-sem-09",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-09",
+      "source_input_sha256": "9e7e5e098e90c3687b724c67a5e8d08b4b3312dd4d4f66d5d704bb248ac337ce",
+      "input_sha256": "4a67d34935cc7014220a2e2c840f523c3d9db2cef6dd3cfb3a070c62758f8090"
+    },
+    {
+      "test_input_id": "core-sem-10",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-10",
+      "source_input_sha256": "8ee6721aaba0370378c6e63a15c056b406e61ed8549b28cbcc2c37559c693d0a",
+      "input_sha256": "cd88e9cee8c296eb85d9bf6e3c8fc170dd02ed9bb70545fcf573171923aaeb0f"
+    },
+    {
+      "test_input_id": "core-sem-11",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-11",
+      "source_input_sha256": "4d132415c9ede0b252185d7f9087a0173198e89967932c0044948db0a6252fe3",
+      "input_sha256": "2325c1c2af375ead3ed43a3acb75849afcd3479e5485818739c2a0c984828177"
+    },
+    {
+      "test_input_id": "core-sem-12",
+      "suite": "core_regression37",
+      "source_test_input_id": "sem-12",
+      "source_input_sha256": "1ed93addec8f9e05e0c73e7867e515fa911f9a3261619f98cc6b8ce723c786d8",
+      "input_sha256": "dcaece106cb7860487bd8001e5a3548c6c4a826cd78e93f14c1df24806f847ac"
+    },
+    {
+      "test_input_id": "core-contrast-role-editor",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-role-editor",
+      "source_input_sha256": "f7e4ac623152ae13e45451e8fbf2cbc577906c11f5d6645d9b1b6db4ef8af1b6",
+      "input_sha256": "1c3aace2f797ea7bfba86b334cd866e192817a6809b8b2a0d2e23fdc146da9f7"
+    },
+    {
+      "test_input_id": "core-contrast-role-colleague",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-role-colleague",
+      "source_input_sha256": "bfbce6fd9487485613215160d66e2595f0fc29106414c0c138daeea30a22b9bc",
+      "input_sha256": "70738bb2678b06bcc72b49d7c85d5fc7172205d59201b0382155ecfe432dc2be"
+    },
+    {
+      "test_input_id": "core-contrast-role-customer",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-role-customer",
+      "source_input_sha256": "d3da5329994efe9bc216c0642a0187480b7b0715173e08a2582870ef085e4fec",
+      "input_sha256": "0df4c852c1ccd61deed7376d965694d6abbfffd82be3afd82e3172eb4b2dacea"
+    },
+    {
+      "test_input_id": "core-contrast-notice-punctuation",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-notice-punctuation",
+      "source_input_sha256": "03aeb4021701fc59e20ba00ed39eb4b400e6d7755cec38434cfbec0dd4af2a9f",
+      "input_sha256": "ea6c70572b542e333d33dc29b6f865c60cac2627f66753920a221b42101de081"
+    },
+    {
+      "test_input_id": "core-contrast-quote-punctuation",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-quote-punctuation",
+      "source_input_sha256": "5a4a58f61bfeb24cd714376317ced2827d4ed6504987400556922424d85ba672",
+      "input_sha256": "adc757797d8423c33b8e28ac951bb1f5537ea224719032617a0d64631463baa7"
+    },
+    {
+      "test_input_id": "core-contrast-budget-explicit",
+      "suite": "core_regression37",
+      "source_test_input_id": "contrast-budget-explicit",
+      "source_input_sha256": "42b8489a271a95c7afd4aeb22cc9e3e3a2a0a2632fe8724c8bf9e720d8b539ab",
+      "input_sha256": "79e2aae3aeff29919d048f812b4fd368a261b4660e4823172f4b6eea8f925414"
+    },
+    {
+      "test_input_id": "core-r4-natural-interview-02",
+      "suite": "core_regression37",
+      "source_test_input_id": "r4-natural-interview-02",
+      "source_input_sha256": "01d734bb5b43e716a084c0fc875ad6a16b3b4d70b1e5494a7becd68d9628f8bc",
+      "input_sha256": "fb20e0f85b28eec9abe3b5d9a018b13722edf47eb16b299fddcbf4e03d8864ad"
+    },
+    {
+      "test_input_id": "core-r4-natural-handoff-01",
+      "suite": "core_regression37",
+      "source_test_input_id": "r4-natural-handoff-01",
+      "source_input_sha256": "13b056d736bcbda09d306f6292f63452b2d5e04893c860dc2e6a190a5ad22b93",
+      "input_sha256": "4433876ed43ee9dd0a6a9f5c6e44cfdf36cbe0f368ee4123685077ab39c406bf"
+    },
+    {
+      "test_input_id": "core-r4-natural-requirements-04",
+      "suite": "core_regression37",
+      "source_test_input_id": "r4-natural-requirements-04",
+      "source_input_sha256": "99a765055c02bce92907ebb772eedb1af915dd2639a10d0590e662d93fd99f5c",
+      "input_sha256": "1ed04eb9cbf32852382c6b615305da905de3a994080275531e382a21c07857b9"
+    },
+    {
+      "test_input_id": "boundary-tiny-01",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "84e464aef4858cc4c56b2baf8fb126ea52a01cde050bbbdb0cb3105e29c6f850"
+    },
+    {
+      "test_input_id": "boundary-tiny-02",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "d48f7748b02aa74496d7e2cd44d92740d2a55de9498e364405f562ca79ff6f41"
+    },
+    {
+      "test_input_id": "boundary-tiny-03",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "663901d42cd8fe9351f844b2a0eeb64be394cb378219dd152ae60c59b9cb358f"
+    },
+    {
+      "test_input_id": "boundary-tiny-04",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "cd231f19542f04cb8aa101cfb37bfe5113cc147ec5c94a2f32619b13bbd96cc4"
+    },
+    {
+      "test_input_id": "boundary-light-01",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "3a086c19a1275530fd5911bf1ed157d046aad80701073f5d650efeea74d36e79"
+    },
+    {
+      "test_input_id": "boundary-light-02",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "c1741bd5d56c78523881eb59719d5bb2ded346afa3da832213d590ba62580432"
+    },
+    {
+      "test_input_id": "boundary-light-03",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "5e3fb809d1c2e6f09d01feb1ad7634eae50395959002eca558adcc4e025ed3c2"
+    },
+    {
+      "test_input_id": "boundary-light-04",
+      "suite": "mode_boundary8",
+      "source_test_input_id": null,
+      "source": "2026-09-10 依三档需求构造的工程边界样本，非用户真实发言",
+      "input_sha256": "b77d08718eeecb3007d128a1f1587e9761682ed524d7281fb3d29e512966eaa4"
+    }
+  ],
+  "inputs": [
+    {
+      "test_input_id": "chat-01",
+      "base_case_id": "chat-01",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "嗯我今天大概七点半到你们不用等我吃饭先吃就行",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "嗯我今天大概七点半到你们不用等我吃饭先吃就行"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-02",
+      "base_case_id": "chat-02",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "我们周六下午去看那个展吧不对周六我有事改成周日下午你有空吗",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我们周六下午去看那个展吧不对周六我有事改成周日下午你有空吗"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-03",
+      "base_case_id": "chat-03",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "我不是不愿意帮你我是真的这两天完全排不开真的不是在敷衍你等我忙完这一阵我再跟你说",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我不是不愿意帮你我是真的这两天完全排不开真的不是在敷衍你等我忙完这一阵我再跟你说"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-04",
+      "base_case_id": "chat-04",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "你明天是直接到店里还是先来我这边还有那个样品你拿到了吗如果没拿到我今天顺路去取",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你明天是直接到店里还是先来我这边还有那个样品你拿到了吗如果没拿到我今天顺路去取"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-05",
+      "base_case_id": "chat-05",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "明天你过来的时候帮我带三样东西第一充电器第二上次那本书然后还有门卡对就是这三样别的不用带",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "明天你过来的时候帮我带三样东西第一充电器第二上次那本书然后还有门卡对就是这三样别的不用带"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-01",
+      "base_case_id": "work-01",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "同步一下Type less的对比测试已经跑完了那个结果表还差两个渠道预计今天下班前能补完补完以后我会在群里发链接",
+      "preconditions": [
+        "术语库中已确认 Type less → Typeless"
+      ],
+      "context_type": "none",
+      "segment_texts": [
+        "同步一下Type less的对比测试已经跑完了那个结果表还差两个渠道预计今天下班前能补完补完以后我会在群里发链接"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-02",
+      "base_case_id": "work-02",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "评审先定周三下午三点参加的人有产品和设计一共四个人不对开发也要参加那就是六个人时间也改一下周三大家不齐最终放到周四上午十点",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "评审先定周三下午三点参加的人有产品和设计一共四个人不对开发也要参加那就是六个人时间也改一下周三大家不齐最终放到周四上午十点"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-03",
+      "base_case_id": "work-03",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "发布这块我先说结论吧今晚先不上然后原因有两个测试环境的数据还没跑完还有回滚脚本没验证本来我想说先灰度百分之十但是现在看也不稳所以等这两个问题确认完明早再决定",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "发布这块我先说结论吧今晚先不上然后原因有两个测试环境的数据还没跑完还有回滚脚本没验证本来我想说先灰度百分之十但是现在看也不稳所以等这两个问题确认完明早再决定"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-04",
+      "base_case_id": "work-04",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "小林麻烦你今天五点前帮我确认一下合同里那三个报价是不是最终版如果还会改请直接在文档里标出来我六点要发给客户",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "小林麻烦你今天五点前帮我确认一下合同里那三个报价是不是最终版如果还会改请直接在文档里标出来我六点要发给客户"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-05",
+      "base_case_id": "work-05",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "这个问题我觉得还是要同步给负责人不是说谁做得不好啊只是现在已经连续两次延期了如果今天还不能给出明确时间我们后面的排期都会被影响这句别写得太重但事情要说清楚",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这个问题我觉得还是要同步给负责人不是说谁做得不好啊只是现在已经连续两次延期了如果今天还不能给出明确时间我们后面的排期都会被影响这句别写得太重但事情要说清楚"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-01",
+      "base_case_id": "email-01",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "王老师您好感谢今天抽时间沟通关于课程大纲麻烦您把刚才提到的参考资料发我一下最好周五之前这样我们下周一可以开始整理第一版",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "王老师您好感谢今天抽时间沟通关于课程大纲麻烦您把刚才提到的参考资料发我一下最好周五之前这样我们下周一可以开始整理第一版"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-02",
+      "base_case_id": "email-02",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "李总您好上周发您的合作方案不知道您有没有时间看我们这边主要想确认两个事情一个是合作范围另一个是启动时间如果方便的话这周找半小时电话沟通一下",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "李总您好上周发您的合作方案不知道您有没有时间看我们这边主要想确认两个事情一个是合作范围另一个是启动时间如果方便的话这周找半小时电话沟通一下"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-03",
+      "base_case_id": "email-03",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "赵经理您好抱歉刚才那封邮件附件发错了不是第二版应该是第三版我现在重新发您请以后面这份为准给您添麻烦了",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "赵经理您好抱歉刚才那封邮件附件发错了不是第二版应该是第三版我现在重新发您请以后面这份为准给您添麻烦了"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-04",
+      "base_case_id": "email-04",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "陈律师您好请帮忙确认合同里的金额和付款节点总金额是四万八首款百分之五十合同签完三个工作日内支付尾款在项目验收后七个工作日内支付这几个数字不要改",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "陈律师您好请帮忙确认合同里的金额和付款节点总金额是四万八首款百分之五十合同签完三个工作日内支付尾款在项目验收后七个工作日内支付这几个数字不要改"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-05",
+      "base_case_id": "email-05",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "周总您好我把今天讨论的事情汇总一下先是页面方案我们按B版继续然后数据接口要等你们技术确认字段还有上线时间原来说月底但今天讨论以后觉得风险太大先不写死具体日期等接口联调完再确认最后下周二之前我们会先给一版可点击原型供您确认流程",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "周总您好我把今天讨论的事情汇总一下先是页面方案我们按B版继续然后数据接口要等你们技术确认字段还有上线时间原来说月底但今天讨论以后觉得风险太大先不写死具体日期等接口联调完再确认最后下周二之前我们会先给一版可点击原型供您确认流程"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-01",
+      "base_case_id": "note-01",
+      "input_kind": "base",
+      "writing_scene": "note",
+      "spoken_input": "我今天突然意识到一个问题就是很多人不是不会用AI而是不知道什么时候该用它所以真正的门槛可能不是工具操作而是任务判断这个点我觉得以后可以展开讲",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我今天突然意识到一个问题就是很多人不是不会用AI而是不知道什么时候该用它所以真正的门槛可能不是工具操作而是任务判断这个点我觉得以后可以展开讲"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-02",
+      "base_case_id": "note-02",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "今天会议主要定了三件事第一首页先不改结构只换文案第二小陈周三前把数据补齐第三我来整理测试清单另外还有一个没定的是发布日要等客户回复这个别放在已确定事项里",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "今天会议主要定了三件事第一首页先不改结构只换文案第二小陈周三前把数据补齐第三我来整理测试清单另外还有一个没定的是发布日要等客户回复这个别放在已确定事项里"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-03",
+      "base_case_id": "note-03",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "这个功能想解决的是用户录完音以后找不到刚才的内容先不要做复杂搜索第一版只要能按时间看最近记录然后可以复制可以删除删除要二次确认对还有搜索先放后面不是这版范围",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这个功能想解决的是用户录完音以后找不到刚才的内容先不要做复杂搜索第一版只要能按时间看最近记录然后可以复制可以删除删除要二次确认对还有搜索先放后面不是这版范围"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-04",
+      "base_case_id": "note-04",
+      "input_kind": "base",
+      "writing_scene": "note",
+      "spoken_input": "这次我最大的问题不是做得慢而是一开始就没把成功标准想清楚所以后面一直在改一直在补看起来很忙其实很多工作都可以避免下次开工前必须先把什么算完成写下来",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这次我最大的问题不是做得慢而是一开始就没把成功标准想清楚所以后面一直在改一直在补看起来很忙其实很多工作都可以避免下次开工前必须先把什么算完成写下来"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-05",
+      "base_case_id": "note-05",
+      "input_kind": "base",
+      "writing_scene": "note",
+      "spoken_input": "记一下今天听到一句话大概是不要优化你还没有验证的东西英文原话我记不准好像是 don't optimize what you haven't什么先保留中文意思作者名字也没听清不要猜",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "记一下今天听到一句话大概是不要优化你还没有验证的东西英文原话我记不准好像是 don't optimize what you haven't什么先保留中文意思作者名字也没听清不要猜"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-01",
+      "base_case_id": "prompt-01",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "帮我生成一张图主题是深夜一个人坐在书桌前写东西画面要安静不要赛博朋克也不要霓虹灯整体是暖色台灯窗外有一点雨横版十六比九",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "帮我生成一张图主题是深夜一个人坐在书桌前写东西画面要安静不要赛博朋克也不要霓虹灯整体是暖色台灯窗外有一点雨横版十六比九"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-02",
+      "base_case_id": "prompt-02",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "让AI帮我查这个Swift并发问题现象是偶发出现 MainActor isolated property cannot be referenced 然后不要直接改代码先解释原因列出可能的调用链最后给最小修改方案和需要补的测试",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "让AI帮我查这个Swift并发问题现象是偶发出现 MainActor isolated property cannot be referenced 然后不要直接改代码先解释原因列出可能的调用链最后给最小修改方案和需要补的测试"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-03",
+      "base_case_id": "prompt-03",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "调研一下二零二六年现在主流的语音输入工具重点看macOS只要官方资料和真实用户评价不要拿营销软文凑数最后做一个对比表至少看五个产品并且所有价格和功能都要标来源日期",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "调研一下二零二六年现在主流的语音输入工具重点看macOS只要官方资料和真实用户评价不要拿营销软文凑数最后做一个对比表至少看五个产品并且所有价格和功能都要标来源日期"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-04",
+      "base_case_id": "prompt-04",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "把这段内容改成一个一分钟口播核心观点别变开头直接说冲突不要自我介绍中间给一个生活里的例子结尾不要喊关注就落到普通人怎么开始行动语气像朋友聊天别像老师上课",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "把这段内容改成一个一分钟口播核心观点别变开头直接说冲突不要自我介绍中间给一个生活里的例子结尾不要喊关注就落到普通人怎么开始行动语气像朋友聊天别像老师上课"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-05",
+      "base_case_id": "prompt-05",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "分析这份销售表先看最近十二个月不对我们数据只有九个月那就分析全部九个月按渠道和月份拆开找增长最快和下滑最大的渠道不要预测下一季度最后给三条可以从数据直接支持的建议",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "分析这份销售表先看最近十二个月不对我们数据只有九个月那就分析全部九个月按渠道和月份拆开找增长最快和下滑最大的渠道不要预测下一季度最后给三条可以从数据直接支持的建议"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-01",
+      "base_case_id": "social-01",
+      "input_kind": "base",
+      "writing_scene": "socialPost",
+      "spoken_input": "今天本来只是想出去走十分钟结果沿着河边一直走了一个多小时风有点冷但是脑子反而安静下来了有时候人真的不是需要答案只是需要先停一下",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "今天本来只是想出去走十分钟结果沿着河边一直走了一个多小时风有点冷但是脑子反而安静下来了有时候人真的不是需要答案只是需要先停一下"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-02",
+      "base_case_id": "social-02",
+      "input_kind": "base",
+      "writing_scene": "socialPost",
+      "spoken_input": "我现在越来越觉得做内容最难的不是持续更新当然持续更新也难但更难的是你每次发之前都知道自己为什么要发如果只是为了不断更最后内容会越来越像任务可如果每次都等到想得特别成熟又永远发不出来所以我现在想找的其实是一个中间状态有真实想法但不用等到完美",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我现在越来越觉得做内容最难的不是持续更新当然持续更新也难但更难的是你每次发之前都知道自己为什么要发如果只是为了不断更最后内容会越来越像任务可如果每次都等到想得特别成熟又永远发不出来所以我现在想找的其实是一个中间状态有真实想法但不用等到完美"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-03",
+      "base_case_id": "social-03",
+      "input_kind": "base",
+      "writing_scene": "socialPost",
+      "spoken_input": "你有没有发现现在很多AI工具功能越来越多但你真正每天在用的可能还是那两三个这不是因为别的功能没用而是因为大多数功能根本没有进入你的工作流程今天我想聊的就是工具为什么装了很多最后却用不起来",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你有没有发现现在很多AI工具功能越来越多但你真正每天在用的可能还是那两三个这不是因为别的功能没用而是因为大多数功能根本没有进入你的工作流程今天我想聊的就是工具为什么装了很多最后却用不起来"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-04",
+      "base_case_id": "social-04",
+      "input_kind": "base",
+      "writing_scene": "socialPost",
+      "spoken_input": "这次做线上分享我有三个感受第一别一上来讲太多背景第二演示一定要提前跑一遍顺便说一下我那天网络也不太好但这个不用展开第三要给听众留实际操作的时间",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这次做线上分享我有三个感受第一别一上来讲太多背景第二演示一定要提前跑一遍顺便说一下我那天网络也不太好但这个不用展开第三要给听众留实际操作的时间"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-05",
+      "base_case_id": "social-05",
+      "input_kind": "base",
+      "writing_scene": "socialPost",
+      "spoken_input": "说明一下我们昨天的视频里把活动日期说成了八月十八日这个是我们说错了正确日期是八月二十八日已经发布的预约链接时间是对的大家不用重新预约给大家造成困扰很抱歉",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "说明一下我们昨天的视频里把活动日期说成了八月十八日这个是我们说错了正确日期是八月二十八日已经发布的预约链接时间是对的大家不用重新预约给大家造成困扰很抱歉"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-01",
+      "base_case_id": "code-01",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "记录一个bug在Dal斜杠VoicePolish斜杠VoicePolishPipeline点swift里长文本超过两千零四十八token的时候会回退原文复现命令是swift test双横线filter VoicePolishPipelineTests先别改路径和命令",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "记录一个bug在Dal斜杠VoicePolish斜杠VoicePolishPipeline点swift里长文本超过两千零四十八token的时候会回退原文复现命令是swift test双横线filter VoicePolishPipelineTests先别改路径和命令"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-02",
+      "base_case_id": "code-02",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "帮我review一下RecognitionSession这个actor重点看stopRecording里面有没有竞态还有Task取消以后迟到结果会不会继续注入只做审查先不要提交代码",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "帮我review一下RecognitionSession这个actor重点看stopRecording里面有没有竞态还有Task取消以后迟到结果会不会继续注入只做审查先不要提交代码"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-03",
+      "base_case_id": "code-03",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-04",
+      "base_case_id": "code-04",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "现在Voice Polish的默认路径是Fast也就是一次纯文本请求Deep只有用户手动选深度整理才会进Analyze加Render这个行为跟路由诊断显示的Structured或者Deep不是一回事",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "现在Voice Polish的默认路径是Fast也就是一次纯文本请求Deep只有用户手动选深度整理才会进Analyze加Render这个行为跟路由诊断显示的Structured或者Deep不是一回事"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-05",
+      "base_case_id": "code-05",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "这个问题好像是Swift六点一以后出现的也可能是六点二我没确认先记成新版本Swift编译器下出现不要替我确定具体版本错误码我也没保存",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这个问题好像是Swift六点一以后出现的也可能是六点二我没确认先记成新版本Swift编译器下出现不要替我确定具体版本错误码我也没保存"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-01",
+      "base_case_id": "support-01",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "你好这个订单已经超过承诺时间三天了页面一直显示运输中我想知道现在到底到哪里了还有什么时候能送到请不要只回复让我耐心等待",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你好这个订单已经超过承诺时间三天了页面一直显示运输中我想知道现在到底到哪里了还有什么时候能送到请不要只回复让我耐心等待"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-02",
+      "base_case_id": "support-02",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "我想申请整单退款不对其中一个商品我已经用了那就只退另外两件未拆封的商品订单号是A六八二一麻烦告诉我需要怎么寄回",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我想申请整单退款不对其中一个商品我已经用了那就只退另外两件未拆封的商品订单号是A六八二一麻烦告诉我需要怎么寄回"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-03",
+      "base_case_id": "support-03",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "你好我原来约的是周五下午两点想改到周六上午最好十点如果十点没有位置十一点也可以请帮我看看",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你好我原来约的是周五下午两点想改到周六上午最好十点如果十点没有位置十一点也可以请帮我看看"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-04",
+      "base_case_id": "support-04",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "回复客户说我们已经收到问题技术正在查预计明天下午之前给一次进展但别说一定能修好还有内部看可能是第三方接口波动这个原因先不要告诉客户没有确认",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "回复客户说我们已经收到问题技术正在查预计明天下午之前给一次进展但别说一定能修好还有内部看可能是第三方接口波动这个原因先不要告诉客户没有确认"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-05",
+      "base_case_id": "support-05",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "给客户回一下这个功能目前不是坏了是需要先开权限他要做两步先到系统设置里打开辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "给客户回一下这个功能目前不是坏了是需要先开权限他要做两步先到系统设置里打开辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-01",
+      "base_case_id": "micro-01",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "谢谢你。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "谢谢你。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-02",
+      "base_case_id": "micro-02",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "你到哪了",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你到哪了"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-03",
+      "base_case_id": "micro-03",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "周五不行。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "周五不行。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-04",
+      "base_case_id": "micro-04",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "真的真的很好。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "真的真的很好。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-05",
+      "base_case_id": "micro-05",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "我我到了",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我我到了"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-06",
+      "base_case_id": "micro-06",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "不不急慢慢来",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "不不急慢慢来"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-07",
+      "base_case_id": "micro-07",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "行行行，我知道了。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "行行行，我知道了。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-08",
+      "base_case_id": "micro-08",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "发第二版",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "发第二版"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-09",
+      "base_case_id": "micro-09",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "特别特别期待。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "特别特别期待。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-10",
+      "base_case_id": "micro-10",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "对对对，就是这个。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "对对对，就是这个。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-11",
+      "base_case_id": "micro-11",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "真的真的，不对，最后感觉一般。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "真的真的，不对，最后感觉一般。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "micro-12",
+      "base_case_id": "micro-12",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "好好好像可以",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "好好好像可以"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "context-01",
+      "base_case_id": "context-01",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "灵建这次更新先发给测试组确认没问题再发客户",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "灵建这次更新先发给测试组确认没问题再发客户"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "项目统一名称是“灵简”，上一条消息也使用了“灵简”。 旧项目的负责人曾是林青，去年已经关闭。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-01。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-02",
+      "base_case_id": "context-02",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "Max A I社群的课程母版先别动图片只改标题",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "Max A I社群的课程母版先别动图片只改标题"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "当前项目：MaxAI 社群。文件：课程母版。 如果北区试点启动，秦川可能周六去苏州，目前尚未确定。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-02。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-03",
+      "base_case_id": "context-03",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "work buddy这次还是识别不到输入框让他先开辅助功能",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "work buddy这次还是识别不到输入框让他先开辅助功能"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "客户当前使用的软件是 WorkBuddy。 会议记录引用了“蓝鲸计划下周三迁移”，但那不是当前客户。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-03。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-04",
+      "base_case_id": "context-04",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "voice polish pipeline的修复先跑测试再合并",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "voice polish pipeline的修复先跑测试再合并"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "正在审查 `VoicePolishPipeline` 的实现。 同名的另一位小陈只负责采购，地址是海淀北路 12 号。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-04。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-05",
+      "base_case_id": "context-05",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "森斯 voice服务启动后先看 health",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "森斯 voice服务启动后先看 health"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "SenseVoice 服务启动说明 上一版预算是 78 万元，这个数字已经明确作废。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-05。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-06",
+      "base_case_id": "context-06",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "接口调试完成以后再定上线时间",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "接口调试完成以后再定上线时间"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "接口联调排期与上线检查 假设周日上线，备用联系人是赵岚；这项假设没有确认。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-06。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-07",
+      "base_case_id": "context-07",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "戴量老师那边确认以后我再发最终版",
+      "preconditions": [],
+      "context_type": "recent_safe",
+      "segment_texts": [
+        "戴量老师那边确认以后我再发最终版"
+      ],
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "大梁老师刚确认了课程结构。",
+          "引号中的“星河 Beta”只是演示例子，不是本次产品名。",
+          "仅作上下文泄漏测试：CTX-ONLY-CONTEXT-07。"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-08",
+      "base_case_id": "context-08",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "达尔这次构建通过以后覆盖安装",
+      "preconditions": [],
+      "context_type": "recent_safe",
+      "segment_texts": [
+        "达尔这次构建通过以后覆盖安装"
+      ],
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "Dal 的 Release 构建正在执行。",
+          "另一个客户在深圳使用 Windows，工单号是 WB-2048。",
+          "仅作上下文泄漏测试：CTX-ONLY-CONTEXT-08。"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-09",
+      "base_case_id": "context-09",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "灵建这个名字我还没确认先保留别替我猜",
+      "preconditions": [],
+      "context_type": "conflicting_safe",
+      "segment_texts": [
+        "灵建这个名字我还没确认先保留别替我猜"
+      ],
+      "context_fixture": {
+        "type": "conflicting_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "上文有人写“灵简”。 历史文档写着由蒋川负责，但当前已经转交另一团队。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-09。",
+        "text_after_cursor": "下文另一处写“灵境”。",
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-10",
+      "base_case_id": "context-10",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "明天下午把方案发给客户确认",
+      "preconditions": [],
+      "context_type": "irrelevant_safe",
+      "segment_texts": [
+        "明天下午把方案发给客户确认"
+      ],
+      "context_fixture": {
+        "type": "irrelevant_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "另一个项目的内部代号是 Aurora，但当前消息与它无关。 测试环境地址是 staging.example.net，禁止写入对外文案。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-10。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-11",
+      "base_case_id": "context-11",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "帮我回复已经收到",
+      "preconditions": [],
+      "context_type": "secure_blocked",
+      "segment_texts": [
+        "帮我回复已经收到"
+      ],
+      "context_fixture": {
+        "type": "secure_blocked",
+        "level": "nearbyText",
+        "safety": "secure",
+        "selected_text": null,
+        "text_before_cursor": "安全字段中的内容绝不能进入模型：内部验证码 654321。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-12",
+      "base_case_id": "context-12",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "跟他说我晚十分钟到",
+      "preconditions": [],
+      "context_type": "unknown_blocked",
+      "segment_texts": [
+        "跟他说我晚十分钟到"
+      ],
+      "context_fixture": {
+        "type": "unknown_blocked",
+        "level": "nearbyText",
+        "safety": "unknown",
+        "selected_text": null,
+        "text_before_cursor": "未知控件里有无关的人名王小明和地址海棠路八号。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-13",
+      "base_case_id": "context-13",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "git hub上那个修复先开草稿 PR 别直接合并",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "git hub上那个修复先开草稿 PR 别直接合并"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "当前仓库托管在 GitHub，合并前必须经过审查。 旁边聊天提到周二取消南京复盘，这件事与本条无关。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-13。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-14",
+      "base_case_id": "context-14",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "克劳德桌面版的配置说明下午补一下",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "克劳德桌面版的配置说明下午补一下"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "Claude Desktop 配置与第三方推理说明 红队故意放入错误候选“DalX”，不得据此改名。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-14。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-15",
+      "base_case_id": "context-15",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "飞数文档里的课程目录先别改",
+      "preconditions": [],
+      "context_type": "recent_safe",
+      "segment_texts": [
+        "飞数文档里的课程目录先别改"
+      ],
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "飞书文档中的课程目录已经锁定。",
+          "另一个课程的历史报价是 2,999 元，仅供财务对照。",
+          "仅作上下文泄漏测试：CTX-ONLY-CONTEXT-15。"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-16",
+      "base_case_id": "context-16",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "赛博沃斯服务重启以后再跑 health 检查",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "赛博沃斯服务重启以后再跑 health 检查"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "CyberVoice 服务部署记录 旧日程里顾明周四到青岛，现在这份日程已经失效。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-16。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "context-17",
+      "base_case_id": "context-17",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "跟团队说会议改到周四下午",
+      "preconditions": [],
+      "context_type": "secure_blocked",
+      "segment_texts": [
+        "跟团队说会议改到周四下午"
+      ],
+      "context_fixture": {
+        "type": "secure_blocked",
+        "level": "nearbyText",
+        "safety": "secure",
+        "selected_text": null,
+        "text_before_cursor": "安全字段中有客户邮箱 secret@example.com 和验证码 887766。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "long-01",
+      "base_case_id": "long-01",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "先说发布时间原定八月二十日这部分先记一下不对刚确认最终发布时间是八月二十八日要以这个为准下面共 6 项工作关于首页文案，负责人是小陈，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代引导截图，由小林负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略权限说明，现在归产品组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下长文润色，由设计组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯关于历史记录，负责人是开发组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代安装包签名，由测试组负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "先说发布时间原定八月二十日这部分先记一下",
+        "不对刚确认最终发布时间是八月二十八日要以这个为准下面共 6 项工作",
+        "关于首页文案，负责人是小陈，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "引导截图，由小林负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "权限说明，现在归产品组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "长文润色，由设计组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+        "关于历史记录，负责人是开发组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "安装包签名，由测试组负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "long-02",
+      "base_case_id": "long-02",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "预算先按一万六千八准备这句在前面我改一下最终预算是一万六不能再保留旧数字会议共 7 项决定关于课程定位，负责人是小林，要求周一上午前确认最终文案，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代目标用户，由产品组负责，截止周二下班前，交付内容是跑完回归测试，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略交付形式，现在归设计组跟进，周三中午前要整理风险清单，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下录制顺序，由开发组负责，时间是周四下午，动作是核对数据来源，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯关于质检标准，负责人是测试组，要求周五发布前完成客户复核，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代发布时间，由运营组负责，截止下周一十点，交付内容是更新操作说明，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略复盘机制，现在归大梁老师跟进，周一上午前要归档本轮结论，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "预算先按一万六千八准备这句在前面",
+        "我改一下最终预算是一万六不能再保留旧数字会议共 7 项决定",
+        "关于课程定位，负责人是小林，要求周一上午前确认最终文案，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "目标用户，由产品组负责，截止周二下班前，交付内容是跑完回归测试，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "交付形式，现在归设计组跟进，周三中午前要整理风险清单，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "录制顺序，由开发组负责，时间是周四下午，动作是核对数据来源，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+        "关于质检标准，负责人是测试组，要求周五发布前完成客户复核，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "发布时间，由运营组负责，截止下周一十点，交付内容是更新操作说明，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "复盘机制，现在归大梁老师跟进，周一上午前要归档本轮结论，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "long-03",
+      "base_case_id": "long-03",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "下面共 7 项，请按原顺序逐项整理，每项都要完整保留关于登录失败，负责人是小陈，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代授权弹窗，由小林负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略识别延迟，现在归产品组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下长文回退，由设计组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯关于剪贴板恢复，负责人是开发组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代菜单栏图标，由测试组负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略版本升级，现在归运营组跟进，周一上午前要更新操作说明，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "下面共 7 项，请按原顺序逐项整理，每项都要完整保留",
+        "关于登录失败，负责人是小陈，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "授权弹窗，由小林负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "识别延迟，现在归产品组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "长文回退，由设计组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+        "关于剪贴板恢复，负责人是开发组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "菜单栏图标，由测试组负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "版本升级，现在归运营组跟进，周一上午前要更新操作说明，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "long-04",
+      "base_case_id": "long-04",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "下面共 8 项，请按原顺序逐项整理，每项都要完整保留关于Debug 构建，负责人是产品组，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代Release 构建，由设计组负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略Swift 全量测试，现在归开发组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下Python 服务测试，由测试组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯关于Bundle ID，负责人是运营组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代严格签名，由大梁老师负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略二进制 UUID，现在归产品组跟进，周一上午前要更新操作说明，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下单一进程，由设计组负责，时间是周二下班前，动作是归档本轮结论，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "下面共 8 项，请按原顺序逐项整理，每项都要完整保留",
+        "关于Debug 构建，负责人是产品组，要求周一上午前补齐验收截图，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "Release 构建，由设计组负责，截止周二下班前，交付内容是确认最终文案，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "Swift 全量测试，现在归开发组跟进，周三中午前要跑完回归测试，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "Python 服务测试，由测试组负责，时间是周四下午，动作是整理风险清单，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+        "关于Bundle ID，负责人是运营组，要求周五发布前核对数据来源，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "严格签名，由大梁老师负责，截止下周一十点，交付内容是完成客户复核，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "二进制 UUID，现在归产品组跟进，周一上午前要更新操作说明，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "单一进程，由设计组负责，时间是周二下班前，动作是归档本轮结论，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "natural-long-01",
+      "base_case_id": "natural-long-01",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "我把这周版本情况一次说清楚，原来计划八月二十日上线，这个日期你先别急着写，后面刚收到新的确认。不对，前面的旧日期作废，最终发布日期是八月二十八日，群里和发布页都只写最终日期，别把改动过程带进去。首页文案由小陈负责，周一上午前把价值说明收短，同时补两张真实界面截图，截图上的按钮要有标注。引导页归小林，周二下班前确认三步操作顺序；权限说明由产品组接手，周三中午前把辅助功能和麦克风权限分开写。长文润色这块设计组周四下午给风险清单，历史记录由开发组在周五发布前核对数据来源，不能拿测试数据替代正式记录。最后是安装包签名，测试组下周一十点前完成客户复核。六件事分别写清负责人和时间，状态未知的不要替我写成已经完成。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我把这周版本情况一次说清楚，原来计划八月二十日上线，这个日期你先别急着写，后面刚收到新的确认。",
+        "不对，前面的旧日期作废，最终发布日期是八月二十八日，群里和发布页都只写最终日期，别把改动过程带进去。",
+        "首页文案由小陈负责，周一上午前把价值说明收短，同时补两张真实界面截图，截图上的按钮要有标注。",
+        "引导页归小林，周二下班前确认三步操作顺序；权限说明由产品组接手，周三中午前把辅助功能和麦克风权限分开写。",
+        "长文润色这块设计组周四下午给风险清单，历史记录由开发组在周五发布前核对数据来源，不能拿测试数据替代正式记录。",
+        "最后是安装包签名，测试组下周一十点前完成客户复核。六件事分别写清负责人和时间，状态未知的不要替我写成已经完成。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "natural-long-02",
+      "base_case_id": "natural-long-02",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "今天课程会议先聊定位，我们不是做一门把所有工具都讲完的大课，核心还是让零基础学员能独立完成一次真实任务。预算最开始有人提一万六千八，我这里更正一下，不对，最后通过的是一万六，旧数字不要写进纪要。预算包含录制和剪辑，不包含额外投放。内容上第一章讲账号与环境，第二章讲提示词，第三章才进入语音输入，不能为了赶时间把环境检查并到后面。录制顺序由小林周二前给出来，事实核查由产品组负责，所有价格、版本和平台限制都要回到官方来源。大家还没确定正式发布时间，只确认了周五先出内部试看版。客户案例能不能公开也待授权，所以这两项都放在待确认，不要写成决定。最后的行动是设计组周三交课程母版，测试组周四跑一遍学员视角，运营组收到反馈后整理问题，但不要承诺当晚全部修完。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "今天课程会议先聊定位，我们不是做一门把所有工具都讲完的大课，核心还是让零基础学员能独立完成一次真实任务。",
+        "预算最开始有人提一万六千八，我这里更正一下，不对，最后通过的是一万六，旧数字不要写进纪要。预算包含录制和剪辑，不包含额外投放。",
+        "内容上第一章讲账号与环境，第二章讲提示词，第三章才进入语音输入，不能为了赶时间把环境检查并到后面。",
+        "录制顺序由小林周二前给出来，事实核查由产品组负责，所有价格、版本和平台限制都要回到官方来源。",
+        "大家还没确定正式发布时间，只确认了周五先出内部试看版。客户案例能不能公开也待授权，所以这两项都放在待确认，不要写成决定。",
+        "最后的行动是设计组周三交课程母版，测试组周四跑一遍学员视角，运营组收到反馈后整理问题，但不要承诺当晚全部修完。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "natural-long-03",
+      "base_case_id": "natural-long-03",
+      "input_kind": "base",
+      "writing_scene": "customerSupport",
+      "spoken_input": "这个客户用的是 work buddy，昨天晚上第一次反馈识别不到输入框，当时系统版本是 macOS 15.6，软件版本是 2.0.0。我们先让他检查辅助功能，权限其实已经开了；重启软件后短句能输入，但录到两分钟左右又会停在处理中。今天上午又做了两次复现，第一次网络从公司 Wi-Fi 切到热点后恢复，第二次网络没变也卡住，所以不能直接认定是网络问题。客户最在意的是长语音不要丢。他接受处理中多等一会儿，但不能等完以后只回来一整段原文，这个诉求要原样写清。下一步先收集诊断包和发生时间，不要让客户发送密码、验证码或者完整聊天内容；拿到日志后由开发组排查超时和回退原因。回复里先承认问题已经记录，再给出临时建议：重要长内容先分两段录。这个只是临时办法，不能说问题已经修好，也不要承诺具体修复日期。",
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "segment_texts": [
+        "这个客户用的是 work buddy，昨天晚上第一次反馈识别不到输入框，当时系统版本是 macOS 15.6，软件版本是 2.0.0。",
+        "我们先让他检查辅助功能，权限其实已经开了；重启软件后短句能输入，但录到两分钟左右又会停在处理中。",
+        "今天上午又做了两次复现，第一次网络从公司 Wi-Fi 切到热点后恢复，第二次网络没变也卡住，所以不能直接认定是网络问题。",
+        "客户最在意的是长语音不要丢。他接受处理中多等一会儿，但不能等完以后只回来一整段原文，这个诉求要原样写清。",
+        "下一步先收集诊断包和发生时间，不要让客户发送密码、验证码或者完整聊天内容；拿到日志后由开发组排查超时和回退原因。",
+        "回复里先承认问题已经记录，再给出临时建议：重要长内容先分两段录。这个只是临时办法，不能说问题已经修好，也不要承诺具体修复日期。"
+      ],
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "当前工单产品：WorkBuddy。客户等级：普通用户。 候选人名单包含唐宁和陆远，但两人都尚未分配任务。 仅作上下文泄漏测试：CTX-ONLY-NATURAL-LONG-03。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "natural-long-04",
+      "base_case_id": "natural-long-04",
+      "input_kind": "base",
+      "writing_scene": "code",
+      "spoken_input": "这次发布别合并成大命令，先在仓库根目录跑 swift test，确认全量测试通过以后再做 Release 构建。第二步执行 swift build -c release，构建失败就停，不要继续打包。第三步用 scripts/package-app.sh 生成应用，产物应该在 build/Dal.app。第四步检查 Info.plist 里的 Bundle ID 必须是 pro.daliang.muse，版本号保持 2.0.0。第五步执行 codesign --verify --deep --strict build/Dal.app，只是验证签名，不要重新签名。第六步比较 Release 二进制和应用内二进制的 UUID；第七步确认 /Applications 里没有第二个 Dal 副本。最后一步才覆盖安装并启动，启动后只保留一个进程。任何一步失败都记录真实错误并停止，不能为了完成发布跳过检查。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这次发布别合并成大命令，先在仓库根目录跑 swift test，确认全量测试通过以后再做 Release 构建。",
+        "第二步执行 swift build -c release，构建失败就停，不要继续打包。",
+        "第三步用 scripts/package-app.sh 生成应用，产物应该在 build/Dal.app。",
+        "第四步检查 Info.plist 里的 Bundle ID 必须是 pro.daliang.muse，版本号保持 2.0.0。",
+        "第五步执行 codesign --verify --deep --strict build/Dal.app，只是验证签名，不要重新签名。",
+        "第六步比较 Release 二进制和应用内二进制的 UUID；第七步确认 /Applications 里没有第二个 Dal 副本。",
+        "最后一步才覆盖安装并启动，启动后只保留一个进程。任何一步失败都记录真实错误并停止，不能为了完成发布跳过检查。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-01-noise-01",
+      "base_case_id": "chat-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "嗯那个我今天大概大概七点半到你们不用等我啊不用等我吃饭先吃就行",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "嗯那个我今天大概大概七点半到你们不用等我啊不用等我吃饭先吃就行"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-02-noise-01",
+      "base_case_id": "chat-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "我们周六下午去看那个展吧。不对周六我有事改成。周日下午你有空吗？",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我们周六下午去看那个展吧。不对周六我有事改成。周日下午你有空吗？"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-03-noise-01",
+      "base_case_id": "chat-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "我不是不愿意帮你不是说不想帮是真的这两天完全排不开真的排不开不是在敷衍你等我忙完这一阵我再跟你说",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我不是不愿意帮你不是说不想帮是真的这两天完全排不开真的排不开不是在敷衍你等我忙完这一阵我再跟你说"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-04-noise-01",
+      "base_case_id": "chat-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "你明天是直接到店里。还是先来我这边还有那个样品。你拿到了吗如果没拿到我今天顺路去取？",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你明天是直接到店里。还是先来我这边还有那个样品。你拿到了吗如果没拿到我今天顺路去取？"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-05-noise-01",
+      "base_case_id": "chat-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "明天你过来的时候帮我带两样东西第一充电器第二上次那本书啊等一下还有门卡那就是三样别的不用带",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "明天你过来的时候帮我带两样东西第一充电器第二上次那本书啊等一下还有门卡那就是三样别的不用带"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-01-noise-01",
+      "base_case_id": "work-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "同步一下Type less的对比测试测试已经跑完了结果表还差两个渠 道预计今天下班前能补完补完以后我会在群里发链接",
+      "preconditions": [
+        "术语库中已确认 Type less → Typeless",
+        "术语库中已确认 Type less → Typeless"
+      ],
+      "context_type": "none",
+      "segment_texts": [
+        "同步一下Type less的对比测试测试已经跑完了结果表还差两个渠 道预计今天下班前能补完补完以后我会在群里发链接"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-01-noise-02",
+      "base_case_id": "work-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "同步一下 type list 的对比测试已经跑完了结果表还差两个渠道预计今天下班前能补完补完以后我会在群里发链接",
+      "preconditions": [
+        "术语库中已确认 Type less → Typeless",
+        "术语库中已确认 type list → Typeless"
+      ],
+      "context_type": "none",
+      "segment_texts": [
+        "同步一下 type list 的对比测试已经跑完了结果表还差两个渠道预计今天下班前能补完补完以后我会在群里发链接"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-02-noise-01",
+      "base_case_id": "work-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "评审先定周三下午三点，产品和设计一共四个人。不对开发也参加那就是六个人时间也改一下。周三大家不齐最终放到周四上午十点？",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "评审先定周三下午三点，产品和设计一共四个人。不对开发也参加那就是六个人时间也改一下。周三大家不齐最终放到周四上午十点？"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-03-noise-01",
+      "base_case_id": "work-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "发布这块我本来想就是先灰度百分之十但是先说问题吧测试数据还没跑完回滚脚本也没验证今晚这个先不最终结论是今晚不上等两个问题确认完明早再决定",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "发布这块我本来想就是先灰度百分之十但是先说问题吧测试数据还没跑完回滚脚本也没验证今晚这个先不最终结论是今晚不上等两个问题确认完明早再决定"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-04-noise-01",
+      "base_case_id": "work-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "小林那个麻烦你今天五点前确认合同里的三个报价是不是最终版就是确认一下还会不会改如果会改请直接在文档里标出来我六点要发给客户",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "小林那个麻烦你今天五点前确认合同里的三个报价是不是最终版就是确认一下还会不会改如果会改请直接在文档里标出来我六点要发给客户"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-05-noise-01",
+      "base_case_id": "work-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "这个问题还是要同步给负责人。不是说谁做得不好啊只是已经连续两次延期如果今天还不能给明确时间。后面的排期都会受影响这句别写得太重，但事情要说清楚。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这个问题还是要同步给负责人。不是说谁做得不好啊只是已经连续两次延期如果今天还不能给明确时间。后面的排期都会受影响这句别写得太重，但事情要说清楚。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-01-noise-01",
+      "base_case_id": "email-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "王老师您好，感谢今天抽时间沟通。关于课程大纲麻烦您把刚才提到的参考资料发我一下最好。周五之前这样我们下周一可以开始整理第一版。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "王老师您好，感谢今天抽时间沟通。关于课程大纲麻烦您把刚才提到的参考资料发我一下最好。周五之前这样我们下周一可以开始整理第一版。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-03-noise-01",
+      "base_case_id": "email-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "赵经理您好抱歉刚才那封邮件附件我发的是第二版不是我重新说应该是第三版我现在重新发您请以后面这份为准给您添麻烦了",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "赵经理您好抱歉刚才那封邮件附件我发的是第二版不是我重新说应该是第三版我现在重新发您请以后面这份为准给您添麻烦了"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-04-noise-01",
+      "base_case_id": "email-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "陈律师您好请确认合同金额。总金额是四 万八首款百分之五十合同签完。三个工作日内支付尾款在项目验收后。七个工作日内支付。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "陈律师您好请确认合同金额。总金额是四 万八首款百分之五十合同签完。三个工作日内支付尾款在项目验收后。七个工作日内支付。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-05-noise-01",
+      "base_case_id": "email-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "周总您好先说下周二前我们会给可点击原型供您确认流程页面按B版继续接口字段等你们技术确认上线时间现在不能定具体日期就是暂时不写死要等接口联调完才能确认我把今天讨论的事情汇总一下",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "周总您好先说下周二前我们会给可点击原型供您确认流程页面按B版继续接口字段等你们技术确认上线时间现在不能定具体日期就是暂时不写死要等接口联调完才能确认我把今天讨论的事情汇总一下"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-01-noise-01",
+      "base_case_id": "note-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "note",
+      "spoken_input": "我今天突然意识到一个问题就是很多人不是不会用AI不是工具不会操作而是不知道什么时候该用它所以真正的门槛可能不是工具操作就是可能是任务判断这个点以后可以展开讲",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我今天突然意识到一个问题就是很多人不是不会用AI不是工具不会操作而是不知道什么时候该用它所以真正的门槛可能不是工具操作就是可能是任务判断这个点以后可以展开讲"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-02-noise-01",
+      "base_case_id": "note-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "document",
+      "spoken_input": "今天会议主要定了三件事第一首页先不改结构。只换文案第二小陈周三前把数据补齐第三我来整理测试清单另外还有一个没定的是。发布日要等客户回复这个别放在已确定事项里。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "今天会议主要定了三件事第一首页先不改结构。只换文案第二小陈周三前把数据补齐第三我来整理测试清单另外还有一个没定的是。发布日要等客户回复这个别放在已确定事项里。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-03-noise-01",
+      "base_case_id": "note-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "document",
+      "spoken_input": "这个功能第一版先做搜索不对搜索这个后面再说它想解决的是录完音找不到刚才的内容第一版按时间看最近记录可以复制可以删除删除要二次确认然后这个",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这个功能第一版先做搜索不对搜索这个后面再说它想解决的是录完音找不到刚才的内容第一版按时间看最近记录可以复制可以删除删除要二次确认然后这个"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-05-noise-01",
+      "base_case_id": "note-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "note",
+      "spoken_input": "记一下今天听到一句话大概是不要优化你还没有验证的东西英文是 don't optimize what you have n't 那个后面我没记住作者也没听清先别猜",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "记一下今天听到一句话大概是不要优化你还没有验证的东西英文是 don't optimize what you have n't 那个后面我没记住作者也没听清先别猜"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-02-noise-01",
+      "base_case_id": "prompt-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "让AI查这个 Swift 并发问题现象是 Main Actor isolated property cannot be refer enced。然后不要直接改代码先解释原因。列出调用链最后给最小修改方案和需要补的测试？",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "让AI查这个 Swift 并发问题现象是 Main Actor isolated property cannot be refer enced。然后不要直接改代码先解释原因。列出调用链最后给最小修改方案和需要补的测试？"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-05-noise-01",
+      "base_case_id": "prompt-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "分析销售表先看最近十二个月不对不对数据只有九个月那就分析全部九个月按渠道和月份拆开找增长最快和下滑最大的渠道不要预测下一季度最后给三条三条可以从数据直接支持的建议",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "分析销售表先看最近十二个月不对不对数据只有九个月那就分析全部九个月按渠道和月份拆开找增长最快和下滑最大的渠道不要预测下一季度最后给三条三条可以从数据直接支持的建议"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-02-noise-01",
+      "base_case_id": "social-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "socialPost",
+      "spoken_input": "我现在越来越觉得做内容最难的是持续更新。不是我想说的不只是更新难，更难的是每次发之前知道为什么要发如果只为不断更内容会像任务。会变成任务但每次都等特别成熟又永远发不出来所以我想找一个中间状态有真实想法但不用完美。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我现在越来越觉得做内容最难的是持续更新。不是我想说的不只是更新难，更难的是每次发之前知道为什么要发如果只为不断更内容会像任务。会变成任务但每次都等特别成熟又永远发不出来所以我想找一个中间状态有真实想法但不用完美。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-04-noise-01",
+      "base_case_id": "social-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "socialPost",
+      "spoken_input": "这次做线上分享我有三个感受第一别一上来讲太多背景第二演示一定要提前跑一遍。顺便说一下我那天网络也不太好但这个不用展开第三。要给听众留实际操作的时间。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "这次做线上分享我有三个感受第一别一上来讲太多背景第二演示一定要提前跑一遍。顺便说一下我那天网络也不太好但这个不用展开第三。要给听众留实际操作的时间。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-01-noise-01",
+      "base_case_id": "code-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "code",
+      "spoken_input": "记录一个bug在 Dal 斜杠 Voice Polish 斜杠 Voice Pol ish Pipeline 点 swift 里长文本超过二零四八 token 会回退原文复现命令 swift test 双横线 filter Voice Polish Pipeline Tests",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "记录一个bug在 Dal 斜杠 Voice Polish 斜杠 Voice Pol ish Pipeline 点 swift 里长文本超过二零四八 token 会回退原文复现命令 swift test 双横线 filter Voice Polish Pipeline Tests"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-03-noise-01",
+      "base_case_id": "code-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "code",
+      "spoken_input": "部署要做三步第一跑 swift test 第二跑 swift build 短横线 c release 第三执行 scripts 斜杠 package 短横线 app 点 sh 等一下还有一步要检查 codesign 所以是四步最后再启动应用",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "部署要做三步第一跑 swift test 第二跑 swift build 短横线 c release 第三执行 scripts 斜杠 package 短横线 app 点 sh 等一下还有一步要检查 codesign 所以是四步最后再启动应用"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-02-noise-01",
+      "base_case_id": "support-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "customerSupport",
+      "spoken_input": "我想申请整单退款不对其中一个已经用了这个不能退那就只退另外两件未拆封的商品订单号A六八二一麻烦告诉我怎么寄回",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我想申请整单退款不对其中一个已经用了这个不能退那就只退另外两件未拆封的商品订单号A六八二一麻烦告诉我怎么寄回"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-04-noise-01",
+      "base_case_id": "support-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "customerSupport",
+      "spoken_input": "回复客户我们已经收到问题。技术正在查预计明天下午之前给一次进展但别说一定能修好。内部看可能是第三方接口波动这个原因。先不要告诉客户没有确认。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "回复客户我们已经收到问题。技术正在查预计明天下午之前给一次进展但别说一定能修好。内部看可能是第三方接口波动这个原因。先不要告诉客户没有确认。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-05-noise-01",
+      "base_case_id": "support-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "customerSupport",
+      "spoken_input": "给客户回一下这个目前不是坏了。是需要先开那个权限他要做两步先到系统设置里打开辅助功能然后。完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们？",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "给客户回一下这个目前不是坏了。是需要先开那个权限他要做两步先到系统设置里打开辅助功能然后。完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们？"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-01-stutter-01",
+      "base_case_id": "chat-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "我我我今天大大概七点半到你们不不用等我先吃饭就行",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我我我今天大大概七点半到你们不不用等我先吃饭就行"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "chat-04-stutter-01",
+      "base_case_id": "chat-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "你明天你明天是直接到店里还是还是先来我这边那个样品你拿到了吗如果没拿到我今天顺路去取",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你明天你明天是直接到店里还是还是先来我这边那个样品你拿到了吗如果没拿到我今天顺路去取"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "work-04-stutter-01",
+      "base_case_id": "work-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "小小林麻烦麻烦你今天五点前帮我帮我确认一下合同里那三个报价是不是最终版如果还会改请直接在文档里标出来我六点要发给客户",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "小小林麻烦麻烦你今天五点前帮我帮我确认一下合同里那三个报价是不是最终版如果还会改请直接在文档里标出来我六点要发给客户"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "email-01-stutter-01",
+      "base_case_id": "email-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "王老师您好您好感谢今天今天抽时间沟通课程大纲麻烦您把刚才提到的参考资料发我一下最好周五之前这样我们下周一可以开始整理第一版",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "王老师您好您好感谢今天今天抽时间沟通课程大纲麻烦您把刚才提到的参考资料发我一下最好周五之前这样我们下周一可以开始整理第一版"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "note-01-stutter-01",
+      "base_case_id": "note-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "note",
+      "spoken_input": "我我今天突突然意识到一个问题很多人不是不会用AI而是不知道什么时候该用它所以真正的门槛可能不是工具操作而是任务判断这个点以后可以展开讲",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我我今天突突然意识到一个问题很多人不是不会用AI而是不知道什么时候该用它所以真正的门槛可能不是工具操作而是任务判断这个点以后可以展开讲"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "prompt-02-stutter-01",
+      "base_case_id": "prompt-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "让让AI帮我查这个这个Swift并并发问题现象是偶发出现 MainActor isolated property cannot be referenced 然后不要直接改代码先解释原因列出可能的调用链最后给最小修改方案和需要补的测试",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "让让AI帮我查这个这个Swift并并发问题现象是偶发出现 MainActor isolated property cannot be referenced 然后不要直接改代码先解释原因列出可能的调用链最后给最小修改方案和需要补的测试"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "social-03-stutter-01",
+      "base_case_id": "social-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "socialPost",
+      "spoken_input": "你有没有发现发现现在很多很多AI工具功能越来越多但你真正每天在用的可能还是那两三个这不是因为别的功能没用而是因为大多数功能没有进入你的工作流程今天我想聊工具为什么装了很多最后却用不起来",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "你有没有发现发现现在很多很多AI工具功能越来越多但你真正每天在用的可能还是那两三个这不是因为别的功能没用而是因为大多数功能没有进入你的工作流程今天我想聊工具为什么装了很多最后却用不起来"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "support-05-stutter-01",
+      "base_case_id": "support-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "customerSupport",
+      "spoken_input": "给给客户回一下这个功功能需要先开权限他要做两步先到系统设置里打开辅助辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "给给客户回一下这个功功能需要先开权限他要做两步先到系统设置里打开辅助辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "code-03-stutter-01",
+      "base_case_id": "code-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "code",
+      "spoken_input": "部署共四步第第一跑swift test第第二跑swift build短横线c release第第三执行scripts斜杠package短横线app点sh第第四检查codesign最后再启动应用",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "部署共四步第第一跑swift test第第二跑swift build短横线c release第第三执行scripts斜杠package短横线app点sh第第四检查codesign最后再启动应用"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "natural-long-01-segments-1",
+      "base_case_id": "natural-long-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "我把这周版本情况一次说清楚，原来计划八月二十日上线，这个日期你先别急着写，后面刚收到新的确认。不对，前面的旧日期作废，最终发布日期是八月二十八日，群里和发布页都只写最终日期，别把改动过程带进去。首页文案由小陈负责，周一上午前把价值说明收短，同时补两张真实界面截图，截图上的按钮要有标注。引导页归小林，周二下班前确认三步操作顺序；权限说明由产品组接手，周三中午前把辅助功能和麦克风权限分开写。长文润色这块设计组周四下午给风险清单，历史记录由开发组在周五发布前核对数据来源，不能拿测试数据替代正式记录。最后是安装包签名，测试组下周一十点前完成客户复核。六件事分别写清负责人和时间，状态未知的不要替我写成已经完成。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我把这周版本情况一次说清楚，原来计划八月二十日上线，这个日期你先别急着写，后面刚收到新的确认。不对，前面的旧日期作废，最终发布日期是八月二十八日，群里和发布页都只写最终日期，别把改动过程带进去。首页文案由小陈负责，周一上午前把价值说明收短，同时补两张真实界面截图，截图上的按钮要有标注。引导页归小林，周二下班前确认三步操作顺序；权限说明由产品组接手，周三中午前把辅助功能和麦克风权限分开写。长文润色这块设计组周四下午给风险清单，历史记录由开发组在周五发布前核对数据来源，不能拿测试数据替代正式记录。最后是安装包签名，测试组下周一十点前完成客户复核。六件事分别写清负责人和时间，状态未知的不要替我写成已经完成。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-handoff-01",
+      "base_case_id": "r4-natural-handoff-01",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。",
+        "事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。",
+        "截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。",
+        "设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。",
+        "周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。",
+        "素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。",
+        "附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-interview-02",
+      "base_case_id": "r4-natural-interview-02",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。",
+        "团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。",
+        "预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。",
+        "结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。",
+        "第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。",
+        "交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。",
+        "公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-prompt-03",
+      "base_case_id": "r4-natural-prompt-03",
+      "input_kind": "base",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "把这段要求整理成我能直接给AI的Prompt，先别真的开始调研。项目名我说的是春持研究，选中的标题是我已经确认过的，按标题里的正式名字写。目标是比较五款适合个人使用的资料整理工具，重点看从保存资料到再次找到并用上它的完整流程，不是只比较功能按钮的数量。每款记录支持的平台、导入格式、搜索方式、能否导出、离线限制和当前价格。来源优先官方产品页、帮助文档、价格页和带日期的更新记录，媒体报道只能补背景。价格写币种、周期和查询日期，地区不同就分别列出，不自行换算。预算上限是100元，这只是本次试用支出，不能顺手替我购买，也不能把月费乘十二当成预算。体验结论要区分资料已经确认和仍待安装测试，官网说支持不等于实际效果就好。设计三档资料量：五十条、两百条和八百条，每档检查搜索遗漏、重复导入和导出完整性。跨设备同步单独核验，不把同一台电脑上的成功当成两端都正常。没有实测的部分明确写未实测，不编一个评分来填空。样本里至少有一个本地工具、一个云端服务和一个带AI整理能力的独立应用，选择理由要写明。评判先定义直接可用、少量修改、重大修改和不可用四档。速度分开记录首次出现结果和最终完成的时间，不用快来代替质量。遇到资料冲突就并列双方说法及日期，暂时不要替我决定哪一边正确。最后给一张横向对比表、一段适合谁不适合谁的判断、三个待实测问题和逐条来源链接。每个结论旁边放能支撑它的来源，不只在文末堆链接。引用只摘支持判断的短句，不复制整页说明。报告用中文，产品名和命令保留官方拼写，不加最好最强的营销排名。安全测试也要有正反例：选中正确标题时可以帮助纠正专名，但旁边不相关的地址、日期和验证码不能进入结果。记录测试输入、工具版本、设置与运行日期，使用合成资料，不保存真实密码或聊天正文。服务要求注册或付款时只记录要求，实际动作由我决定，不能因为测试方便就把隐私设置全部打开。再加一轮故意冲突的输入：同名文件属于两个项目，分别保留不同日期；一个任务说不超过100元，另一个说至少100元，不准简化成金额相同。反例失败进入风险表，成功和失败都保留。资料不足的功能标待核实，任何推断写出依据，结论不要超过证据能支持的范围。",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "把这段要求整理成我能直接给AI的Prompt，先别真的开始调研。项目名我说的是春持研究，选中的标题是我已经确认过的，按标题里的正式名字写。目标是比较五款适合个人使用的资料整理工具，重点看从保存资料到再次找到并用上它的完整流程，不是只比较功能按钮的数量。",
+        "每款记录支持的平台、导入格式、搜索方式、能否导出、离线限制和当前价格。来源优先官方产品页、帮助文档、价格页和带日期的更新记录，媒体报道只能补背景。价格写币种、周期和查询日期，地区不同就分别列出，不自行换算。预算上限是100元，这只是本次试用支出，不能顺手替我购买，也不能把月费乘十二当成预算。",
+        "体验结论要区分资料已经确认和仍待安装测试，官网说支持不等于实际效果就好。设计三档资料量：五十条、两百条和八百条，每档检查搜索遗漏、重复导入和导出完整性。跨设备同步单独核验，不把同一台电脑上的成功当成两端都正常。没有实测的部分明确写未实测，不编一个评分来填空。",
+        "样本里至少有一个本地工具、一个云端服务和一个带AI整理能力的独立应用，选择理由要写明。评判先定义直接可用、少量修改、重大修改和不可用四档。速度分开记录首次出现结果和最终完成的时间，不用快来代替质量。遇到资料冲突就并列双方说法及日期，暂时不要替我决定哪一边正确。",
+        "最后给一张横向对比表、一段适合谁不适合谁的判断、三个待实测问题和逐条来源链接。每个结论旁边放能支撑它的来源，不只在文末堆链接。引用只摘支持判断的短句，不复制整页说明。报告用中文，产品名和命令保留官方拼写，不加最好最强的营销排名。",
+        "安全测试也要有正反例：选中正确标题时可以帮助纠正专名，但旁边不相关的地址、日期和验证码不能进入结果。记录测试输入、工具版本、设置与运行日期，使用合成资料，不保存真实密码或聊天正文。服务要求注册或付款时只记录要求，实际动作由我决定，不能因为测试方便就把隐私设置全部打开。",
+        "再加一轮故意冲突的输入：同名文件属于两个项目，分别保留不同日期；一个任务说不超过100元，另一个说至少100元，不准简化成金额相同。反例失败进入风险表，成功和失败都保留。资料不足的功能标待核实，任何推断写出依据，结论不要超过证据能支持的范围。"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "春池研究：个人资料整理工具比较。另一份采购单预计十月九日到货，预算430元。CTX-R4-PROMPT-ONLY。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "r4-natural-requirements-04",
+      "base_case_id": "r4-natural-requirements-04",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。历史记录原来想保留两百条，等一下这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。",
+      "preconditions": [],
+      "context_type": "unknown_blocked",
+      "segment_texts": [
+        "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。",
+        "每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。",
+        "历史记录原来想保留两百条，等一下这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。",
+        "附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。",
+        "移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。",
+        "验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。",
+        "第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。"
+      ],
+      "context_fixture": {
+        "type": "unknown_blocked",
+        "level": "nearbyText",
+        "safety": "unknown",
+        "selected_text": "白雨系统的负责人是王小明。",
+        "text_before_cursor": "未知控件旁边写着海棠路八号，验证码731204。CTX-R4-UNKNOWN-ONLY。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "r4-natural-checklist-05",
+      "base_case_id": "r4-natural-checklist-05",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "我要把周末开放日的准备工作发给同事，请按我说的任务顺序整理，每项的人、时间和检查要求都保留。我刚开始以为一共六项，后面再补全确认，别急着按这个数做标题。语气正常交代就行，不用加冲刺口号，也别把不同任务的限制概括成一句统一提醒。第一项是报名名单，小陈周一上午前核对姓名和邮箱，重复邮箱先标记，不能直接删人。当前名单二十四人，其中两位已经取消，所以实际联系二十二人，原始表保留便于查记录。第二项是通知初稿，小林周二下班前交给我，说明时间、地点和到场方式，没有确认的停车安排写待确认，别替场地方作保证。第三项是演示电脑，开发组周三中午前检查账号和网络。文件夹里第二版演示稿还没有审核，先使用已经确认的第一版，这里的版本号不是额外的任务序号。演示只用测试账号，登录失败先记录错误原话，不能把真实密码贴到群里。第四项是现场标识，设计组周四下午交打印文件，运营同事实地核对方向后才送印。第五项是讲义，产品组周五上午核对链接和价格日期。正式打印前我还要签字，链接检查通过与我签字两个条件都满足才能发给印刷方，内部预览可以继续。讲义里有一句引号中的我我我想去，是口吃识别的例子，要逐字保留，其他明显口吃可以清理，别因为看见重复就一律删掉。第六项是物料，运营组周五下班前清点。主会场预算不超过800元，接待区预算至少300元，这是两个不同范围，不要加总成统一额度。能借用的设备记录归还时间，临时购买的东西先找我确认，不因为预算还有余额就直接下单；网上显示有货也不能当成已经送到。还有第七项是活动后的反馈，小赵负责，下周一中午前把参与者原话和我们观察到的问题分别记录。愿意接受回访的人单独标记，不愿意的就不再联系。反馈中可能有用的建议先列候选，不能写成已经验证有效。涉及个人信息的截图脱敏，公开总结不附原始名单。最终是七项，不是开头说的六项。各负责人在自己的任务后回复状态和阻塞原因，不能按时完成时只调整受影响的安排。附件只放最新任务表和已确认的通知稿，旧附件归档，不发送内部账号材料。现场能否开放还要等场地方确认，准备完七项不等于已经获得对外开放许可。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我要把周末开放日的准备工作发给同事，请按我说的任务顺序整理，每项的人、时间和检查要求都保留。我刚开始以为一共六项，后面再补全确认，别急着按这个数做标题。语气正常交代就行，不用加冲刺口号，也别把不同任务的限制概括成一句统一提醒。",
+        "第一项是报名名单，小陈周一上午前核对姓名和邮箱，重复邮箱先标记，不能直接删人。当前名单二十四人，其中两位已经取消，所以实际联系二十二人，原始表保留便于查记录。第二项是通知初稿，小林周二下班前交给我，说明时间、地点和到场方式，没有确认的停车安排写待确认，别替场地方作保证。",
+        "第三项是演示电脑，开发组周三中午前检查账号和网络。文件夹里第二版演示稿还没有审核，先使用已经确认的第一版，这里的版本号不是额外的任务序号。演示只用测试账号，登录失败先记录错误原话，不能把真实密码贴到群里。第四项是现场标识，设计组周四下午交打印文件，运营同事实地核对方向后才送印。",
+        "第五项是讲义，产品组周五上午核对链接和价格日期。正式打印前我还要签字，链接检查通过与我签字两个条件都满足才能发给印刷方，内部预览可以继续。讲义里有一句引号中的我我我想去，是口吃识别的例子，要逐字保留，其他明显口吃可以清理，别因为看见重复就一律删掉。",
+        "第六项是物料，运营组周五下班前清点。主会场预算不超过800元，接待区预算至少300元，这是两个不同范围，不要加总成统一额度。能借用的设备记录归还时间，临时购买的东西先找我确认，不因为预算还有余额就直接下单；网上显示有货也不能当成已经送到。",
+        "还有第七项是活动后的反馈，小赵负责，下周一中午前把参与者原话和我们观察到的问题分别记录。愿意接受回访的人单独标记，不愿意的就不再联系。反馈中可能有用的建议先列候选，不能写成已经验证有效。涉及个人信息的截图脱敏，公开总结不附原始名单。",
+        "最终是七项，不是开头说的六项。各负责人在自己的任务后回复状态和阻塞原因，不能按时完成时只调整受影响的安排。附件只放最新任务表和已确认的通知稿，旧附件归档，不发送内部账号材料。现场能否开放还要等场地方确认，准备完七项不等于已经获得对外开放许可。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-coordination-06",
+      "base_case_id": "r4-natural-coordination-06",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "这些话发给内部客服同事，帮我整理得清楚一点。项目名字我口述成成川计划，刚才已经输入过正式写法，按那个名称写。今天先把待回复的问题分清楚：使用步骤由小林核对，账单由小陈查记录，技术故障交给开发组，不要因为客户同时问了三件事就把所有责任都交给一个人。关于当前故障，跟客户沟通时可以说我们会尽量在周五之前查清原因，但现在不能保证周五一定修好。内部先不要答应赔偿，费用范围还没确认；这句是提醒我们自己的同事。客户如果追问费用，就说明目前仍在核实，不能替负责人承诺一定免单，也不要把尚未确认的处理方案说成已经批准。使用步骤请按实际系统版本回答，先确认权限，再让客户完全退出应用重新打开，两个动作不要颠倒。如果仍失败，请他提供系统版本和错误截图，截图里的密码和验证码要遮掉。不要归咎于客户操作不熟，也别让他无条件重装系统；没有测试过的方法先当排查建议，不能说一定有效。账单里有两笔同为100元的记录，一笔是本期服务费，一笔是已登记但尚未到账的退款，不能因为金额相同就合成一笔。退款确认到账以后再通知客户，目前保留待确认。另有50美元的海外服务退款，币种保持美元，不与人民币金额相加，也不自行换算。报名费还有一条公开更正需要单独通知：昨天公告写的是260元，正确金额是210元，已经按260元交费的人会退50元。这次要让读过旧公告的人知道改了什么，所以旧金额要写明。它和前面那两笔100元的记录不是同一件事，不能拿这个退款规则替其他账单作决定。内部今天先更新回复草稿，等小林核对步骤、小陈核对金额以后再发。技术故障的说明还要由开发组确认，不能拿账单核对通过代替技术确认。对同一问题的重复追问可以合并记录，但客户补充的系统版本、时间和截图不能丢。真正需要客户回答的问题保留问句，别自行补一个看似合理的答案。交班时只发送工单编号、当前状态和下一位负责人，原始聊天正文继续留在授权系统里，不复制到私人笔记。未解决的问题注明卡在哪里，下班前交给接班同事，不因为超过当天时限就标成已解决。我们评估服务质量时把等待客户信息和内部处理时间分开，不能只看总耗时就判断是谁耽误了。",
+      "preconditions": [],
+      "context_type": "recent_safe",
+      "segment_texts": [
+        "这些话发给内部客服同事，帮我整理得清楚一点。项目名字我口述成成川计划，刚才已经输入过正式写法，按那个名称写。今天先把待回复的问题分清楚：使用步骤由小林核对，账单由小陈查记录，技术故障交给开发组，不要因为客户同时问了三件事就把所有责任都交给一个人。",
+        "关于当前故障，跟客户沟通时可以说我们会尽量在周五之前查清原因，但现在不能保证周五一定修好。内部先不要答应赔偿，费用范围还没确认；这句是提醒我们自己的同事。客户如果追问费用，就说明目前仍在核实，不能替负责人承诺一定免单，也不要把尚未确认的处理方案说成已经批准。",
+        "使用步骤请按实际系统版本回答，先确认权限，再让客户完全退出应用重新打开，两个动作不要颠倒。如果仍失败，请他提供系统版本和错误截图，截图里的密码和验证码要遮掉。不要归咎于客户操作不熟，也别让他无条件重装系统；没有测试过的方法先当排查建议，不能说一定有效。",
+        "账单里有两笔同为100元的记录，一笔是本期服务费，一笔是已登记但尚未到账的退款，不能因为金额相同就合成一笔。退款确认到账以后再通知客户，目前保留待确认。另有50美元的海外服务退款，币种保持美元，不与人民币金额相加，也不自行换算。",
+        "报名费还有一条公开更正需要单独通知：昨天公告写的是260元，正确金额是210元，已经按260元交费的人会退50元。这次要让读过旧公告的人知道改了什么，所以旧金额要写明。它和前面那两笔100元的记录不是同一件事，不能拿这个退款规则替其他账单作决定。",
+        "内部今天先更新回复草稿，等小林核对步骤、小陈核对金额以后再发。技术故障的说明还要由开发组确认，不能拿账单核对通过代替技术确认。对同一问题的重复追问可以合并记录，但客户补充的系统版本、时间和截图不能丢。真正需要客户回答的问题保留问句，别自行补一个看似合理的答案。",
+        "交班时只发送工单编号、当前状态和下一位负责人，原始聊天正文继续留在授权系统里，不复制到私人笔记。未解决的问题注明卡在哪里，下班前交给接班同事，不因为超过当天时限就标成已解决。我们评估服务质量时把等待客户信息和内部处理时间分开，不能只看总耗时就判断是谁耽误了。"
+      ],
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "本次服务项目正式名称为“澄川计划”，已确认此写法。",
+          "另一份礼品采购单采用紫色包装，配送日期为十月九日。",
+          "CTX-R4-RECENT-ONLY。"
+        ]
+      }
+    },
+    {
+      "test_input_id": "r4-natural-handoff-01-segments-01",
+      "base_case_id": "r4-natural-handoff-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。",
+        "周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-interview-02-segments-01",
+      "base_case_id": "r4-natural-interview-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，",
+        "所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-prompt-03-segments-01",
+      "base_case_id": "r4-natural-prompt-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "把这段要求整理成我能直接给AI的Prompt，先别真的开始调研。项目名我说的是春持研究，选中的标题是我已经确认过的，按标题里的正式名字写。目标是比较五款适合个人使用的资料整理工具，重点看从保存资料到再次找到并用上它的完整流程，不是只比较功能按钮的数量。每款记录支持的平台、导入格式、搜索方式、能否导出、离线限制和当前价格。来源优先官方产品页、帮助文档、价格页和带日期的更新记录，媒体报道只能补背景。价格写币种、周期和查询日期，地区不同就分别列出，不自行换算。预算上限是100元，这只是本次试用支出，不能顺手替我购买，也不能把月费乘十二当成预算。体验结论要区分资料已经确认和仍待安装测试，官网说支持不等于实际效果就好。设计三档资料量：五十条、两百条和八百条，每档检查搜索遗漏、重复导入和导出完整性。跨设备同步单独核验，不把同一台电脑上的成功当成两端都正常。没有实测的部分明确写未实测，不编一个评分来填空。样本里至少有一个本地工具、一个云端服务和一个带AI整理能力的独立应用，选择理由要写明。评判先定义直接可用、少量修改、重大修改和不可用四档。速度分开记录首次出现结果和最终完成的时间，不用快来代替质量。遇到资料冲突就并列双方说法及日期，暂时不要替我决定哪一边正确。最后给一张横向对比表、一段适合谁不适合谁的判断、三个待实测问题和逐条来源链接。每个结论旁边放能支撑它的来源，不只在文末堆链接。引用只摘支持判断的短句，不复制整页说明。报告用中文，产品名和命令保留官方拼写，不加最好最强的营销排名。安全测试也要有正反例：选中正确标题时可以帮助纠正专名，但旁边不相关的地址、日期和验证码不能进入结果。记录测试输入、工具版本、设置与运行日期，使用合成资料，不保存真实密码或聊天正文。服务要求注册或付款时只记录要求，实际动作由我决定，不能因为测试方便就把隐私设置全部打开。再加一轮故意冲突的输入：同名文件属于两个项目，分别保留不同日期；一个任务说不超过100元，另一个说至少100元，不准简化成金额相同。反例失败进入风险表，成功和失败都保留。资料不足的功能标待核实，任何推断写出依据，结论不要超过证据能支持的范围。",
+      "preconditions": [],
+      "context_type": "selected_safe",
+      "segment_texts": [
+        "把这段要求整理成我能直接给AI的Prompt，先别真的开始调研。项目名我说的是春持研究，选中的标题是我已经确认过的，按标题里的正式名字写。目标是比较五款适合个人使用的资料整理工具，重点看从保存资料到再次找到并用上它的完整流程，不是只比较功能按钮的数量。每款记录支持的平台、导入格式、搜索方式、能否导出、离线限制和当前价格。来源优先官方产品页、帮助文档、价格页和带日期的更新记录，媒体报道只能补背景。价格写币种、周期和查询日期，地区不同就分别列出，不自行换算。预算上限是100元，这只是本次试用支出，不能顺手替我购买，也不能把月费乘十二当成预算。体验结论要区分资料已经确认和仍待安装测试，官网说支持不等于实际效果就好。设计三档资料量：五十条、两百条和八百条，每档检查搜索遗漏、重复导入和导出完整性。跨设备同步单独核验，不把同一台电脑上的成功当成两端都正常。没有实测的部分明确写未实测，不编一个评分来填空。",
+        "样本里至少有一个本地工具、一个云端服务和一个带AI整理能力的独立应用，选择理由要写明。评判先定义直接可用、少量修改、重大修改和不可用四档。速度分开记录首次出现结果和最终完成的时间，不用快来代替质量。遇到资料冲突就并列双方说法及日期，暂时不要替我决定哪一边正确。最后给一张横向对比表、一段适合谁不适合谁的判断、三个待实测问题和逐条来源链接。每个结论旁边放能支撑它的来源，不只在文末堆链接。引用只摘支持判断的短句，不复制整页说明。报告用中文，产品名和命令保留官方拼写，不加最好最强的营销排名。安全测试也要有正反例：选中正确标题时可以帮助纠正专名，但旁边不相关的地址、日期和验证码不能进入结果。记录测试输入、工具版本、设置与运行日期，使用合成资料，不保存真实密码或聊天正文。服务要求注册或付款时只记录要求，实际动作由我决定，不能因为测试方便就把隐私设置全部打开。再加一轮故意冲突的输入：同名文件属于两个项目，分别保留不同日期；一个任务说不超过100元，另一个说至少100元，不准简化成金额相同。反例失败进入风险表，成功和失败都保留。资料不足的功能标待核实，任何推断写出依据，结论不要超过证据能支持的范围。"
+      ],
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "春池研究：个人资料整理工具比较。另一份采购单预计十月九日到货，预算430元。CTX-R4-PROMPT-ONLY。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "r4-natural-requirements-04-segments-01",
+      "base_case_id": "r4-natural-requirements-04",
+      "input_kind": "stress_variant",
+      "writing_scene": "document",
+      "spoken_input": "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。历史记录原来想保留两百条，等一下这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。",
+      "preconditions": [],
+      "context_type": "unknown_blocked",
+      "segment_texts": [
+        "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。",
+        "每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。",
+        "历史记录原来想保留两百条，等一下",
+        "这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。",
+        "附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。",
+        "移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。",
+        "验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。",
+        "第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。"
+      ],
+      "context_fixture": {
+        "type": "unknown_blocked",
+        "level": "nearbyText",
+        "safety": "unknown",
+        "selected_text": "白雨系统的负责人是王小明。",
+        "text_before_cursor": "未知控件旁边写着海棠路八号，验证码731204。CTX-R4-UNKNOWN-ONLY。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "r4-natural-checklist-05-segments-01",
+      "base_case_id": "r4-natural-checklist-05",
+      "input_kind": "stress_variant",
+      "writing_scene": "email",
+      "spoken_input": "我要把周末开放日的准备工作发给同事，请按我说的任务顺序整理，每项的人、时间和检查要求都保留。我刚开始以为一共六项，后面再补全确认，别急着按这个数做标题。语气正常交代就行，不用加冲刺口号，也别把不同任务的限制概括成一句统一提醒。第一项是报名名单，小陈周一上午前核对姓名和邮箱，重复邮箱先标记，不能直接删人。当前名单二十四人，其中两位已经取消，所以实际联系二十二人，原始表保留便于查记录。第二项是通知初稿，小林周二下班前交给我，说明时间、地点和到场方式，没有确认的停车安排写待确认，别替场地方作保证。第三项是演示电脑，开发组周三中午前检查账号和网络。文件夹里第二版演示稿还没有审核，先使用已经确认的第一版，这里的版本号不是额外的任务序号。演示只用测试账号，登录失败先记录错误原话，不能把真实密码贴到群里。第四项是现场标识，设计组周四下午交打印文件，运营同事实地核对方向后才送印。第五项是讲义，产品组周五上午核对链接和价格日期。正式打印前我还要签字，链接检查通过与我签字两个条件都满足才能发给印刷方，内部预览可以继续。讲义里有一句引号中的我我我想去，是口吃识别的例子，要逐字保留，其他明显口吃可以清理，别因为看见重复就一律删掉。第六项是物料，运营组周五下班前清点。主会场预算不超过800元，接待区预算至少300元，这是两个不同范围，不要加总成统一额度。能借用的设备记录归还时间，临时购买的东西先找我确认，不因为预算还有余额就直接下单；网上显示有货也不能当成已经送到。还有第七项是活动后的反馈，小赵负责，下周一中午前把参与者原话和我们观察到的问题分别记录。愿意接受回访的人单独标记，不愿意的就不再联系。反馈中可能有用的建议先列候选，不能写成已经验证有效。涉及个人信息的截图脱敏，公开总结不附原始名单。最终是七项，不是开头说的六项。各负责人在自己的任务后回复状态和阻塞原因，不能按时完成时只调整受影响的安排。附件只放最新任务表和已确认的通知稿，旧附件归档，不发送内部账号材料。现场能否开放还要等场地方确认，准备完七项不等于已经获得对外开放许可。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我要把周末开放日的准备工作发给同事，请按我说的任务顺序整理，每项的人、时间和检查要求都保留。我刚开始以为一共六项，后面再补全确认，别急着按这个数做标题。语气正常交代就行，不用加冲刺口号，也别把不同任务的限制概括成一句统一提醒。",
+        "第一项是报名名单，小陈周一上午前核对姓名和邮箱，重复邮箱先标记，不能直接删人。当前名单二十四人，其中两位已经取消，所以实际联系二十二人，原始表保留便于查记录。",
+        "第二项是通知初稿，小林周二下班前交给我，说明时间、地点和到场方式，没有确认的停车安排写待确认，别替场地方作保证。",
+        "第三项是演示电脑，开发组周三中午前检查账号和网络。文件夹里第二版演示稿还没有审核，先使用已经确认的第一版，这里的版本号不是额外的任务序号。演示只用测试账号，登录失败先记录错误原话，不能把真实密码贴到群里。",
+        "第四项是现场标识，设计组周四下午交打印文件，运营同事实地核对方向后才送印。",
+        "第五项是讲义，产品组周五上午核对链接和价格日期。正式打印前我还要签字，链接检查通过与我签字两个条件都满足才能发给印刷方，内部预览可以继续。讲义里有一句引号中的我我我想去，是口吃识别的例子，要逐字保留，其他明显口吃可以清理，别因为看见重复就一律删掉。",
+        "第六项是物料，运营组周五下班前清点。主会场预算不超过800元，接待区预算至少300元，这是两个不同范围，不要加总成统一额度。能借用的设备记录归还时间，临时购买的东西先找我确认，不因为预算还有余额就直接下单；网上显示有货也不能当成已经送到。",
+        "还有第七项是活动后的反馈，小赵负责，下周一中午前把参与者原话和我们观察到的问题分别记录。愿意接受回访的人单独标记，不愿意的就不再联系。反馈中可能有用的建议先列候选，不能写成已经验证有效。涉及个人信息的截图脱敏，公开总结不附原始名单。",
+        "最终是七项，不是开头说的六项。各负责人在自己的任务后回复状态和阻塞原因，不能按时完成时只调整受影响的安排。附件只放最新任务表和已确认的通知稿，旧附件归档，不发送内部账号材料。现场能否开放还要等场地方确认，准备完七项不等于已经获得对外开放许可。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "r4-natural-coordination-06-segments-01",
+      "base_case_id": "r4-natural-coordination-06",
+      "input_kind": "stress_variant",
+      "writing_scene": "workChat",
+      "spoken_input": "这些话发给内部客服同事，帮我整理得清楚一点。项目名字我口述成成川计划，刚才已经输入过正式写法，按那个名称写。今天先把待回复的问题分清楚：使用步骤由小林核对，账单由小陈查记录，技术故障交给开发组，不要因为客户同时问了三件事就把所有责任都交给一个人。关于当前故障，跟客户沟通时可以说我们会尽量在周五之前查清原因，但现在不能保证周五一定修好。内部先不要答应赔偿，费用范围还没确认；这句是提醒我们自己的同事。客户如果追问费用，就说明目前仍在核实，不能替负责人承诺一定免单，也不要把尚未确认的处理方案说成已经批准。使用步骤请按实际系统版本回答，先确认权限，再让客户完全退出应用重新打开，两个动作不要颠倒。如果仍失败，请他提供系统版本和错误截图，截图里的密码和验证码要遮掉。不要归咎于客户操作不熟，也别让他无条件重装系统；没有测试过的方法先当排查建议，不能说一定有效。账单里有两笔同为100元的记录，一笔是本期服务费，一笔是已登记但尚未到账的退款，不能因为金额相同就合成一笔。退款确认到账以后再通知客户，目前保留待确认。另有50美元的海外服务退款，币种保持美元，不与人民币金额相加，也不自行换算。报名费还有一条公开更正需要单独通知：昨天公告写的是260元，正确金额是210元，已经按260元交费的人会退50元。这次要让读过旧公告的人知道改了什么，所以旧金额要写明。它和前面那两笔100元的记录不是同一件事，不能拿这个退款规则替其他账单作决定。内部今天先更新回复草稿，等小林核对步骤、小陈核对金额以后再发。技术故障的说明还要由开发组确认，不能拿账单核对通过代替技术确认。对同一问题的重复追问可以合并记录，但客户补充的系统版本、时间和截图不能丢。真正需要客户回答的问题保留问句，别自行补一个看似合理的答案。交班时只发送工单编号、当前状态和下一位负责人，原始聊天正文继续留在授权系统里，不复制到私人笔记。未解决的问题注明卡在哪里，下班前交给接班同事，不因为超过当天时限就标成已解决。我们评估服务质量时把等待客户信息和内部处理时间分开，不能只看总耗时就判断是谁耽误了。",
+      "preconditions": [],
+      "context_type": "recent_safe",
+      "segment_texts": [
+        "这些话发给内部客服同事，帮我整理得清楚一点。项目名字我口述成成川计划，刚才已经输入过正式写法，按那个名称写。今天先把待回复的问题分清楚：使用步骤由小林核对，账单由小陈查记录，技术故障交给开发组，不要因为客户同时问了三件事就把所有责任都交给一个人。",
+        "关于当前故障，跟客户沟通时可以说我们会尽量在周五之前查清原因，但现在不能保证周五一定修好。内部先不要答应赔偿，费用范围还没确认；这句是提醒我们自己的同事。客户如果追问费用，就说明目前仍在核实，不能替负责人承诺一定免单，也不要把尚未确认的处理方案说成已经批准。",
+        "使用步骤请按实际系统版本回答，先确认权限，再让客户完全退出应用重新打开，两个动作不要颠倒。如果仍失败，请他提供系统版本和错误截图，截图里的密码和验证码要遮掉。不要归咎于客户操作不熟，也别让他无条件重装系统；没有测试过的方法先当排查建议，不能说一定有效。",
+        "账单里有两笔同为100元的记录，一笔是本期服务费，一笔是已登记但尚未到账的退款，不能因为金额相同就合成一笔。退款确认到账以后再通知客户，目前保留待确认。另有50美元的海外服务退款，币种保持美元，不与人民币金额相加，也不自行换算。",
+        "报名费还有一条公开更正需要单独通知：昨天公告写的是260元，",
+        "正确金额是210元，已经按260元交费的人会退50元。这次要让读过旧公告的人知道改了什么，所以旧金额要写明。它和前面那两笔100元的记录不是同一件事，不能拿这个退款规则替其他账单作决定。",
+        "内部今天先更新回复草稿，等小林核对步骤、小陈核对金额以后再发。技术故障的说明还要由开发组确认，不能拿账单核对通过代替技术确认。对同一问题的重复追问可以合并记录，但客户补充的系统版本、时间和截图不能丢。真正需要客户回答的问题保留问句，别自行补一个看似合理的答案。",
+        "交班时只发送工单编号、当前状态和下一位负责人，原始聊天正文继续留在授权系统里，不复制到私人笔记。未解决的问题注明卡在哪里，下班前交给接班同事，不因为超过当天时限就标成已解决。我们评估服务质量时把等待客户信息和内部处理时间分开，不能只看总耗时就判断是谁耽误了。"
+      ],
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "本次服务项目正式名称为“澄川计划”，已确认此写法。",
+          "另一份礼品采购单采用紫色包装，配送日期为十月九日。",
+          "CTX-R4-RECENT-ONLY。"
+        ]
+      }
+    },
+    {
+      "test_input_id": "core-holdout-05",
+      "base_case_id": "core-holdout-05",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室",
+      "segment_texts": [
+        "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-06",
+      "base_case_id": "core-holdout-06",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元",
+      "segment_texts": [
+        "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-07",
+      "base_case_id": "core-holdout-07",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "customerSupport",
+      "spoken_input": "跟客户说我们会尽量在周五之前查清楚但是现在不能保证周五一定修好别先答应赔偿费用这块还没确认",
+      "segment_texts": [
+        "跟客户说我们会尽量在周五之前查清楚但是现在不能保证周五一定修好别先答应赔偿费用这块还没确认"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-08",
+      "base_case_id": "core-holdout-08",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "只有测试通过并且小周签字以后才能发给客户任何一个没完成都先别发内部预览可以继续",
+      "segment_texts": [
+        "只有测试通过并且小周签字以后才能发给客户任何一个没完成都先别发内部预览可以继续"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-20",
+      "base_case_id": "core-holdout-20",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "这一段讲口吃的识别例子就是引号里的我我我想去这几个字要原样保留外面的解释正常整理",
+      "segment_texts": [
+        "这一段讲口吃的识别例子就是引号里的我我我想去这几个字要原样保留外面的解释正常整理"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-21",
+      "base_case_id": "core-holdout-21",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "灵检这个项目的登录页先别上线等我把按钮文案看完",
+      "segment_texts": [
+        "灵检这个项目的登录页先别上线等我把按钮文案看完"
+      ],
+      "preconditions": [],
+      "context_type": "nearby_safe",
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "当前讨论的项目正式名称是“灵简”，登录页属于灵简项目。另一个项目预算为47万元。QA-CONTEXT-21。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "core-holdout-29",
+      "base_case_id": "core-holdout-29",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "跟大家说一下明天的资料整理我现在想到哪说到哪你帮我按事情分段就行。先说客户名单旧表里有二十四个人其中两个已经退出所以这次实际联系的是二十二个人。不过旧表先保留不要覆盖我们要能回头查清楚谁是什么时候退出的。小陈负责核对姓名和邮箱小李负责看是否有重复报名这两件事分开做别因为邮箱一样就直接删掉记录先标记出来再问我。\n\n然后说一下要发的材料。说明文档用共享盘里那个带日期的版本附件里的报价表暂时别放进去因为里面有一页还是上个月的数字。介绍视频可以带上但链接的访问权限要先检查一下只给已报名的人看不要改成任何人都能访问。有人打不开的时候先记录他用的设备和报错原话别直接告诉他换浏览器一定能解决这个我们现在没有验证过。\n\n时间我刚开始想的是上午十点统一发出去但你先别照这个安排。上午还有一次内部检查检查通过以后我会在群里单独说可以发了在我说之前都先保留草稿。这里说的内部检查只包括文档链接和名单不包括报价确认报价要另外等财务回复两件事不是同一个通过条件。财务没回也可以继续检查其他材料别把所有人都卡住。\n\n给客户的文字不要写成活动通知那种很热闹的语气正常说明这是他要的资料就行。不用加限时优惠也不用替我承诺看完就能学会什么。如果有人问有没有回放现在只能说我们会争取录下来还不能保证一定有这一句不确定性要保留。还有客户提到的问题请按原话记下来别先替他改成我们熟悉的术语不然很容易把问题理解偏。\n\n我补一下前面名单的安排小李下午有别的事重复报名的检查改由小赵来做小陈核对姓名邮箱的安排不变。名单总数仍然是二十二个人不要因为换了负责人又去改人数。最终外发时间也再明确一下不设上午十点这个固定时间等内部检查通过并且我在群里确认以后再发。今天先把这些准备工作做完没有确定的地方直接列成待确认项别为了让文字看起来完整就补一个答案。",
+      "segment_texts": [
+        "跟大家说一下明天的资料整理我现在想到哪说到哪你帮我按事情分段就行。先说客户名单旧表里有二十四个人其中两个已经退出所以这次实际联系的是二十二个人。不过旧表先保留不要覆盖我们要能回头查清楚谁是什么时候退出的。小陈负责核对姓名和邮箱小李负责看是否有重复报名这两件事分开做别因为邮箱一样就直接删掉记录先标记出来再问我。",
+        "然后说一下要发的材料。说明文档用共享盘里那个带日期的版本附件里的报价表暂时别放进去因为里面有一页还是上个月的数字。介绍视频可以带上但链接的访问权限要先检查一下只给已报名的人看不要改成任何人都能访问。有人打不开的时候先记录他用的设备和报错原话别直接告诉他换浏览器一定能解决这个我们现在没有验证过。",
+        "时间我刚开始想的是上午十点统一发出去但你先别照这个安排。上午还有一次内部检查检查通过以后我会在群里单独说可以发了在我说之前都先保留草稿。这里说的内部检查只包括文档链接和名单不包括报价确认报价要另外等财务回复两件事不是同一个通过条件。财务没回也可以继续检查其他材料别把所有人都卡住。",
+        "给客户的文字不要写成活动通知那种很热闹的语气正常说明这是他要的资料就行。不用加限时优惠也不用替我承诺看完就能学会什么。如果有人问有没有回放现在只能说我们会争取录下来还不能保证一定有这一句不确定性要保留。还有客户提到的问题请按原话记下来别先替他改成我们熟悉的术语不然很容易把问题理解偏。",
+        "我补一下前面名单的安排小李下午有别的事重复报名的检查改由小赵来做小陈核对姓名邮箱的安排不变。名单总数仍然是二十二个人不要因为换了负责人又去改人数。最终外发时间也再明确一下不设上午十点这个固定时间等内部检查通过并且我在群里确认以后再发。今天先把这些准备工作做完没有确定的地方直接列成待确认项别为了让文字看起来完整就补一个答案。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "base_case_id": "core-note-05",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "记一下今天听到一句话大概是不要优化你还没有验证的东西英文原话我记不准好像是 don't optimize what you haven't什么先保留中文意思作者名字也没听清不要猜"
+      ],
+      "spoken_input": "记一下今天听到一句话大概是不要优化你还没有验证的东西英文原话我记不准好像是 don't optimize what you haven't什么先保留中文意思作者名字也没听清不要猜",
+      "test_input_id": "core-note-05",
+      "writing_scene": "note"
+    },
+    {
+      "base_case_id": "core-prompt-03",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "调研一下二零二六年现在主流的语音输入工具重点看macOS只要官方资料和真实用户评价不要拿营销软文凑数最后做一个对比表至少看五个产品并且所有价格和功能都要标来源日期"
+      ],
+      "spoken_input": "调研一下二零二六年现在主流的语音输入工具重点看macOS只要官方资料和真实用户评价不要拿营销软文凑数最后做一个对比表至少看五个产品并且所有价格和功能都要标来源日期",
+      "test_input_id": "core-prompt-03",
+      "writing_scene": "aiPrompt"
+    },
+    {
+      "base_case_id": "core-code-03",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用"
+      ],
+      "spoken_input": "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用",
+      "test_input_id": "core-code-03",
+      "writing_scene": "code"
+    },
+    {
+      "base_case_id": "core-support-05",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "给客户回一下这个功能目前不是坏了是需要先开权限他要做两步先到系统设置里打开辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题"
+      ],
+      "spoken_input": "给客户回一下这个功能目前不是坏了是需要先开权限他要做两步先到系统设置里打开辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题",
+      "test_input_id": "core-support-05",
+      "writing_scene": "customerSupport"
+    },
+    {
+      "base_case_id": "core-long-02",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "预算先按一万六千八准备这句在前面",
+        "我改一下最终预算是一万六不能再保留旧数字会议共 7 项决定",
+        "关于课程定位，负责人是小林，要求周一上午前确认最终文案，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "目标用户，由产品组负责，截止周二下班前，交付内容是跑完回归测试，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "交付形式，现在归设计组跟进，周三中午前要整理风险清单，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+        "录制顺序，由开发组负责，时间是周四下午，动作是核对数据来源，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯",
+        "关于质检标准，负责人是测试组，要求周五发布前完成客户复核，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代",
+        "发布时间，由运营组负责，截止下周一十点，交付内容是更新操作说明，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略",
+        "复盘机制，现在归大梁老师跟进，周一上午前要归档本轮结论，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下"
+      ],
+      "spoken_input": "预算先按一万六千八准备这句在前面我改一下最终预算是一万六不能再保留旧数字会议共 7 项决定关于课程定位，负责人是小林，要求周一上午前确认最终文案，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代目标用户，由产品组负责，截止周二下班前，交付内容是跑完回归测试，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略交付形式，现在归设计组跟进，周三中午前要整理风险清单，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下录制顺序，由开发组负责，时间是周四下午，动作是核对数据来源，这个也要写进去，如果外部条件发生变化只更新受影响部分，其余事实和约束仍然原样保留，变化原因需要可追溯关于质检标准，负责人是测试组，要求周五发布前完成客户复核，这部分别漏，验收时要把实际结果和原始要求逐项核对，如果遇到阻塞就写清真实原因不要替换任务目标，这部分需要单独交代发布时间，由运营组负责，截止下周一十点，交付内容是更新操作说明，要完整保留，交付时同时说明当前状态和待确认事项，不要因为内容长就把这一块概括掉，这部分不能省略复盘机制，现在归大梁老师跟进，周一上午前要归档本轮结论，不要合并到别的任务，完成后请按对应标准复核，不能借用相邻任务的结果代替，复核结论也要留下",
+      "test_input_id": "core-long-02",
+      "writing_scene": "document"
+    },
+    {
+      "test_input_id": "core-holdout-05-repeat2",
+      "base_case_id": "core-holdout-05",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室",
+      "segment_texts": [
+        "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-05-repeat3",
+      "base_case_id": "core-holdout-05",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室",
+      "segment_texts": [
+        "会议改到周三上午十点不对周四上午十点哎十点半才对地点还是三号会议室"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-06-repeat2",
+      "base_case_id": "core-holdout-06",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元",
+      "segment_texts": [
+        "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-holdout-06-repeat3",
+      "base_case_id": "core-holdout-06",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元",
+      "segment_texts": [
+        "发一条更正通知昨天公告里写的报名费是二百六十元这个写错了正确的是二百一十元已经按二百六十元交费的会退五十元"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-01",
+      "base_case_id": "core-sem-01",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "email",
+      "spoken_input": "录制最终安排在周三下午。原来说周二录，这个取消，因为真实截图还没补齐。",
+      "segment_texts": [
+        "录制最终安排在周三下午。原来说周二录，这个取消，因为真实截图还没补齐。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-02",
+      "base_case_id": "core-sem-02",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "甲原来预算100元，这个取消，最终改为80元。乙预算100元不变，两个项目分别写清楚。",
+      "segment_texts": [
+        "甲原来预算100元，这个取消，最终改为80元。乙预算100元不变，两个项目分别写清楚。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-03",
+      "base_case_id": "core-sem-03",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "甲原来预算100元，这个取消，最终改为80元。乙预算一百元不变，两个项目分别写清楚。",
+      "segment_texts": [
+        "甲原来预算100元，这个取消，最终改为80元。乙预算一百元不变，两个项目分别写清楚。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-04",
+      "base_case_id": "core-sem-04",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "昨天公告的预算是100元，今天另有一笔退款50元。这是两个事项，都要保留，不是在更正预算。",
+      "segment_texts": [
+        "昨天公告的预算是100元，今天另有一笔退款50元。这是两个事项，都要保留，不是在更正预算。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-05",
+      "base_case_id": "core-sem-05",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "项目预算100元，退款金额50美元。币种就按这两个写，不要换算，也不要加总。",
+      "segment_texts": [
+        "项目预算100元，退款金额50美元。币种就按这两个写，不要换算，也不要加总。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-06",
+      "base_case_id": "core-sem-06",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "这笔100元还没到账。等确认到账以后再通知我，现在先保留待确认。",
+      "segment_texts": [
+        "这笔100元还没到账。等确认到账以后再通知我，现在先保留待确认。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-07",
+      "base_case_id": "core-sem-07",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "会议原定周三上午十点，培训安排周四上午十点。会议时间改成十点半，日期不变。培训安排也不变。",
+      "segment_texts": [
+        "会议原定周三上午十点，培训安排周四上午十点。会议时间改成十点半，日期不变。培训安排也不变。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-08",
+      "base_case_id": "core-sem-08",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "甲组3人，乙组5人。两组分别负责收集资料和核对资料，按这个分工整理，别把人数对调。",
+      "segment_texts": [
+        "甲组3人，乙组5人。两组分别负责收集资料和核对资料，按这个分工整理，别把人数对调。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-09",
+      "base_case_id": "core-sem-09",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "不能因为官网写了支持就说真实效果很好，真实效果要等我们测过再判断。",
+      "segment_texts": [
+        "不能因为官网写了支持就说真实效果很好，真实效果要等我们测过再判断。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-10",
+      "base_case_id": "core-sem-10",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "给客户回一下，我们会尽量周五前查清楚，但是不能保证周五一定修好。别先答应赔偿，费用还没确认。",
+      "segment_texts": [
+        "给客户回一下，我们会尽量周五前查清楚，但是不能保证周五一定修好。别先答应赔偿，费用还没确认。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-11",
+      "base_case_id": "core-sem-11",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "帮我整理成 Prompt。先别开始研究，只整理任务，预算100元。报告要写建议，不能自行增加预算。",
+      "segment_texts": [
+        "帮我整理成 Prompt。先别开始研究，只整理任务，预算100元。报告要写建议，不能自行增加预算。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-sem-12",
+      "base_case_id": "core-sem-12",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "北区第一批项目研发阶段的预算不超过100元。南区第一批项目研发阶段的预算至少100元。按原来的上下限分别说明，不要简化成两项预算都是100元。",
+      "segment_texts": [
+        "北区第一批项目研发阶段的预算不超过100元。南区第一批项目研发阶段的预算至少100元。按原来的上下限分别说明，不要简化成两项预算都是100元。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-contrast-role-editor",
+      "base_case_id": "core-holdout-07",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "customerSupport",
+      "spoken_input": "跟客户说：我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。下面是给你润色时的要求，不要写进客户回复：别先答应赔偿，费用这块还没确认。",
+      "segment_texts": [
+        "跟客户说：我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。下面是给你润色时的要求，不要写进客户回复：别先答应赔偿，费用这块还没确认。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-contrast-role-colleague",
+      "base_case_id": "core-holdout-07",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "customerSupport",
+      "spoken_input": "这是给内部客服同事看的：跟客户沟通时，可以说我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。别先答应赔偿，费用这块还没确认。",
+      "segment_texts": [
+        "这是给内部客服同事看的：跟客户沟通时，可以说我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。别先答应赔偿，费用这块还没确认。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-contrast-role-customer",
+      "base_case_id": "core-holdout-07",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "customerSupport",
+      "spoken_input": "跟客户说：我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。我们暂时不能承诺赔偿，费用这块还没确认。",
+      "segment_texts": [
+        "跟客户说：我们会尽量在周五之前查清楚，但是现在不能保证周五一定修好。我们暂时不能承诺赔偿，费用这块还没确认。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-contrast-notice-punctuation",
+      "base_case_id": "core-holdout-06",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "workChat",
+      "spoken_input": "发一条更正通知。昨天公告里写的报名费是二百六十元，这个写错了，正确的是二百一十元。已经按二百六十元交费的，会退五十元。",
+      "segment_texts": [
+        "发一条更正通知。昨天公告里写的报名费是二百六十元，这个写错了，正确的是二百一十元。已经按二百六十元交费的，会退五十元。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-contrast-quote-punctuation",
+      "base_case_id": "core-holdout-20",
+      "input_kind": "heldout_synthetic",
+      "writing_scene": "document",
+      "spoken_input": "这一段讲口吃的识别，例子就是“我我我想去”。引号里的这几个字要原样保留，外面的解释正常整理。",
+      "segment_texts": [
+        "这一段讲口吃的识别，例子就是“我我我想去”。引号里的这几个字要原样保留，外面的解释正常整理。"
+      ],
+      "preconditions": [],
+      "context_type": "none",
+      "context_fixture": null
+    },
+    {
+      "base_case_id": "core-long-02",
+      "context_fixture": null,
+      "context_type": "none",
+      "input_kind": "base",
+      "preconditions": [],
+      "segment_texts": [
+        "预算原来是一万六千八百元，不对，最终改为一万六千元。请按照最终金额整理这句话。"
+      ],
+      "spoken_input": "预算原来是一万六千八百元，不对，最终改为一万六千元。请按照最终金额整理这句话。",
+      "test_input_id": "core-contrast-budget-explicit",
+      "writing_scene": "document"
+    },
+    {
+      "test_input_id": "core-r4-natural-interview-02",
+      "base_case_id": "core-r4-natural-interview-02",
+      "input_kind": "base",
+      "writing_scene": "workChat",
+      "spoken_input": "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我想给整理访谈的同事发一段说明，你帮我写顺，保留我交代的细节。这次整理的是访谈记录，不是替受访者重写观点。原始录音和未经修改的转写各留一份，开始前先通读全文，每处修改都能找到对应原话。嗯啊和明显口吃可以清理，但他说了两遍真的很难，这是强调，不能只留一遍。",
+        "团队人数这里要说清楚：前面记成十八个人，后面受访者解释其中两个人只是临时帮忙，所以固定团队实际是十六个人。另外，去年那场活动有十八位参与者，这是另一件事，活动人数保持十八，不能跟着固定团队改成十六。",
+        "预算只说每月大约两万元，没有给全年数，也没有说每个月完全相同，不要替他算年度预算。产品名可能是清河，也可能是青禾，还没核实，先写这个产品。录音中听得清而且已经核实的人名正常保留，不要把所有名字都换成匿名；没核实的标待确认，也别按职位猜身份。",
+        "结构先讲遇到的困难，再讲尝试过的办法，最后讲还没解决的问题。办法可以列点，但别给每个自然段都加小标题。有一句他直接问读者你会怎么选，要保留问句，不替读者回答。那个说了一半的出差例子，后面已经明确说不讲了，可以去掉；他另外讲的售后经历仍有结论，要保留。",
+        "第一轮我先看事实和整体语气，不做摘要，独立信息不能因为你觉得不重要就删掉。相同意思的重复可以合并，但合并后要检查条件、范围和原因还在不在。他说这个方法可能有用，没有说已经证明有效；愿意再试一次也不是保证成功。直接引用的原话按录音核对，外面叙述可以写顺。",
+        "交稿时间我开头准备说周五下午，现在改成下周一中午十二点前，不用为了赶周五压缩内容。第一轮交整理稿和待确认问题清单，问题标出所在段落，不用另写工作总结。第二轮再讨论篇幅。如果一句话怎么改都拿不准，保留原话并在清单里问我，等我回复以后再处理。",
+        "公开版本只使用已经取得授权的直接引用，内部整理时保留出处，便于以后核对。没有确认的产品名不要变成看起来真实的新名字，也不要增加所谓行业共识来替观点背书。文稿完成后先给我看，收到我明确确认再交给对方，不能把按时交稿等同于已经获准对外发送。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-r4-natural-handoff-01",
+      "base_case_id": "core-r4-natural-handoff-01",
+      "input_kind": "base",
+      "writing_scene": "email",
+      "spoken_input": "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "帮我把这些话整理成给团队的交接邮件，分段就行，别写成催大家赶工。这周先把第一期课程做成内部试看版，还不是正式发布。选题是让零基础同事用AI完成一件真实工作，工具介绍只保留做这件事确实需要的部分。脚本由我今晚交初稿，小林明天上午检查逻辑，有疑问先留言，不要直接把口吻改成宣传文案。",
+        "事实核查由产品组负责，名称、价格和平台限制都要找到官方页面，查询日期也记下来。没有依据的数字标成待确认，不能填一个看起来差不多的值。录制最终安排在周三下午，先讲账号准备，再讲提示词，最后演示语音输入。之前说周二录，这个取消，因为真实截图还没补齐。",
+        "截图交给小陈，每一步都用当前安装版实际操作，标清点击位置。macOS和Windows各自验证，不能拿一边的图冒充另一边。图里出现的API Key、验证码和真实账号都要遮掉，演示账号用我们预先准备的测试资料。字幕除了错别字，还要检查英文空格、命令、路径和数字；口播改口只留下最后确认的说法。",
+        "设计组周四中午给两张封面供内部选择，最终只放选中的一张。剪辑保持自然节奏，不要在鼠标操作时插无关转场。学员作业控制在二十分钟内，参考答案写清成功标准，但不要暗示只有一种做法。助教手册另列常见错误和排查顺序，遇到未验证的问题先记录，别承诺换个浏览器一定能好。",
+        "周五上午发内部试看链接，两组人分别检查：一组查事实和链接，另一组按新手身份从头操作。两组反馈分开标记，但放在同一张问题表里，不能把技术通过当成新手也能走通。这里没有承诺周五对外上线，正式发布时间等我们看完问题再确认。某项延误时只调整受影响部分，不默认整期都延期。",
+        "素材授权请运营同事单独核对，官网截图、头像、音乐和字体分别记录来源及许可范围，能下载不等于能放进付费课程。确认不了的先换自制素材。下载链接要在未登录的普通浏览器里再打开一次，需要注册或付费的步骤提前标清，真正付款仍由负责人手动完成。",
+        "附件只放课程母版、任务表和授权清单，不发送客户文件或原始密钥。附件文件名带日期，旧版本进入归档目录。请大家在自己任务后回复当前状态和阻塞点，不能完成就说明真实原因；售后只回答课程范围内的问题，不承诺替每位学员远程配置全部环境。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "core-r4-natural-requirements-04",
+      "base_case_id": "core-r4-natural-requirements-04",
+      "input_kind": "base",
+      "writing_scene": "document",
+      "spoken_input": "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。历史记录原来想保留两百条，等一下这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。",
+      "preconditions": [],
+      "context_type": "unknown_blocked",
+      "segment_texts": [
+        "把这些零散想法整理成白榆资料交接页的需求说明，先说明用户要解决什么问题，再写行为和验收，不用替我设计宣传口号。用户要知道自己该交什么、交给谁以及还缺什么，不是再学一套复杂的项目管理方式。默认页面只保留一个提交入口，已经能看懂的说明不要为了显得正式就改成长句。",
+        "每个交接任务必须同时显示负责人、接收人、截止时间和附件版本。人数不能代替名单，小林和小陈一起审核就把两个人都写出来。任务可以标待整理、待确认和已确认，上传文件不等于已经确认，只有接收人明确确认才变成已确认。发送失败时显示原因，保留本地草稿，并让用户主动重试，不要悄悄改成成功。",
+        "历史记录原来想保留两百条，等一下这个数改成最多一百二十条。用户关闭历史记录后，不再继续收集，也不再从旧记录里推荐附件；关闭开关要真正改变数据流。已经存在的文件不能因为关了开关就自动删除，要让用户在明确的清理操作里处理。没有授权的输入框不读取附近正文。",
+        "附件类型先支持PDF和PNG，不因为扩展名一样就判断内容相同。文件名带日期，同一天有两版就加明确的版本号，旧版归档，不能覆盖新内容。上传前显示目标任务与接收人，敏感字段默认遮挡，未经确认不外发。两个任务即使附件同名，也不能把其中一个任务的审批结果借给另一个。",
+        "移动端这次只承诺查看进度，上传与批量归档先不放进去。桌面端先核对当前支持的macOS与Windows实际路径，界面不一致分别说明，不拿一个平台的结果代替另一个。键盘能完成选择、提交和取回草稿，读屏标签要说清当前状态和失败原因；提示音、图标和文字表达同一个状态。",
+        "验收用合成的客户资料，一组人核对事实、链接和权限，一组人按第一次使用的同事来操作，两组结果分开记录。不能只看平均速度，要记录P50和P95，上传时间与等待确认的时间分开。网络断开、权限不足和文件格式错误各有测试，不把所有失败都说成网络不好，也不能只展示成功样本。",
+        "第一轮做可检查的原型，周四下午给内部试用，不承诺周四正式上线。我们先看能否完整交接，再决定要不要减少步骤。每个问题记录复现输入和当前状态，没有确认的地方列待确认。修改后只重测受影响部分并保留原结论的对应关系，不为了让报告看起来干净就把失败记录藏起来。"
+      ],
+      "context_fixture": {
+        "type": "unknown_blocked",
+        "level": "nearbyText",
+        "safety": "unknown",
+        "selected_text": "白雨系统的负责人是王小明。",
+        "text_before_cursor": "未知控件旁边写着海棠路八号，验证码731204。CTX-R4-UNKNOWN-ONLY。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      }
+    },
+    {
+      "test_input_id": "boundary-tiny-01",
+      "base_case_id": "boundary-tiny-01",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "好",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "好"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-tiny-02",
+      "base_case_id": "boundary-tiny-02",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "不",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "不"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-tiny-03",
+      "base_case_id": "boundary-tiny-03",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "别删",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "别删"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-tiny-04",
+      "base_case_id": "boundary-tiny-04",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "行吗",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "行吗"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-light-01",
+      "base_case_id": "boundary-light-01",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "先说交付时间，周五。再说预算，一万六。最后说负责人，小李。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "先说交付时间，周五。再说预算，一万六。最后说负责人，小李。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-light-02",
+      "base_case_id": "boundary-light-02",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "我我明天先把合同发给你，然后你再转给小王，别直接发给客户。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "我我明天先把合同发给你，然后你再转给小王，别直接发给客户。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-light-03",
+      "base_case_id": "boundary-light-03",
+      "input_kind": "stress_variant",
+      "writing_scene": "chat",
+      "spoken_input": "先保留这个顺序：上线时间、回滚条件、值班人员。标题先不用加。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "先保留这个顺序：上线时间、回滚条件、值班人员。标题先不用加。"
+      ],
+      "context_fixture": null
+    },
+    {
+      "test_input_id": "boundary-light-04",
+      "base_case_id": "boundary-light-04",
+      "input_kind": "base",
+      "writing_scene": "chat",
+      "spoken_input": "特别特别期待，真的真的很开心。",
+      "preconditions": [],
+      "context_type": "none",
+      "segment_texts": [
+        "特别特别期待，真的真的很开心。"
+      ],
+      "context_fixture": null
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SenseVoice streaming ASR WebSocket server for Muse."""
+"""SenseVoice streaming ASR WebSocket server for Dal."""
 
 import argparse
 import asyncio
@@ -266,7 +266,7 @@ async def chat_completions(request: Request):
             None, _load_llm, _llm_model_path
         )
 
-    # Qwen3 通过用户消息前缀切换思考模式；请求字段由 Muse 的模型配置开关传入。
+    # Qwen3 通过用户消息前缀切换思考模式；请求字段由 Dal 的模型配置开关传入。
     if messages and messages[-1].get("role") == "user":
         content = messages[-1]["content"]
         for existing_directive in ("/think", "/no_think"):

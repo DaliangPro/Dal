@@ -196,16 +196,16 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         self.inputs[0].update(
             spoken_input=self.text, segment_texts=[self.text], context_type="selected_safe",
             context_fixture={"type": "selected_safe", "level": "selectedText", "safety": "safe",
-                             "selected_text": "本次“Muse”构建已通过。", "text_before_cursor": None,
+                             "selected_text": "本次“Dal”构建已通过。", "text_before_cursor": None,
                              "text_after_cursor": None, "recent_muse_inputs": []}
         )
         report, receipts = self.report("light")
         row = report["cases"][0]
-        row.update(canonical_input="Muse这次构建通过。", model_output="Muse这次构建通过。",
-                   resolved_entities=[{"surface_text": "缪斯", "canonical": "Muse", "source_segment_ids": ["s1"],
+        row.update(canonical_input="Dal这次构建通过。", model_output="Dal这次构建通过。",
+                   resolved_entities=[{"surface_text": "缪斯", "canonical": "Dal", "source_segment_ids": ["s1"],
                                        "candidate_source": "authorizedContext", "confidence": 0.96}])
         payload = json.loads(row["stage_responses"][0]["request_payload"])
-        payload.update(canonical_text=row["canonical_input"], authorized_context=["缪斯 → Muse"])
+        payload.update(canonical_text=row["canonical_input"], authorized_context=["缪斯 → Dal"])
         row["stage_responses"][0]["request_payload"] = json.dumps(payload, ensure_ascii=False)
         return report, receipts
 
@@ -244,10 +244,10 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         self.assertTrue(self.check(report, receipts, "light")[0])
 
     def test_mapping_replay_preserves_unaffected_original_order_and_text(self):
-        self.assertTrue(e.explained_by_mappings("甲缪斯乙缪斯丙", "甲Muse乙Muse丙", [("缪斯", "Muse")]))
-        self.assertTrue(e.explained_by_mappings("甲缪斯乙", "甲缪斯乙", [("缪斯", "Muse")]))
-        self.assertFalse(e.explained_by_mappings("甲缪斯乙", "乙Muse甲", [("缪斯", "Muse")]))
-        self.assertFalse(e.explained_by_mappings("甲缪斯乙", "甲Muse", [("缪斯", "Muse")]))
+        self.assertTrue(e.explained_by_mappings("甲缪斯乙缪斯丙", "甲Dal乙Dal丙", [("缪斯", "Dal")]))
+        self.assertTrue(e.explained_by_mappings("甲缪斯乙", "甲缪斯乙", [("缪斯", "Dal")]))
+        self.assertFalse(e.explained_by_mappings("甲缪斯乙", "乙Dal甲", [("缪斯", "Dal")]))
+        self.assertFalse(e.explained_by_mappings("甲缪斯乙", "甲Dal", [("缪斯", "Dal")]))
 
     def test_final_output_is_bound_to_actual_patch_or_last_review(self):
         for mode in ["light", "standard"]:
@@ -537,7 +537,7 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         self.assertEqual(self.check(report, receipts, "light"), ([], []))
         stage = report["cases"][0]["stage_responses"][0]
         payload = json.loads(stage["request_payload"])
-        self.assertTrue(payload["canonical_text"].startswith("Muse"))
+        self.assertTrue(payload["canonical_text"].startswith("Dal"))
         self.assertTrue(payload["source_segments"][0]["text"].startswith("缪斯"))
         payload["canonical_text"] = payload["source_segments"][0]["text"]
         stage["request_payload"] = json.dumps(payload)
@@ -2918,8 +2918,8 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         self.assertEqual(inputs, before)
 
     def test_frozen_real_dataset_has_separate_suites_and_no_oversize_inputs(self):
-        dataset = ROOT / "docs/2026-09-10-Muse-Three-Mode-Quality-Test-Set.json"
-        contracts = ROOT / "docs/2026-09-10-Muse-Three-Mode-Quality-Contracts.json"
+        dataset = ROOT / "docs/2026-09-10-Dal-Three-Mode-Quality-Test-Set.json"
+        contracts = ROOT / "docs/2026-09-10-Dal-Three-Mode-Quality-Contracts.json"
         document = e.validated_dataset(dataset, e.legacy.sha256_file(dataset), contracts, e.legacy.sha256_file(contracts))
         self.assertEqual(document["suite_counts"], {"acceptance127": 127, "core_regression37": 37, "mode_boundary8": 8})
         self.assertEqual(len(document["inputs"]), 172)
@@ -2933,10 +2933,10 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError): e.validated_dataset(dataset, "0" * 64, contracts, e.legacy.sha256_file(contracts))
 
     def test_manifest_must_freeze_new_profile_and_contract_hash(self):
-        with tempfile.TemporaryDirectory(prefix="MuseThreeModeManifestTests-") as directory:
+        with tempfile.TemporaryDirectory(prefix="DalThreeModeManifestTests-") as directory:
             path = Path(directory) / "manifest.json"
             requirement = 'identifier "pro.daliang.muse" and certificate leaf = H"unit-test-only"'
-            manifest = {"schema_version": 1, "artifact_kind": "muse_voice_polish_quality_candidate",
+            manifest = {"schema_version": 1, "artifact_kind": "dal_voice_polish_quality_candidate",
                         "package_mode": "production", "bundle_id": "pro.daliang.muse",
                         "source_commit": "1" * 40, "source_tree": "2" * 40,
                         "executable_sha256": "3" * 64, "dataset_sha256": "4" * 64,
@@ -2955,7 +2955,7 @@ class ThreeModeEvidenceTests(unittest.TestCase):
             with self.assertRaises(ValueError): e.validated_manifest(args)
 
     def test_launch_is_explicit_isolated_and_has_no_authorization_operation(self):
-        argv = e.launch_command(Path("/fake/Muse"), Path("/input"), Path("/report"), Path("/audit"),
+        argv = e.launch_command(Path("/fake/Dal"), Path("/input"), Path("/report"), Path("/audit"),
                                 Path("/sandbox"), "light", self.nonce)
         self.assertEqual(argv[:6], ["/usr/bin/sandbox-exec", "-f", "/sandbox", "/usr/bin/nice", "-n", "15"])
         self.assertEqual(argv[argv.index("--mode") + 1], "light")
@@ -2967,7 +2967,7 @@ class ThreeModeEvidenceTests(unittest.TestCase):
             e.launch_command(Path("/fake"), Path("/i"), Path("/r"), Path("/a"), Path("/s"), "automatic", self.nonce)
 
     def test_run_root_is_exclusive_and_rejects_protected_user_directory(self):
-        with tempfile.TemporaryDirectory(prefix="MuseThreeModeRootTests-") as directory:
+        with tempfile.TemporaryDirectory(prefix="DalThreeModeRootTests-") as directory:
             with self.assertRaises(ValueError): e.validate_run_root(Path(directory))
             e.validate_run_root(Path(directory) / "unused")
         with self.assertRaises(ValueError): e.validate_run_root(Path("relative-output"))
@@ -2979,7 +2979,7 @@ class ThreeModeEvidenceTests(unittest.TestCase):
         marker = '/usr/bin/python3 - "$QUALITY_BUILD_MANIFEST_PATH" <<\'PY\'\n'
         self.assertEqual(package.count(marker), 1)
         source = package.split(marker, 1)[1].split("\nPY\n", 1)[0]
-        with tempfile.TemporaryDirectory(prefix="MuseThreeModePackageWriterTests-") as directory:
+        with tempfile.TemporaryDirectory(prefix="DalThreeModePackageWriterTests-") as directory:
             directory = Path(directory)
             dataset = directory / "dataset.json"
             dataset.write_text(json.dumps({"inputs": self.inputs}))
@@ -2988,14 +2988,14 @@ class ThreeModeEvidenceTests(unittest.TestCase):
             output = directory / "manifest.json"
             requirement = 'identifier "pro.daliang.muse"'
             environment = {
-                "MUSE_MANIFEST_PACKAGE_MODE": "test", "MUSE_MANIFEST_BUNDLE_ID": "pro.daliang.muse",
-                "MUSE_MANIFEST_SOURCE_COMMIT": "1" * 40, "MUSE_MANIFEST_SOURCE_TREE": "2" * 40,
-                "MUSE_MANIFEST_EXECUTABLE_SHA256": "3" * 64,
-                "MUSE_MANIFEST_DATASET_SHA256": e.legacy.sha256_file(dataset),
-                "MUSE_MANIFEST_DESIGNATED_REQUIREMENT": requirement,
-                "MUSE_MANIFEST_DESIGNATED_REQUIREMENT_SHA256": e.legacy.sha256_text(requirement),
-                "MUSE_MANIFEST_QUALITY_PROFILE": "three_mode", "MUSE_MANIFEST_CONTRACT_PATH": str(contract),
-                "MUSE_MANIFEST_DATASET_PATH": str(dataset),
+                "DAL_MANIFEST_PACKAGE_MODE": "test", "DAL_MANIFEST_BUNDLE_ID": "pro.daliang.muse",
+                "DAL_MANIFEST_SOURCE_COMMIT": "1" * 40, "DAL_MANIFEST_SOURCE_TREE": "2" * 40,
+                "DAL_MANIFEST_EXECUTABLE_SHA256": "3" * 64,
+                "DAL_MANIFEST_DATASET_SHA256": e.legacy.sha256_file(dataset),
+                "DAL_MANIFEST_DESIGNATED_REQUIREMENT": requirement,
+                "DAL_MANIFEST_DESIGNATED_REQUIREMENT_SHA256": e.legacy.sha256_text(requirement),
+                "DAL_MANIFEST_QUALITY_PROFILE": "three_mode", "DAL_MANIFEST_CONTRACT_PATH": str(contract),
+                "DAL_MANIFEST_DATASET_PATH": str(dataset),
             }
             with patch.dict(os.environ, environment), patch.object(sys, "argv", ["manifest-writer", str(output)]):
                 exec(compile(source, "package-app.sh manifest writer", "exec"), {})

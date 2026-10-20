@@ -68,13 +68,13 @@ CODESIGN_BIN="/usr/bin/codesign"
 HDIUTIL_BIN="/usr/bin/hdiutil"
 SHASUM_BIN="/usr/bin/shasum"
 JQ_BIN="/usr/bin/jq"
-if [ "${MUSE_RELEASE_VERIFY_TEST_MODE:-0}" = "1" ]; then
-    BUILD_DMG_SCRIPT="${MUSE_RELEASE_BUILD_DMG_SCRIPT:-$BUILD_DMG_SCRIPT}"
-    NOTARIZE_SCRIPT="${MUSE_RELEASE_NOTARIZE_SCRIPT:-$NOTARIZE_SCRIPT}"
-    TEST_APP_BUNDLE_SCRIPT="${MUSE_RELEASE_TEST_APP_BUNDLE_SCRIPT:-$TEST_APP_BUNDLE_SCRIPT}"
-    CODESIGN_BIN="${MUSE_RELEASE_CODESIGN_BIN:-$CODESIGN_BIN}"
-    HDIUTIL_BIN="${MUSE_RELEASE_HDIUTIL_BIN:-$HDIUTIL_BIN}"
-    SHASUM_BIN="${MUSE_RELEASE_SHASUM_BIN:-$SHASUM_BIN}"
+if [ "${DAL_RELEASE_VERIFY_TEST_MODE:-0}" = "1" ]; then
+    BUILD_DMG_SCRIPT="${DAL_RELEASE_BUILD_DMG_SCRIPT:-$BUILD_DMG_SCRIPT}"
+    NOTARIZE_SCRIPT="${DAL_RELEASE_NOTARIZE_SCRIPT:-$NOTARIZE_SCRIPT}"
+    TEST_APP_BUNDLE_SCRIPT="${DAL_RELEASE_TEST_APP_BUNDLE_SCRIPT:-$TEST_APP_BUNDLE_SCRIPT}"
+    CODESIGN_BIN="${DAL_RELEASE_CODESIGN_BIN:-$CODESIGN_BIN}"
+    HDIUTIL_BIN="${DAL_RELEASE_HDIUTIL_BIN:-$HDIUTIL_BIN}"
+    SHASUM_BIN="${DAL_RELEASE_SHASUM_BIN:-$SHASUM_BIN}"
 fi
 for tool in "$BUILD_DMG_SCRIPT" "$NOTARIZE_SCRIPT" "$TEST_APP_BUNDLE_SCRIPT" \
     "$CODESIGN_BIN" "$HDIUTIL_BIN" "$SHASUM_BIN" "$JQ_BIN"; do
@@ -122,8 +122,8 @@ else
 fi
 RELEASE_OUTPUT_DIR="$(cd "$RELEASE_OUTPUT_DIR" && /bin/pwd -P)"
 
-CLOUD_DMG="$RELEASE_OUTPUT_DIR/Muse-v${APP_VERSION}-cloud.dmg"
-LOCAL_DMG="$RELEASE_OUTPUT_DIR/Muse-v${APP_VERSION}-local.dmg"
+CLOUD_DMG="$RELEASE_OUTPUT_DIR/Dal-v${APP_VERSION}-cloud.dmg"
+LOCAL_DMG="$RELEASE_OUTPUT_DIR/Dal-v${APP_VERSION}-local.dmg"
 MANIFEST_PATH="$RELEASE_OUTPUT_DIR/manifest-fragment.json"
 MOUNTED_PATH=""
 MANIFEST_TEMP=""
@@ -175,7 +175,7 @@ if [ "$RELEASE_VERIFY_MODE" = "build" ]; then
         APP_BUILD="$APP_BUILD" \
         CODESIGN_IDENTITY="$CODESIGN_IDENTITY" \
         DIST_DIR="$RELEASE_OUTPUT_DIR" \
-        MUSE_DEFER_GATEKEEPER_ASSESSMENT=1 \
+        DAL_DEFER_GATEKEEPER_ASSESSMENT=1 \
             /bin/bash "$BUILD_DMG_SCRIPT"
     done
 fi
@@ -187,7 +187,7 @@ else
 fi
 CLOUD_DMG="$CLOUD_DMG" \
 LOCAL_DMG="$LOCAL_DMG" \
-MUSE_NOTARIZATION_MODE="$NOTARIZATION_MODE" \
+DAL_NOTARIZATION_MODE="$NOTARIZATION_MODE" \
     /bin/bash "$NOTARIZE_SCRIPT"
 
 verify_dmg() {
@@ -200,12 +200,12 @@ verify_dmg() {
     "$CODESIGN_BIN" --verify --strict --verbose=4 "$dmg_path"
     "$HDIUTIL_BIN" verify "$dmg_path"
 
-    mount_path="$(mktemp -d "${TMPDIR:-/tmp}/muse-release-${artifact_kind}.XXXXXX")"
+    mount_path="$(mktemp -d "${TMPDIR:-/tmp}/dal-release-${artifact_kind}.XXXXXX")"
     "$HDIUTIL_BIN" attach -readonly -nobrowse -mountpoint "$mount_path" "$dmg_path"
     MOUNTED_PATH="$mount_path"
-    app_path="$mount_path/Muse.app"
+    app_path="$mount_path/Dal.app"
     app_count="$(/usr/bin/find "$mount_path" -mindepth 1 -maxdepth 1 -type d -name '*.app' -print | /usr/bin/wc -l | /usr/bin/tr -d ' ')"
-    [ "$app_count" = "1" ] && [ -d "$app_path" ] || fail "$artifact_kind DMG must contain exactly one root Muse.app"
+    [ "$app_count" = "1" ] && [ -d "$app_path" ] || fail "$artifact_kind DMG must contain exactly one root Dal.app"
 
     EXPECT_LOCAL_BUNDLE="$expected_local" \
     APP_VERSION="$APP_VERSION" \

@@ -1,6 +1,6 @@
 included:
-  - Muse
-  - MuseTests
+  - Dal
+  - DalTests
 
 baseline: .swiftlint-baseline.json
 check_for_updates: false

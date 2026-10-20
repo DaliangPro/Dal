@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 固定 SwiftLint，避免规则或 baseline 格式随 Homebrew 更新漂移。
-TOOLS_ROOT="${RUNNER_TEMP:?需要 CI 临时目录}/muse-static-tools"
+TOOLS_ROOT="${RUNNER_TEMP:?需要 CI 临时目录}/dal-static-tools"
 mkdir -p "$TOOLS_ROOT"
 brew install shellcheck periphery
 curl --fail --location --retry 3 \

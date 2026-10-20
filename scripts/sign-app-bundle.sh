@@ -15,20 +15,30 @@ fail() {
 [ -d "$APP_PATH" ] || fail "app bundle not found at $APP_PATH"
 [ -f "$INFO_PLIST" ] || fail "Info.plist missing at $INFO_PLIST"
 [ -n "$SIGNING_IDENTITY" ] || fail "SIGNING_IDENTITY is required"
-MUSE_DEFER_GATEKEEPER_ASSESSMENT="${MUSE_DEFER_GATEKEEPER_ASSESSMENT:-0}"
-case "$MUSE_DEFER_GATEKEEPER_ASSESSMENT" in
+DAL_DEFER_GATEKEEPER_ASSESSMENT="${DAL_DEFER_GATEKEEPER_ASSESSMENT:-0}"
+case "$DAL_DEFER_GATEKEEPER_ASSESSMENT" in
     0|1) ;;
-    *) fail "MUSE_DEFER_GATEKEEPER_ASSESSMENT must be 0 or 1" ;;
+    *) fail "DAL_DEFER_GATEKEEPER_ASSESSMENT must be 0 or 1" ;;
 esac
+
+case "$APP_BUNDLE_ID" in
+    pro.daliang.muse|pro.daliang.muse.preview|pro.daliang.muse.interactive-test) ;;
+    *) fail "拒绝为其他应用签名" ;;
+esac
+ACTUAL_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")" \
+    || fail "应用身份缺失"
+[ "$ACTUAL_BUNDLE_ID" = "$APP_BUNDLE_ID" ] || fail "应用身份不匹配"
+[ ! -L "$APP_PATH" ] && [ ! -L "$APP_PATH/Contents" ] && [ ! -L "$INFO_PLIST" ] \
+    || fail "拒绝符号链接应用"
 
 MAIN_EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$INFO_PLIST" 2>/dev/null)" \
     || fail "unable to read CFBundleExecutable"
 MAIN_EXECUTABLE_PATH="$APP_PATH/Contents/MacOS/$MAIN_EXECUTABLE"
 NESTED_CODESIGN_BIN="/usr/bin/codesign"
-if [ "${MUSE_PACKAGE_SIGNING_TEST_MODE:-0}" = "1" ] \
-    && [ -n "${MUSE_NESTED_CODESIGN_BIN:-}" ]; then
-    [ -x "$MUSE_NESTED_CODESIGN_BIN" ] || fail "test nested codesign shim is not executable"
-    NESTED_CODESIGN_BIN="$MUSE_NESTED_CODESIGN_BIN"
+if [ "${DAL_PACKAGE_SIGNING_TEST_MODE:-0}" = "1" ] \
+    && [ -n "${DAL_NESTED_CODESIGN_BIN:-}" ]; then
+    [ -x "$DAL_NESTED_CODESIGN_BIN" ] || fail "test nested codesign shim is not executable"
+    NESTED_CODESIGN_BIN="$DAL_NESTED_CODESIGN_BIN"
 fi
 
 is_macho_file() {
@@ -86,7 +96,7 @@ fi
 
 case "$SIGNED_AUTHORITY" in
     "Developer ID Application:"*)
-        if [ "$MUSE_DEFER_GATEKEEPER_ASSESSMENT" != "1" ]; then
+        if [ "$DAL_DEFER_GATEKEEPER_ASSESSMENT" != "1" ]; then
             /usr/sbin/spctl --assess --type execute --verbose=4 "$APP_PATH"
         fi
         ;;

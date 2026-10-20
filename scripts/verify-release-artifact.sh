@@ -6,7 +6,7 @@ fail() {
     exit 1
 }
 
-EXPECTED_REPOSITORY="DaliangPro/Muse"
+EXPECTED_REPOSITORY="DaliangPro/Dal"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}"
 GITHUB_RUN_ID="${GITHUB_RUN_ID:-}"
 EXPECTED_ARTIFACT_ID="${EXPECTED_ARTIFACT_ID:-}"
@@ -25,8 +25,8 @@ if ! [[ "$EXPECTED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]; then
 fi
 [ -x /usr/bin/jq ] || fail "jq is unavailable"
 
-TEST_MODE="${MUSE_RELEASE_ARTIFACT_TEST_MODE:-0}"
-FIXTURE_PATH="${MUSE_RELEASE_ARTIFACT_FIXTURE:-}"
+TEST_MODE="${DAL_RELEASE_ARTIFACT_TEST_MODE:-0}"
+FIXTURE_PATH="${DAL_RELEASE_ARTIFACT_FIXTURE:-}"
 if [ "$TEST_MODE" = "1" ]; then
     [ -n "$FIXTURE_PATH" ] && [ -f "$FIXTURE_PATH" ] && [ ! -L "$FIXTURE_PATH" ] \
         || fail "artifact fixture is missing or unsafe"

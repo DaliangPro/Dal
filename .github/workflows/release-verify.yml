@@ -45,10 +45,10 @@ permissions:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
-  MUSE_SOLO_MAINTAINER_RELEASE: "1"
+  DAL_SOLO_MAINTAINER_RELEASE: "1"
 
 concurrency:
-  group: muse-release
+  group: dal-release
   queue: max
   cancel-in-progress: false
 
@@ -94,7 +94,7 @@ jobs:
       - name: 限定正式仓库和默认分支
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          EXPECTED_REPOSITORY: DaliangPro/Muse
+          EXPECTED_REPOSITORY: DaliangPro/Dal
         run: |
           [ "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY" ]
           [ "$GITHUB_REF_NAME" = "$DEFAULT_BRANCH" ]
@@ -105,7 +105,7 @@ jobs:
           PUBLISH_REQUESTED: ${{ inputs.publish }}
         run: |
           {
-            echo '## Muse 发布前真机验收 gate'
+            echo '## Dal 发布前真机验收 gate'
             echo
             echo "调度者声明全部完成：\`$MANUAL_GATE_CONFIRMED\`"
             echo
@@ -141,13 +141,13 @@ jobs:
 
       - name: 配置最小 Python 测试环境
         run: |
-          python3 -m venv "$RUNNER_TEMP/muse-python"
-          "$RUNNER_TEMP/muse-python/bin/python" -m pip install --disable-pip-version-check \
+          python3 -m venv "$RUNNER_TEMP/dal-python"
+          "$RUNNER_TEMP/dal-python/bin/python" -m pip install --disable-pip-version-check \
             fastapi==0.136.3 \
             httpx==0.28.1 \
             numpy==2.4.6 \
             uvicorn==0.49.0
-          echo "$RUNNER_TEMP/muse-python/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/dal-python/bin" >> "$GITHUB_PATH"
 
       - name: 完整质量门禁
         run: bash scripts/health-check.sh
@@ -202,11 +202,11 @@ jobs:
       - name: 在无签名密钥环境预构建 Swift 发布二进制
         id: prebuilt_swift
         env:
-          MUSE_PACKAGE_PREBUILT_BINARY: ${{ runner.temp }}/muse-release-prebuilt/Muse
+          DAL_PACKAGE_PREBUILT_BINARY: ${{ runner.temp }}/dal-release-prebuilt/Dal
         run: |
           bash scripts/prepare-release-binary.sh
-          echo "binary=$MUSE_PACKAGE_PREBUILT_BINARY" >> "$GITHUB_OUTPUT"
-          echo "sha256=$(shasum -a 256 "$MUSE_PACKAGE_PREBUILT_BINARY" | awk '{print $1}')" \
+          echo "binary=$DAL_PACKAGE_PREBUILT_BINARY" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$DAL_PACKAGE_PREBUILT_BINARY" | awk '{print $1}')" \
             >> "$GITHUB_OUTPUT"
 
       - name: 构建并验证 Cloud 与 Local 发布制品
@@ -220,8 +220,8 @@ jobs:
           APP_BUILD: ${{ inputs.build }}
           APP_VERSION: ${{ inputs.version }}
           EXPECTED_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
-          MUSE_PACKAGE_PREBUILT_BINARY: ${{ steps.prebuilt_swift.outputs.binary }}
-          MUSE_PACKAGE_PREBUILT_SHA256: ${{ steps.prebuilt_swift.outputs.sha256 }}
+          DAL_PACKAGE_PREBUILT_BINARY: ${{ steps.prebuilt_swift.outputs.binary }}
+          DAL_PACKAGE_PREBUILT_SHA256: ${{ steps.prebuilt_swift.outputs.sha256 }}
           RELEASE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/v${{ inputs.version }}
           RELEASE_NOTES: ${{ inputs.notes }}
           RELEASE_OUTPUT_DIR: release-output
@@ -232,10 +232,10 @@ jobs:
         id: release_artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: muse-release-${{ inputs.version }}
+          name: dal-release-${{ inputs.version }}
           path: |
-            release-output/Muse-v${{ inputs.version }}-cloud.dmg
-            release-output/Muse-v${{ inputs.version }}-local.dmg
+            release-output/Dal-v${{ inputs.version }}-cloud.dmg
+            release-output/Dal-v${{ inputs.version }}-local.dmg
             release-output/manifest-fragment.json
           if-no-files-found: error
           compression-level: 0
@@ -321,8 +321,8 @@ jobs:
           RELEASE_VERIFY_MODE: verify
         run: |
           PUBLISHED=0
-          REMOTE_RELEASE_DIR="$RUNNER_TEMP/muse-remote-release-$GITHUB_RUN_ID"
-          RELEASE_MARKER="<!-- muse-workflow-run:$GITHUB_RUN_ID -->"
+          REMOTE_RELEASE_DIR="$RUNNER_TEMP/dal-remote-release-$GITHUB_RUN_ID"
+          RELEASE_MARKER="<!-- dal-workflow-run:$GITHUB_RUN_ID -->"
           RELEASE_NOTES_WITH_MARKER="$RELEASE_NOTES"$'\n\n'"$RELEASE_MARKER"
 
           trash_path() {
@@ -361,12 +361,12 @@ jobs:
           trap 'exit 143' TERM
 
           gh release create "$RELEASE_TAG" \
-            "$RELEASE_OUTPUT_DIR/Muse-v${APP_VERSION}-cloud.dmg" \
-            "$RELEASE_OUTPUT_DIR/Muse-v${APP_VERSION}-local.dmg" \
+            "$RELEASE_OUTPUT_DIR/Dal-v${APP_VERSION}-cloud.dmg" \
+            "$RELEASE_OUTPUT_DIR/Dal-v${APP_VERSION}-local.dmg" \
             "$RELEASE_OUTPUT_DIR/manifest-fragment.json" \
             --draft \
             --target "$GITHUB_SHA" \
-            --title "Muse $APP_VERSION" \
+            --title "Dal $APP_VERSION" \
             --notes "$RELEASE_NOTES_WITH_MARKER"
 
           [ ! -e "$REMOTE_RELEASE_DIR" ] && [ ! -L "$REMOTE_RELEASE_DIR" ]

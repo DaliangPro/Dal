@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Muse Voice Polish 与 Typeless 同音频人工盲测准备与计分工具。"""
+"""Dal Voice Polish 与 Typeless 同音频人工盲测准备与计分工具。"""
 
 import argparse
 import hashlib
@@ -44,7 +44,7 @@ RATING_DIMENSIONS = (
     "fact_preservation",
     "sendability",
 )
-REQUIRED_MUSE_METRICS = {
+REQUIRED_DAL_METRICS = {
     "latency_ms",
     "route",
     "call_count",
@@ -113,8 +113,8 @@ def required_boolean(value, field, sample_id):
     return value
 
 
-def validate_muse_metrics(item, sample_id):
-    if not isinstance(item, dict) or not REQUIRED_MUSE_METRICS.issubset(item):
+def validate_dal_metrics(item, sample_id):
+    if not isinstance(item, dict) or not REQUIRED_DAL_METRICS.issubset(item):
         return False
     validate_route(item["route"], sample_id)
     required_number(item["latency_ms"], "latency_ms", sample_id)
@@ -252,7 +252,7 @@ def canonical_pcm_with_ffmpeg(path: Path, sample_id, executable):
 
 
 def canonical_pcm_with_afconvert(path: Path, sample_id, executable):
-    with tempfile.TemporaryDirectory(prefix="muse-blind-audio-") as directory:
+    with tempfile.TemporaryDirectory(prefix="dal-blind-audio-") as directory:
         output = Path(directory) / "canonical.wav"
         result = subprocess.run(
             [
@@ -366,12 +366,12 @@ def resolve_audio_ref(value, base_directory: Path, sample_id):
 
 def validated_sample_audio(sample, base_directory: Path, sample_id, media_cache):
     shared_path = resolve_audio_ref(sample.get("audio_ref"), base_directory, sample_id)
-    for field in ("muse_audio_ref", "typeless_audio_ref"):
+    for field in ("dal_audio_ref", "typeless_audio_ref"):
         if field not in sample:
             continue
         side_path = resolve_audio_ref(sample.get(field), base_directory, sample_id)
         if side_path != shared_path:
-            raise ValueError(f"样本 {sample_id} 的 Muse 与 Typeless 必须共用同一音频来源")
+            raise ValueError(f"样本 {sample_id} 的 Dal 与 Typeless 必须共用同一音频来源")
     cached = media_cache.get(shared_path)
     if cached is None:
         cached = (audio_digest(shared_path), probe_audio(shared_path, sample_id))
@@ -409,18 +409,18 @@ def prepare(args):
     if len(samples) < MINIMUM_SAMPLE_COUNT:
         raise ValueError(f"同音频人工盲测至少需要 {MINIMUM_SAMPLE_COUNT} 条样本")
     rng = random.Random(args.seed) if args.seed is not None else secrets.SystemRandom()
-    muse_left_count = len(samples) // 2
-    muse_side_assignments = [True] * muse_left_count + [False] * (
-        len(samples) - muse_left_count
+    dal_left_count = len(samples) // 2
+    dal_side_assignments = [True] * dal_left_count + [False] * (
+        len(samples) - dal_left_count
     )
-    rng.shuffle(muse_side_assignments)
+    rng.shuffle(dal_side_assignments)
     public_samples = []
     key_samples = []
     seen = set()
     audio_owner_by_digest = {}
     media_cache = {}
     categories = []
-    for sample, muse_on_left in zip(samples, muse_side_assignments):
+    for sample, dal_on_left in zip(samples, dal_side_assignments):
         sample_id = validated_sample_id(sample)
         if sample_id in seen:
             raise ValueError(f"重复样本 ID: {sample_id}")
@@ -431,16 +431,16 @@ def prepare(args):
             "reference_transcript",
             sample_id,
         )
-        muse = required_text(
-            sample.get("muse_output", sample.get("new_output")), "muse_output", sample_id
+        dal = required_text(
+            sample.get("dal_output", sample.get("new_output")), "dal_output", sample_id
         )
         typeless = required_text(
             sample.get("typeless_output", sample.get("legacy_output")),
             "typeless_output",
             sample_id,
         )
-        muse_metrics = sample.get("muse_metrics")
-        validate_muse_metrics(muse_metrics, sample_id)
+        dal_metrics = sample.get("dal_metrics")
+        validate_dal_metrics(dal_metrics, sample_id)
         typeless_latency = sample.get("typeless_latency_ms")
         if typeless_latency is not None:
             required_number(typeless_latency, "typeless_latency_ms", sample_id)
@@ -448,8 +448,8 @@ def prepare(args):
             sample, input_path.parent, sample_id, media_cache
         )
         require_unique_audio(audio_probe["pcm_sha256"], sample_id, audio_owner_by_digest)
-        left = muse if muse_on_left else typeless
-        right = typeless if muse_on_left else muse
+        left = dal if dal_on_left else typeless
+        right = typeless if dal_on_left else dal
         categories.append(category)
         public_samples.append({
             "id": sample_id,
@@ -470,8 +470,8 @@ def prepare(args):
             "reference_transcript_sha256": text_digest(reference_transcript),
             "left_output_sha256": text_digest(left),
             "right_output_sha256": text_digest(right),
-            "muse_side": "left" if muse_on_left else "right",
-            "muse_metrics": muse_metrics,
+            "dal_side": "left" if dal_on_left else "right",
+            "dal_metrics": dal_metrics,
             "typeless_latency_ms": typeless_latency,
         })
 
@@ -483,15 +483,15 @@ def prepare(args):
         "sample_count": len(samples),
         "rating_options": ["left", "right", "tie", "both_unusable"],
         "rating_dimensions": list(RATING_DIMENSIONS),
-        "comparison": "Muse Voice Polish vs Typeless（同一音频、匿名随机左右）",
+        "comparison": "Dal Voice Polish vs Typeless（同一音频、匿名随机左右）",
         "category_coverage": category_coverage(categories),
     }
     key_metadata = {
         **public_metadata,
         "randomization": "system_random",
-        "muse_side_counts": {
-            "left": muse_left_count,
-            "right": len(samples) - muse_left_count,
+        "dal_side_counts": {
+            "left": dal_left_count,
+            "right": len(samples) - dal_left_count,
         },
     }
     if args.seed is not None:
@@ -529,11 +529,11 @@ def score(args):
         sample_id = validated_sample_id(item)
         if sample_id in key_by_id:
             raise ValueError(f"盲测密钥中存在重复样本 ID: {sample_id}")
-        muse_side = item.get("muse_side")
-        if muse_side not in actual_side_counts:
-            raise ValueError(f"样本 {sample_id} 的 muse_side 无效")
-        actual_side_counts[muse_side] += 1
-        validate_muse_metrics(item.get("muse_metrics"), sample_id)
+        dal_side = item.get("dal_side")
+        if dal_side not in actual_side_counts:
+            raise ValueError(f"样本 {sample_id} 的 dal_side 无效")
+        actual_side_counts[dal_side] += 1
+        validate_dal_metrics(item.get("dal_metrics"), sample_id)
         typeless_latency = item.get("typeless_latency_ms")
         if typeless_latency is not None:
             required_number(typeless_latency, "typeless_latency_ms", sample_id)
@@ -598,25 +598,25 @@ def score(args):
         raise ValueError("公开评测的 category 覆盖信息在准备后被修改")
 
     counts_by_dimension = {
-        dimension: {"muse_win": 0, "typeless_win": 0, "tie": 0, "both_unusable": 0}
+        dimension: {"dal_win": 0, "typeless_win": 0, "tie": 0, "both_unusable": 0}
         for dimension in RATING_DIMENSIONS
     }
     missing = []
     for sample in evaluation_samples:
         sample_id = sample["id"]
         ratings = sample.get("ratings") or {}
-        muse_side = (key_by_id.get(sample_id) or {}).get("muse_side")
+        dal_side = (key_by_id.get(sample_id) or {}).get("dal_side")
         for dimension in RATING_DIMENSIONS:
             rating = ratings.get(dimension)
-            if rating not in ALLOWED_RATINGS or muse_side not in {"left", "right"}:
+            if rating not in ALLOWED_RATINGS or dal_side not in {"left", "right"}:
                 missing.append(f"{sample_id}:{dimension}")
                 continue
             if rating == "tie":
                 counts_by_dimension[dimension]["tie"] += 1
             elif rating == "both_unusable":
                 counts_by_dimension[dimension]["both_unusable"] += 1
-            elif rating == muse_side:
-                counts_by_dimension[dimension]["muse_win"] += 1
+            elif rating == dal_side:
+                counts_by_dimension[dimension]["dal_win"] += 1
             else:
                 counts_by_dimension[dimension]["typeless_win"] += 1
     if missing:
@@ -627,8 +627,8 @@ def score(args):
         total = sum(counts.values())
         dimension_reports[dimension] = {
             "counts": counts,
-            "muse_win_or_tie_rate": ratio(counts["muse_win"] + counts["tie"], total),
-            "muse_loss_rate": ratio(counts["typeless_win"], total),
+            "dal_win_or_tie_rate": ratio(counts["dal_win"] + counts["tie"], total),
+            "dal_loss_rate": ratio(counts["typeless_win"], total),
             "both_unusable_rate": ratio(counts["both_unusable"], total),
         }
 
@@ -637,8 +637,8 @@ def score(args):
     overall = dimension_reports["overall"]
     manual_gate = (
         total >= MINIMUM_SAMPLE_COUNT
-        and overall["muse_win_or_tie_rate"] >= 0.85
-        and overall["muse_loss_rate"] <= 0.15
+        and overall["dal_win_or_tie_rate"] >= 0.85
+        and overall["dal_loss_rate"] <= 0.15
         and overall["both_unusable_rate"] <= 0.01
     )
     engineering_gate = metrics["complete"] and all((
@@ -653,7 +653,7 @@ def score(args):
     sides_balanced = abs(actual_side_counts["left"] - actual_side_counts["right"]) <= 1
     randomization_gate = (
         key_metadata.get("randomization") == "system_random"
-        and key_metadata.get("muse_side_counts") == actual_side_counts
+        and key_metadata.get("dal_side_counts") == actual_side_counts
         and sides_balanced
     )
     report = {
@@ -666,8 +666,8 @@ def score(args):
         "category_coverage": coverage,
         "targets": {
             "minimum_samples": MINIMUM_SAMPLE_COUNT,
-            "muse_win_or_tie_rate": 0.85,
-            "maximum_muse_loss_rate": 0.15,
+            "dal_win_or_tie_rate": 0.85,
+            "maximum_dal_loss_rate": 0.15,
             "maximum_both_unusable_rate": 0.01,
         },
         "manual_gate_passed": manual_gate,
@@ -695,11 +695,11 @@ def percentile(values, probability):
 
 def engineering_metrics(key_samples):
     complete = True
-    muse_metrics = []
+    dal_metrics = []
     typeless_latencies = []
     for sample in key_samples:
-        item = sample.get("muse_metrics")
-        if not validate_muse_metrics(item, sample.get("id", "")):
+        item = sample.get("dal_metrics")
+        if not validate_dal_metrics(item, sample.get("id", "")):
             complete = False
             continue
         typeless_latency = sample.get("typeless_latency_ms")
@@ -709,13 +709,13 @@ def engineering_metrics(key_samples):
             typeless_latencies.append(
                 required_number(typeless_latency, "typeless_latency_ms", sample.get("id", ""))
             )
-        muse_metrics.append(item)
+        dal_metrics.append(item)
 
-    alias_total = sum(item["confirmed_alias_total"] for item in muse_metrics)
-    alias_correct = sum(item["confirmed_alias_correct"] for item in muse_metrics)
-    fact_total = sum(item["critical_fact_total"] for item in muse_metrics)
-    fact_preserved = sum(item["critical_fact_preserved"] for item in muse_metrics)
-    if alias_total <= 0 or fact_total <= 0 or len(muse_metrics) != len(key_samples):
+    alias_total = sum(item["confirmed_alias_total"] for item in dal_metrics)
+    alias_correct = sum(item["confirmed_alias_correct"] for item in dal_metrics)
+    fact_total = sum(item["critical_fact_total"] for item in dal_metrics)
+    fact_preserved = sum(item["critical_fact_preserved"] for item in dal_metrics)
+    if alias_total <= 0 or fact_total <= 0 or len(dal_metrics) != len(key_samples):
         complete = False
 
     latency_by_route = {}
@@ -726,7 +726,7 @@ def engineering_metrics(key_samples):
         "deep": {"p50": 5_000, "p95": 8_000},
     }
     for route, targets in latency_targets.items():
-        values = [item["latency_ms"] for item in muse_metrics if item["route"] == route]
+        values = [item["latency_ms"] for item in dal_metrics if item["route"] == route]
         p50 = percentile(values, 0.50)
         p95 = percentile(values, 0.95)
         minimum_sample_count = MINIMUM_ROUTE_SAMPLE_COUNTS[route]
@@ -746,14 +746,14 @@ def engineering_metrics(key_samples):
             "passed": passed,
         }
 
-    automatic_sample_count = len(muse_metrics)
-    llm_request_items = [item for item in muse_metrics if item["call_count"] > 0]
+    automatic_sample_count = len(dal_metrics)
+    llm_request_items = [item for item in dal_metrics if item["call_count"] > 0]
     llm_request_sample_count = len(llm_request_items)
     return {
         "complete": complete,
         "confirmed_alias_correction_rate": ratio(alias_correct, alias_total),
         "whitelist_hallucination_count": sum(
-            item["whitelist_hallucination_count"] for item in muse_metrics
+            item["whitelist_hallucination_count"] for item in dal_metrics
         ),
         "critical_fact_retention_rate": ratio(fact_preserved, fact_total),
         "automatic_sample_count": automatic_sample_count,
@@ -767,7 +767,7 @@ def engineering_metrics(key_samples):
             llm_request_sample_count,
         ),
         "fallback_rate": ratio(
-            sum(item["fallback_used"] for item in muse_metrics), automatic_sample_count
+            sum(item["fallback_used"] for item in dal_metrics), automatic_sample_count
         ),
         "latency_by_route": latency_by_route,
         "latency_targets_passed": latency_targets_passed,

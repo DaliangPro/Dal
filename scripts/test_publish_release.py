@@ -66,8 +66,8 @@ class PublishReleaseTests(unittest.TestCase):
     def test_tampered_download_stops_before_mount(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)
-            (path / "Muse-v2.1.2.dmg").write_bytes(b"changed")
-            (path / "SHA256SUMS.txt").write_text("0" * 64 + "  Muse-v2.1.2.dmg\n")
+            (path / "Dal-v2.1.2.dmg").write_bytes(b"changed")
+            (path / "SHA256SUMS.txt").write_text("0" * 64 + "  Dal-v2.1.2.dmg\n")
             with patch.object(release, "verify_dmg") as verify, self.assertRaises(release.ReleaseError):
                 release.verify_assets(path, "2.1.2", "abc")
             verify.assert_not_called()
@@ -75,9 +75,9 @@ class PublishReleaseTests(unittest.TestCase):
     def test_remote_checksum_pair_cannot_replace_the_local_candidate(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)
-            image = path / "Muse-v2.1.2.dmg"
+            image = path / "Dal-v2.1.2.dmg"
             image.write_bytes(b"another valid-looking image")
-            (path / "SHA256SUMS.txt").write_text(release.sha256(image) + "  Muse-v2.1.2.dmg\n")
+            (path / "SHA256SUMS.txt").write_text(release.sha256(image) + "  Dal-v2.1.2.dmg\n")
             with patch.object(release, "verify_dmg") as verify, self.assertRaises(release.ReleaseError):
                 release.verify_assets(path, "2.1.2", "abc", "0" * 64)
             verify.assert_not_called()
@@ -87,7 +87,7 @@ class PublishReleaseTests(unittest.TestCase):
 
     def draft(self):
         return dict(target_commitish="abc", draft=True, prerelease=False, body="owned", assets=[
-            {"name": "Muse-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
+            {"name": "Dal-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
 
     def test_create_verify_ci_then_publish_in_that_order(self):
         calls = []
@@ -109,7 +109,7 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(gh.call_args.args[:2], ("release", "edit"))
 
     def test_interrupted_upload_only_adds_missing_asset_without_overwriting(self):
-        partial = dict(self.draft(), assets=[{"name": "Muse-v2.1.2.dmg"}])
+        partial = dict(self.draft(), assets=[{"name": "Dal-v2.1.2.dmg"}])
         with patch.object(release, "release_for", side_effect=[partial, self.draft()]), \
                 patch.object(release, "gh") as gh, patch.object(release, "verify_uploaded"), \
                 patch.object(release, "api", return_value={"object": {"sha": "abc"}}), \
@@ -148,7 +148,7 @@ class PublishReleaseTests(unittest.TestCase):
         gh.assert_not_called()
 
     def candidate(self, directory):
-        image = directory / "Muse-v2.1.2.dmg"
+        image = directory / "Dal-v2.1.2.dmg"
         image.write_bytes(b"verified local image")
         digest = release.sha256(image)
         (directory / "SHA256SUMS.txt").write_text(f"{digest}  {image.name}\n")
@@ -167,10 +167,10 @@ class PublishReleaseTests(unittest.TestCase):
             download.assert_not_called()
             mount.assert_not_called()
             self.assertEqual(sorted(item.name for item in path.iterdir()),
-                             ["Muse-v2.1.2.dmg", "SHA256SUMS.txt"])
+                             ["Dal-v2.1.2.dmg", "SHA256SUMS.txt"])
 
     def test_missing_or_abnormal_metadata_falls_back_with_local_fingerprint(self):
-        for name in ("Muse-v2.1.2.dmg", "SHA256SUMS.txt"):
+        for name in ("Dal-v2.1.2.dmg", "SHA256SUMS.txt"):
             for change in ({"digest": None}, {"digest": "malformed"},
                            {"digest": "sha256:" + "0" * 64}, {"size": 0}):
                 with self.subTest(name=name, change=change), tempfile.TemporaryDirectory() as tmp:
@@ -193,7 +193,7 @@ class PublishReleaseTests(unittest.TestCase):
 
             def download(*args):
                 destination = Path(args[-1])
-                image = destination / "Muse-v2.1.2.dmg"
+                image = destination / "Dal-v2.1.2.dmg"
                 image.write_bytes(b"wrong uploaded image")
                 (destination / "SHA256SUMS.txt").write_text(f"{release.sha256(image)}  {image.name}\n")
 
@@ -211,7 +211,7 @@ class PublishReleaseTests(unittest.TestCase):
 
             def download(*args):
                 destination = Path(args[-1])
-                for name in ("Muse-v2.1.2.dmg", "SHA256SUMS.txt"):
+                for name in ("Dal-v2.1.2.dmg", "SHA256SUMS.txt"):
                     (destination / name).write_bytes((path / name).read_bytes())
 
             with patch.object(release, "command", return_value=""), \
@@ -262,7 +262,7 @@ class PublishReleaseTests(unittest.TestCase):
                     patch.object(release, "sync_manifest") as sync:
                 release.perform(args)
             download.assert_not_called()
-            mount.assert_called_once_with(output / "Muse-v2.1.2.dmg", "2.1.2", "a" * 40, "1")
+            mount.assert_called_once_with(output / "Dal-v2.1.2.dmg", "2.1.2", "a" * 40, "1")
             sync.assert_called_once_with("2.1.2")
 
     def test_manifest_noop_keeps_automatic_updates_disabled(self):
@@ -285,7 +285,7 @@ class PublishReleaseTests(unittest.TestCase):
     def test_draft_without_tag_is_verified_using_the_pinned_source(self):
         commit = "a" * 40
         draft = dict(self.draft(), target_commitish=commit, assets=[
-            {"name": "Muse-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
+            {"name": "Dal-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
         with tempfile.TemporaryDirectory() as tmp, patch.object(release, "gh"), \
                 patch.object(release, "command", return_value=""), \
                 patch.object(release, "verify_assets") as verify, patch.object(release, "api") as api:
@@ -295,7 +295,7 @@ class PublishReleaseTests(unittest.TestCase):
 
     def test_existing_tag_for_another_commit_blocks_draft(self):
         draft = dict(self.draft(), target_commitish="a" * 40, assets=[
-            {"name": "Muse-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
+            {"name": "Dal-v2.1.2.dmg"}, {"name": "SHA256SUMS.txt"}])
         with tempfile.TemporaryDirectory() as tmp, patch.object(release, "gh"), \
                 patch.object(release, "command", return_value="b" * 40 + "\trefs/tags/v2.1.2"), \
                 patch.object(release, "verify_assets") as verify, self.assertRaises(release.ReleaseError):
@@ -309,7 +309,7 @@ class PublishReleaseTests(unittest.TestCase):
         def command(*args):
             commands.append(args[:2])
             if args[1] == "attach":
-                return plistlib.dumps({"system-entities": [{"mount-point": "/nonexistent-muse-fixture"}]}).decode()
+                return plistlib.dumps({"system-entities": [{"mount-point": "/nonexistent-dal-fixture"}]}).decode()
             return ""
 
         with patch.object(release, "command", side_effect=command), self.assertRaises(OSError):

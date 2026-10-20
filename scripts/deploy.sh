@@ -1,32 +1,19 @@
 #!/bin/bash
 set -euo pipefail
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && /bin/pwd -P)"
-APP_PATH="${APP_PATH:-/Applications/Muse.app}"
-APP_BUNDLE_ID="${APP_BUNDLE_ID:-pro.daliang.muse}"
-LAUNCH_APP="${LAUNCH_APP:-1}"
-
-# 同名 app（如 Meta 的 Muse，com.meta.endo）可能占用 /Applications/Muse.app：
-# 目标存在但 bundle id 不符时拒绝覆盖，退出也按 bundle id 而非名字
-if [ -d "$APP_PATH" ]; then
-    EXISTING_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Contents/Info.plist" 2>/dev/null || true)
-    if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "$APP_BUNDLE_ID" ]; then
-        echo "Refusing to deploy: $APP_PATH belongs to $EXISTING_ID, not $APP_BUNDLE_ID (set APP_PATH)" >&2
-        exit 1
-    fi
-fi
-
-echo "Stopping Muse..."
-osascript -e "quit app id \"$APP_BUNDLE_ID\"" 2>/dev/null || true
-sleep 1
-
-APP_PATH="$APP_PATH" bash "$SCRIPT_DIR/package-app.sh"
-
-if [ "$LAUNCH_APP" = "1" ]; then
-    echo "Launching via GUI session (no shell env vars)..."
-    launchctl asuser "$(id -u)" /usr/bin/open "$APP_PATH"
-else
-    echo "Skipping launch because LAUNCH_APP=$LAUNCH_APP"
-fi
-
-echo "Done."
+APP_PATH="${APP_PATH:-/Applications/Dal.app}"
+[ "${APP_BUNDLE_ID:-pro.daliang.muse}" = "pro.daliang.muse" ] || {
+    echo "只能部署 Dal 自有应用身份" >&2; exit 1;
+}
+python3 "$SCRIPT_DIR/app_identity.py" "$APP_PATH"
+# 候选先在隔离目录完成构建与签名，不提前终止正在工作的应用。
+CANDIDATE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/dal-deploy.XXXXXX")"
+CANDIDATE="$CANDIDATE_ROOT/candidate.noindex/Dal.app"
+APP_PATH="$CANDIDATE" APP_NAME=Dal APP_BUNDLE_ID=pro.daliang.muse \
+    bash "$SCRIPT_DIR/package-app.sh"
+INSTALL_ARGS=()
+if [ "$APP_PATH" = /Applications/Dal.app ]; then INSTALL_ARGS+=(--migrate-legacy); fi
+if [ "${LAUNCH_APP:-1}" = 0 ]; then INSTALL_ARGS+=(--no-launch); fi
+python3 "$SCRIPT_DIR/install-app.py" "$CANDIDATE" --destination "$APP_PATH" "${INSTALL_ARGS[@]}"
+# 候选留作回滚证据但不再被当成应用收录。
+mv "$CANDIDATE" "$CANDIDATE.disabled"

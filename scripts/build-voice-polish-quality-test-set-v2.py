@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""从已验收的 V1.2 母集重建 Muse 语音润色 V3.1 多维测试集。"""
+"""从已验收的 V1.2 母集重建 Dal 语音润色 V3.1 多维测试集。"""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "docs/2026-08-12-Muse-Voice-Polish-Quality-Test-Set.json"
-OUTPUT_PATH = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Set.json"
-RUN_PATH = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Run-Template.csv"
+SOURCE_PATH = ROOT / "docs/2026-08-12-Dal-Voice-Polish-Quality-Test-Set.json"
+OUTPUT_PATH = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json"
+RUN_PATH = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Run-Template.csv"
 
 
 # 安全上下文不泄漏测试必须覆盖不同语用形态，不能给每条样本重复同一句
@@ -31,7 +31,7 @@ SAFE_CONTEXT_TRAPS: dict[str, tuple[str, list[str]]] = {
     "context-09": ("历史文档写着由蒋川负责，但当前已经转交另一团队。", ["蒋川", "转交另一团队"]),
     "context-10": ("测试环境地址是 staging.example.net，禁止写入对外文案。", ["staging.example.net"]),
     "context-13": ("旁边聊天提到周二取消南京复盘，这件事与本条无关。", ["南京复盘", "周二取消"]),
-    "context-14": ("红队故意放入错误候选“MuseX”，不得据此改名。", ["MuseX"]),
+    "context-14": ("红队故意放入错误候选“DalX”，不得据此改名。", ["DalX"]),
     "context-15": ("另一个课程的历史报价是 2,999 元，仅供财务对照。", ["2,999 元", "财务对照"]),
     "context-16": ("旧日程里顾明周四到青岛，现在这份日程已经失效。", ["顾明", "周四到青岛"]),
     "natural-long-03": ("候选人名单包含唐宁和陆远，但两人都尚未分配任务。", ["唐宁", "陆远"]),
@@ -204,7 +204,7 @@ LEGACY_REQUIRED_GROUP_OVERRIDES = {
 }
 
 CODE_01_CRITICAL_REQUIRED_TOKENS = [
-    "Muse/VoicePolish/VoicePolishPipeline.swift",
+    "Dal/VoicePolish/VoicePolishPipeline.swift",
     "swift test --filter VoicePolishPipelineTests",
 ]
 
@@ -738,9 +738,9 @@ def context_cases() -> list[dict]:
         {
             "id": "context-08", "type": "recent_safe", "scene": "code",
             "spoken": "缪斯这次构建通过以后覆盖安装",
-            "reference": "Muse 这次构建通过后，覆盖安装。",
-            "recent": ["Muse 的 Release 构建正在执行。"],
-            "required": ["Muse", "构建", "覆盖安装"], "forbidden": ["缪斯"],
+            "reference": "Dal 这次构建通过后，覆盖安装。",
+            "recent": ["Dal 的 Release 构建正在执行。"],
+            "required": ["Dal", "构建", "覆盖安装"], "forbidden": ["缪斯"],
         },
         {
             "id": "context-09", "type": "conflicting_safe", "scene": "workChat",
@@ -1232,23 +1232,23 @@ def natural_long_cases() -> list[dict]:
             segments=[
                 "这次发布别合并成大命令，先在仓库根目录跑 swift test，确认全量测试通过以后再做 Release 构建。",
                 "第二步执行 swift build -c release，构建失败就停，不要继续打包。",
-                "第三步用 scripts/package-app.sh 生成应用，产物应该在 build/Muse.app。",
+                "第三步用 scripts/package-app.sh 生成应用，产物应该在 build/Dal.app。",
                 "第四步检查 Info.plist 里的 Bundle ID 必须是 pro.daliang.muse，版本号保持 2.0.0。",
-                "第五步执行 codesign --verify --deep --strict build/Muse.app，只是验证签名，不要重新签名。",
-                "第六步比较 Release 二进制和应用内二进制的 UUID；第七步确认 /Applications 里没有第二个 Muse 副本。",
+                "第五步执行 codesign --verify --deep --strict build/Dal.app，只是验证签名，不要重新签名。",
+                "第六步比较 Release 二进制和应用内二进制的 UUID；第七步确认 /Applications 里没有第二个 Dal 副本。",
                 "最后一步才覆盖安装并启动，启动后只保留一个进程。任何一步失败都记录真实错误并停止，不能为了完成发布跳过检查。",
             ],
             reference_blocks=[
                 "1. 在仓库根目录运行 `swift test`，确认全量测试通过。",
                 "2. 运行 `swift build -c release`；构建失败时停止，不继续打包。",
-                "3. 运行 `scripts/package-app.sh`，确认产物位于 `build/Muse.app`。",
+                "3. 运行 `scripts/package-app.sh`，确认产物位于 `build/Dal.app`。",
                 "4. 检查 `Info.plist`：Bundle ID 为 `pro.daliang.muse`，版本号为 `2.0.0`。",
-                "5. 运行 `codesign --verify --deep --strict build/Muse.app` 验证签名，不重新签名。",
+                "5. 运行 `codesign --verify --deep --strict build/Dal.app` 验证签名，不重新签名。",
                 "6. 比较 Release 二进制与应用内二进制的 UUID。",
-                "7. 确认 `/Applications` 中没有第二个 Muse 副本。",
+                "7. 确认 `/Applications` 中没有第二个 Dal 副本。",
                 "8. 全部检查通过后再覆盖安装并启动，且只保留一个进程。任一步失败都记录真实错误并停止。",
             ],
-            required=["swift test", "swift build -c release", "scripts/package-app.sh", "build/Muse.app", "Info.plist", "pro.daliang.muse", "2.0.0", "codesign --verify --deep --strict", "不重新签名", "UUID", "/Applications", "一个进程"],
+            required=["swift test", "swift build -c release", "scripts/package-app.sh", "build/Dal.app", "Info.plist", "pro.daliang.muse", "2.0.0", "codesign --verify --deep --strict", "不重新签名", "UUID", "/Applications", "一个进程"],
             forbidden=[],
             fact_groups=[
                 same_block("swift test", "全量测试"),
@@ -1427,7 +1427,7 @@ def natural_very_long_cases() -> list[dict]:
                 "我愿意让它删掉口头残片，却不希望它替我补一个漂亮结论。没有说出口的承诺、理由和数据都应该留白，这种克制比偶尔多一个逗号更重要。",
             ],
             reference_blocks=[
-                "最近重新用 Muse 录长语音后，我最在意的已经不是识别快了多少，而是一段口述最后能不能让我放心直接发送。",
+                "最近重新用 Dal 录长语音后，我最在意的已经不是识别快了多少，而是一段口述最后能不能让我放心直接发送。",
                 "以前我以为字都识别出来就算成功。后来发现，只要中间有改口、插话或话题折返，即使每个字都在，读者也可能看不懂重点。",
                 "有一次我连续说了四分钟，发布时间从周三改到周五，结果两个日期都被留下，我只能重新听录音。更麻烦的是，长文本失败时它没有明确提示，只是安静地退回原文。表面没丢字，实际在最需要整理的时候没有工作。",
                 "现在我的判断标准是：最终意图是否唯一、数字是否准确、语气是否仍像我，以及我是否需要再读第二遍，而不是模型改了多少。",
@@ -1438,12 +1438,12 @@ def natural_very_long_cases() -> list[dict]:
                 "成稿还应保留说话者本人的直接程度，不自动添加客服寒暄，也不把随手笔记改成项目汇报。可以删除口头残片，但不得补写没有说出的结论、承诺、理由或数据。",
                 "只有长文、短句和上下文都稳定可靠，我才会放心把它用于每天的沟通。现在还没到这个程度，但方向终于清楚了。",
             ],
-            required=["Muse", "直接发送", "改口", "周三", "周五", "四分钟", "退回原文", "最终意图", "数字", "语气", "行行行", "我我今天到", "上下文", "产品名", "人名", "代码名", "写作整理", "客服模板"],
+            required=["Dal", "直接发送", "改口", "周三", "周五", "四分钟", "退回原文", "最终意图", "数字", "语气", "行行行", "我我今天到", "上下文", "产品名", "人名", "代码名", "写作整理", "客服模板"],
             forbidden=["缪斯"],
             min_paragraphs=6,
             context=context_fixture(
                 "recent_safe", "metadataOnly", "safe",
-                recent=["Muse 的长语音测试刚刚结束。"],
+                recent=["Dal 的长语音测试刚刚结束。"],
             ),
         ),
     ]
@@ -1456,7 +1456,7 @@ def natural_ultra_long_cases() -> list[dict]:
         "流式字幕给人的速度感很好，可它不是最终事实来源。网络短暂中断时字幕可能停住，停止录音后还要等待终包。之前有个问题是终包已经回来，界面仍拿流式片段去拼，导致句子重复。现在要明确：流式只做预览，最终成稿必须基于终包和有序 segment，不能把两个来源简单相加。",
         "本地识别服务也有两条路线，一条是 SenseVoice，一条是 Qwen3 ASR。它们都只绑定 127.0.0.1，这个安全边界不能改。服务启动失败时应该说明是哪一个模型没准备好，而不是统一显示网络错误。模型下载、端口占用和 Python 环境异常要分别记录，方便用户判断是等待还是处理。",
         "术语纠正以前分散在热词、片段和个人词库里，用户很难知道哪个覆盖哪个。现在的原则是统一到同一套术语仓库，明确标准写法、别名、作用域和来源。确定性规则先改 canonical 文本，模型只能在这个基础上继续整理，不能把已经纠正的 Typeless、VoicePolishPipeline 或 WorkBuddy 又改回错误写法。",
-        "上下文捕获必须坚持最小授权。普通输入框可以读取用户明确选中的文字或光标附近少量正文，密码框、安全字段和无法判断的控件一律只保留应用与场景元数据。同一应用近期由 Muse 自己输入的内容可以在内存里短期参考，但不跨应用、不落盘，也不能用来猜没有证据的人名。",
+        "上下文捕获必须坚持最小授权。普通输入框可以读取用户明确选中的文字或光标附近少量正文，密码框、安全字段和无法判断的控件一律只保留应用与场景元数据。同一应用近期由 Dal 自己输入的内容可以在内存里短期参考，但不跨应用、不落盘，也不能用来猜没有证据的人名。",
         "语音润色真正困难的是改口。即时改口可能是先说周三，不对，改周五；延迟改口可能隔了几段才说把前面预算改成一万六。两种情况都要只保留最终版本，同时保护没有被推翻的参与方、动作和限制。公开勘误是例外，因为读者需要同时知道错误值和正确值，不能套普通改口规则。",
         "重复也不能一刀切。我我我今天到属于口吃，今天今天下午开会通常是重新起步，这些应该清理。但真的真的很好和行行行我知道了可能承载强调或态度。证据不足时宁可保留，也不要为了文字看起来干净就把用户的情绪削平。短句尤其要克制，原本能发的句子只补必要标点。",
         "长文本之前最严重的问题是模型没有真正整理，系统却把原样输出当成功；另一种情况是结构校验或超时后静默回退。用户看到的都是一整段原文，很难判断发生了什么。现在必须把原样照抄视为质量失败，给长内容更合理的 token 和时间预算，并记录首稿、修复、超时、截断和最终回退原因。",
@@ -1471,7 +1471,7 @@ def natural_ultra_long_cases() -> list[dict]:
         "并发状态也容易制造假象。用户连续开始两次录音时，后一次会让前一次结果失效；旧任务即使晚回来也不能覆盖新文本。取消、超时和主动取回原文都要绑定 session ID，任何异步回调在写界面前先确认自己仍属于当前会话。",
         "日志必须能帮助定位但不能复制隐私正文。允许记录 route、字符数、segment 数、调用次数、耗时、校验码和失败阶段；不记录 API Key、完整 Prompt、选中文字、聊天内容或 Provider 原始响应。调试报告只有在用户显式运行质量测试时才保存模型输出。",
         "模型配置不能再有一个隐藏的专用快速模型让用户猜。语音润色使用当前文本处理 Provider，若有覆盖模型只作为高级兼容项并明确显示实际模型。配置缺失时直接提示设置问题，不要启动处理后再无声回退。",
-        "打包与更新必须复用既有签名，发布前核对 Bundle ID、架构、版本号、严格签名和二进制 UUID。覆盖安装以后确认只有一个 Muse 进程，并用本次修复标识证明运行的是新候选。自动更新不能在用户录音中途替换应用。",
+        "打包与更新必须复用既有签名，发布前核对 Bundle ID、架构、版本号、严格签名和二进制 UUID。覆盖安装以后确认只有一个 Dal 进程，并用本次修复标识证明运行的是新候选。自动更新不能在用户录音中途替换应用。",
         "用户纠正结果是最有价值的质量信号，但学习要保守。只有用户明确选择原转写、手工修改成稿或确认术语时才记录对应样本；普通的复制、撤销或关闭窗口不能被解释成不喜欢某种风格。用户关闭个性化后既停止写入，也停止读取旧样本。",
         "性能压测除了单次延迟，还要看连续二十次短句、五次长文和网络抖动后的资源释放。请求结束后任务、计时器和临时上下文应及时清理，不能因为质量跑测连续调用而让后面的文本越来越慢。",
         "安装版还要做一次真正的端到端冒烟：录一条带改口的短句、一条超过一千字的自然叙述和一条包含安全上下文的专名纠错，确认最终文字进入当前输入框，历史记录与实际结果一致。源码里的 Runner 通过不能替代这一步。",
@@ -1496,7 +1496,7 @@ def natural_ultra_long_cases() -> list[dict]:
         "通知策略要避免重复打扰。一次会话只播报一个最终结果，HUD、菜单栏和历史记录使用同一状态来源；修复重试发生在内部时不连续弹两次成功。用户正在全屏演示或关闭提示音时仍保留可发现的文字状态，但不强制抢焦点。失败通知包含下一步选择，不只显示一个无法理解的错误码。",
         "数据导出要保证可迁移而不是制造新的锁定。历史文字、术语和明确学习样本使用有版本的通用格式，时间采用带时区的标准值，文本保持 UTF-8。导入前先校验 schema、重复项和冲突，不覆盖现有自定义规则；旧版本不认识的新字段可以忽略，但不能因此丢掉原始正文或标准写法。",
         "日期与时间显示遵循用户地区，但内部保存统一时区。今天、明天这类相对日期只在上下文明确时整理，不能离开录音时间擅自换成绝对日期；跨时区会议同时保留地点和时区。金额格式可以本地化，币种和数值必须保持原意，不能因为千位分隔符不同触发事实误判。",
-        "输入法与组合文字也要纳入验证。用户正在输入中文候选词时，Muse 不能抢走尚未提交的组合状态；语音结果回来后只替换本次会话对应的范围。遇到表格单元格、邮件主题和富文本编辑器，还要确认换行、撤销与粘贴样式符合目标控件的真实行为。",
+        "输入法与组合文字也要纳入验证。用户正在输入中文候选词时，Dal 不能抢走尚未提交的组合状态；语音结果回来后只替换本次会话对应的范围。遇到表格单元格、邮件主题和富文本编辑器，还要确认换行、撤销与粘贴样式符合目标控件的真实行为。",
         "长时间运行需要观察内存、句柄和后台任务。每次录音结束后释放音频缓冲、网络流和临时文件，质量跑测结束后也不能留下隐藏窗口或重复状态项。连续失败不应指数累积通知；达到限流时明确显示等待原因，并保证用户下一段本地转写仍可使用。",
         "诊断导出必须经过用户主动确认，并在保存前列出包含的字段。报告可以带时间线、错误码、模型标识和脱敏长度统计，但不得夹带完整聊天、选中文本或钥匙串内容。技术支持收到报告后也只能据此定位，不能要求用户关闭系统安全保护来换取一次成功。",
         "最后还要验证卸载与重新安装边界。删除应用本体不能误删用户主动保留的历史，选择清空数据时则要列出词典、学习样本、缓存和日志的范围。重新安装后权限状态以系统实际结果为准，不伪造已授权；旧数据迁移失败时先保留原文件并给出恢复路径。",
@@ -1505,7 +1505,7 @@ def natural_ultra_long_cases() -> list[dict]:
     product_reference = [
         "本次复盘覆盖从录音启动到文字进入当前应用的完整链路，目标是区分真正可靠的能力与仅在表面上可用的能力。用户应只需按快捷键说话并得到可直接使用的文字，无需理解识别模型或润色路由；提示音与 HUD 需如实显示当前状态。",
         "录音与识别：测试需覆盖首次授权、拒绝后重试、切换麦克风和休眠唤醒。本地识别有两条路线，一条是 SenseVoice，另一条是 Qwen3 ASR，均只绑定 127.0.0.1。流式字幕仅用于预览，最终成稿必须以终包和有序 segment 为准；启动失败需区分模型下载、端口占用和 Python 环境问题。",
-        "术语与上下文：统一管理个人词库中的标准写法、别名、作用域和来源，确定性纠正后的 canonical 文本不得被模型改回，Typeless、VoicePolishPipeline 和 WorkBuddy 等名称保持标准写法。普通输入框只读取用户授权的选中文字或少量附近正文；密码框、安全字段和未知控件仅保留元数据。近期 Muse 输入只在同一应用内短期使用，不跨应用、不落盘。",
+        "术语与上下文：统一管理个人词库中的标准写法、别名、作用域和来源，确定性纠正后的 canonical 文本不得被模型改回，Typeless、VoicePolishPipeline 和 WorkBuddy 等名称保持标准写法。普通输入框只读取用户授权的选中文字或少量附近正文；密码框、安全字段和未知控件仅保留元数据。近期 Dal 输入只在同一应用内短期使用，不跨应用、不落盘。",
         "成稿规则：即时和延迟改口均只保留最终版本，公开勘误例外；“我我我今天到”一类口吃和重新起步应清理，“真的真的很好”和“行行行，我知道了”这类有意强调或连续回应应保留。短句只做必要修改。长文本不得将原样照抄判为成功，也不得在超时或结构失败后静默回退；token 与时间预算需覆盖完整成稿。",
         "排版与事实：真实枚举才列点，多主题叙述自然分段。列表项中的主题、负责人、截止时间和动作必须保持关联。数字、金额、日期、版本、路径、命令、邮箱、网址、专名和参与方均受保护；例如一万六可以写成 16,000，但语义必须相同。代码符号可按口述恢复，动作含义不得变化，检查 codesign 不能改成执行。",
         "失败与设置：用户按 Esc 主动取回原转写与系统被迫回退必须分开记录。历史状态应区分成功、修复后成功、主动取回、超时、截断、事实校验失败和设置缺失。用户侧只保留一个语音润色入口；性能分别记录 P50 和 P95，路由与指标留在诊断层。",
@@ -1646,10 +1646,10 @@ def natural_ultra_long_cases() -> list[dict]:
         "停步清单：真实付款、账号权限、外部发送、批量删除、公开发布和学员隐私操作必须等待负责人确认，并写明取消后的恢复方式，避免素材损坏、重复收费或半完成状态。",
     ]
     # 两条超长样本都把旧事实和最终改口放在预期的不同内部切片中；其中产品
-    # 复盘还叠加安全近期上下文的 Muse 专名纠正。最终由 Swift 回归测试按
+    # 复盘还叠加安全近期上下文的 Dal 专名纠正。最终由 Swift 回归测试按
     # 实际 chunker 断言，避免只凭总长度声称覆盖了跨片改口。
     product_segments[10] += "质量修复重试次数先按三次记录。"
-    product_segments[20] = product_segments[20].replace("Muse 进程", "缪斯进程")
+    product_segments[20] = product_segments[20].replace("Dal 进程", "缪斯进程")
     product_segments[23] = (
         "前面质量修复的重试次数我说错了，最终最多两次。" + product_segments[23]
     )
@@ -1666,7 +1666,7 @@ def natural_ultra_long_cases() -> list[dict]:
     product_full_reference[10] = product_full_reference[10].replace(
         "质量修复重试次数先按三次记录。", ""
     )
-    product_full_reference[20] = product_full_reference[20].replace("缪斯进程", "Muse 进程")
+    product_full_reference[20] = product_full_reference[20].replace("缪斯进程", "Dal 进程")
     product_full_reference[23] = product_full_reference[23].replace(
         "前面质量修复的重试次数我说错了，最终最多两次。",
         "质量修复重试次数最终最多两次。",
@@ -1714,7 +1714,7 @@ def natural_ultra_long_cases() -> list[dict]:
             context=context_fixture(
                 "recent_safe", "metadataOnly", "safe",
                 recent=[
-                    "Muse 的候选构建正在验收。",
+                    "Dal 的候选构建正在验收。",
                 ],
             ),
             context_forbidden=[],
@@ -2069,7 +2069,7 @@ def main() -> None:
 
     document = {
         "schema_version": 7,
-        "name": "Muse 语音润色多维产品质量测试集 V3.2",
+        "name": "Dal 语音润色多维产品质量测试集 V3.2",
         "created_at": "2026-08-17",
         "language": "zh-CN",
         "source_dataset": SOURCE_PATH.name,
@@ -2107,7 +2107,7 @@ def main() -> None:
             "none": "不提供正文上下文",
             "nearby_safe": "安全输入框附近文字",
             "selected_safe": "用户明确选中的安全文字",
-            "recent_safe": "同一应用近期 Muse 输入",
+            "recent_safe": "同一应用近期 Dal 输入",
             "conflicting_safe": "授权上下文存在冲突，不得猜测",
             "irrelevant_safe": "上下文含无关事实，不得注入正文",
             "secure_blocked": "安全字段正文必须被清空",

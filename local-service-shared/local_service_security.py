@@ -1,4 +1,4 @@
-"""Muse 本地推理服务共用的鉴权与输入边界。"""
+"""Dal 本地推理服务共用的鉴权与输入边界。"""
 
 from __future__ import annotations
 

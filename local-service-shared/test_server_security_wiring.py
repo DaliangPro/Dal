@@ -79,12 +79,12 @@ class ServerSecurityWiringTests(unittest.TestCase):
     def setUpClass(cls):
         cls.sensevoice = _load_server(
             "sensevoice-server/server.py",
-            "muse_test_sensevoice_server",
+            "dal_test_sensevoice_server",
             stub_sensevoice=True,
         )
         cls.qwen = _load_server(
             "qwen3-asr-server/server.py",
-            "muse_test_qwen_server",
+            "dal_test_qwen_server",
         )
 
     def test_both_health_routes_require_the_process_token(self):

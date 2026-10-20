@@ -175,7 +175,7 @@ def validate_run_root(path: Path) -> None:
     support = Path(pwd.getpwuid(os.getuid()).pw_dir) / "Library/Application Support/Muse"
     resolved = path.resolve()
     if support.resolve() == resolved or support.resolve() in resolved.parents:
-        raise ValueError("run-root 不得指向真实 Muse 用户数据目录")
+        raise ValueError("run-root 不得指向真实 Dal 用户数据目录")
     if not path.is_absolute() or path.exists() or path.is_symlink():
         raise ValueError("run-root 必须是不存在的独占绝对目录")
 
