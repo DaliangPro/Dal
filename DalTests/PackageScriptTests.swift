@@ -306,11 +306,7 @@ final class PackageScriptTests: XCTestCase {
             [.posixPermissions: 0o500],
             ofItemAtPath: fixture.binary.path
         )
-        try fileManager.createDirectory(at: fixture.app, withIntermediateDirectories: true)
-        try fileManager.setAttributes(
-            [.posixPermissions: 0o700],
-            ofItemAtPath: fixture.app.path
-        )
+        try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: fixture.app.path)
         let hash = try run(
             "/usr/bin/shasum",
             arguments: ["-a", "256", fixture.binary.path]

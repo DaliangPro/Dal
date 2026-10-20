@@ -65,7 +65,7 @@ class LocalServiceSecurityTests(unittest.TestCase):
         for provided in (None, "wrong"):
             headers = dict(valid_base)
             if provided is not None:
-                headers["x-dal-local-token"] = provided
+                headers["x-muse-local-token"] = provided
             with self.subTest(provided=provided):
                 with self.assertRaises(RequestValidationError) as http_error:
                     validate_http_headers(headers, "expected")
@@ -76,7 +76,7 @@ class LocalServiceSecurityTests(unittest.TestCase):
 
         authorized = {
             "host": "localhost:8765",
-            "x-dal-local-token": "expected",
+            "x-muse-local-token": "expected",
         }
         validate_http_headers(authorized, "expected")
         validate_websocket_headers(authorized, "expected")
@@ -87,7 +87,7 @@ class LocalServiceSecurityTests(unittest.TestCase):
                 {
                     "host": "127.0.0.1:8765",
                     "origin": "https://example.com",
-                    "x-dal-local-token": "expected",
+                    "x-muse-local-token": "expected",
                 },
                 "expected",
             )
@@ -97,7 +97,7 @@ class LocalServiceSecurityTests(unittest.TestCase):
             validate_websocket_headers(
                 {
                     "host": "example.com:8765",
-                    "x-dal-local-token": "expected",
+                    "x-muse-local-token": "expected",
                 },
                 "expected",
             )

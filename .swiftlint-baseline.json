@@ -790,7 +790,7 @@
         "file": "Dal/AppStartupCoordinator.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 180 characters",
+      "reason": "Line should be 120 characters or less; currently it has 179 characters",
       "ruleName": "Line Length"
     }
   },
@@ -3205,7 +3205,7 @@
         "file": "Dal/MenuBarVisibilityMonitor.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 135 characters",
+      "reason": "Line should be 120 characters or less; currently it has 133 characters",
       "ruleName": "Line Length"
     }
   },
@@ -4075,7 +4075,7 @@
         "file": "Dal/Services/AppUpdater.swift",
         "character": 7
       },
-      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 863 lines",
+      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 875 lines",
       "ruleName": "Type Body Length"
     }
   },
@@ -4191,11 +4191,11 @@
       "ruleDescription": "Files should not span too many lines.",
       "severity": "error",
       "location": {
-        "line": 1015,
+        "line": 1027,
         "file": "Dal/Services/AppUpdater.swift",
         "character": 1
       },
-      "reason": "File should contain 1000 lines or less: currently contains 1015",
+      "reason": "File should contain 1000 lines or less: currently contains 1027",
       "ruleName": "File Length"
     }
   },
@@ -4555,7 +4555,7 @@
         "file": "Dal/Services/LogRedactor.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 284 characters",
+      "reason": "Line should be 200 characters or less; currently it has 283 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7525,7 +7525,7 @@
         "file": "Dal/Services/StorageRecoveryNotice.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 201 characters",
+      "reason": "Line should be 120 characters or less; currently it has 199 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7720,7 +7720,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 175 characters",
+      "reason": "Line should be 120 characters or less; currently it has 174 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7780,7 +7780,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 150 characters",
+      "reason": "Line should be 120 characters or less; currently it has 149 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7795,7 +7795,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 143 characters",
+      "reason": "Line should be 120 characters or less; currently it has 142 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7810,7 +7810,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 150 characters",
+      "reason": "Line should be 120 characters or less; currently it has 149 characters",
       "ruleName": "Line Length"
     }
   },
@@ -7855,7 +7855,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 142 characters",
+      "reason": "Line should be 120 characters or less; currently it has 141 characters",
       "ruleName": "Line Length"
     }
   },
@@ -8290,7 +8290,7 @@
         "file": "Dal/Session/RecognitionSession.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 359 characters",
+      "reason": "Line should be 200 characters or less; currently it has 358 characters",
       "ruleName": "Line Length"
     }
   },
@@ -11500,7 +11500,7 @@
         "file": "Dal/UI/Settings/ASRSettingsFooter.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 135 characters",
+      "reason": "Line should be 120 characters or less; currently it has 134 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12310,7 +12310,7 @@
         "file": "Dal/UI/Settings/OutputContextSettings.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 161 characters",
+      "reason": "Line should be 120 characters or less; currently it has 160 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12685,7 +12685,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 148 characters",
+      "reason": "Line should be 120 characters or less; currently it has 147 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12700,7 +12700,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 206 characters",
+      "reason": "Line should be 200 characters or less; currently it has 205 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12715,7 +12715,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 147 characters",
+      "reason": "Line should be 120 characters or less; currently it has 146 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12910,7 +12910,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 172 characters",
+      "reason": "Line should be 120 characters or less; currently it has 170 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12925,7 +12925,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 162 characters",
+      "reason": "Line should be 120 characters or less; currently it has 160 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12940,7 +12940,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 200 characters or less; currently it has 288 characters",
+      "reason": "Line should be 200 characters or less; currently it has 286 characters",
       "ruleName": "Line Length"
     }
   },
@@ -12955,7 +12955,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 172 characters",
+      "reason": "Line should be 120 characters or less; currently it has 170 characters",
       "ruleName": "Line Length"
     }
   },
@@ -13030,7 +13030,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 199 characters",
+      "reason": "Line should be 120 characters or less; currently it has 198 characters",
       "ruleName": "Line Length"
     }
   },
@@ -13045,7 +13045,7 @@
         "file": "Dal/UI/Settings/TerminologySettingsTab.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 182 characters",
+      "reason": "Line should be 120 characters or less; currently it has 181 characters",
       "ruleName": "Line Length"
     }
   },
@@ -13455,7 +13455,7 @@
     }
   },
   {
-    "text": "        \"Dal\": [\"缪斯\"],",
+    "text": "        \"Dal\": [\"达尔\"],",
     "violation": {
       "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
@@ -16015,7 +16015,7 @@
         "file": "DalTests/AppUpdaterScriptTests.swift",
         "character": 7
       },
-      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 886 lines",
+      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 913 lines",
       "ruleName": "Type Body Length"
     }
   },
@@ -16176,11 +16176,11 @@
       "ruleDescription": "Lines should not span too many characters.",
       "severity": "error",
       "location": {
-        "line": 1003,
+        "line": 1032,
         "file": "DalTests/AppUpdaterScriptTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 124 characters",
+      "reason": "Line should be 120 characters or less; currently it has 123 characters",
       "ruleName": "Line Length"
     }
   },
@@ -16191,11 +16191,11 @@
       "ruleDescription": "Files should not span too many lines.",
       "severity": "error",
       "location": {
-        "line": 1015,
+        "line": 1044,
         "file": "DalTests/AppUpdaterScriptTests.swift",
         "character": 1
       },
-      "reason": "File should contain 1000 lines or less: currently contains 1015",
+      "reason": "File should contain 1000 lines or less: currently contains 1044",
       "ruleName": "File Length"
     }
   },
@@ -17155,7 +17155,7 @@
         "file": "DalTests/InteractiveTestRuntimeTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 126 characters",
+      "reason": "Line should be 120 characters or less; currently it has 125 characters",
       "ruleName": "Line Length"
     }
   },
@@ -18310,7 +18310,7 @@
         "file": "DalTests/PackageScriptTests.swift",
         "character": 7
       },
-      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 589 lines",
+      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 593 lines",
       "ruleName": "Type Body Length"
     }
   },
@@ -18591,11 +18591,11 @@
       "ruleDescription": "Files should not span too many lines.",
       "severity": "error",
       "location": {
-        "line": 658,
+        "line": 661,
         "file": "DalTests/PackageScriptTests.swift",
         "character": 1
       },
-      "reason": "File should contain 400 lines or less: currently contains 658",
+      "reason": "File should contain 400 lines or less: currently contains 661",
       "ruleName": "File Length"
     }
   },
@@ -18825,7 +18825,7 @@
     }
   },
   {
-    "text": "            \"请照录缪斯，不要纠正为 Dal。\",",
+    "text": "            \"请照录达尔，不要纠正为 Dal。\",",
     "violation": {
       "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
@@ -18840,7 +18840,7 @@
     }
   },
   {
-    "text": "            \"缪斯这次构建完成，代码先保留，别改写说明。\",",
+    "text": "            \"达尔这次构建完成，代码先保留，别改写说明。\",",
     "violation": {
       "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
@@ -19785,7 +19785,7 @@
     }
   },
   {
-    "text": "            (\"scripts/test_app_bundle.sh\", #\"EXPECTED_VERSION=\"${APP_VERSION:-2.1.2}\"\"#),",
+    "text": "            (\"scripts/test_app_bundle.sh\", #\"EXPECTED_VERSION=\"${APP_VERSION:-2.2.0}\"\"#),",
     "violation": {
       "ruleIdentifier": "trailing_comma",
       "ruleDescription": "Trailing commas in arrays and dictionaries should be avoided/enforced.",
@@ -19810,7 +19810,7 @@
         "file": "DalTests/ReleaseVerifyScriptTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 127 characters",
+      "reason": "Line should be 120 characters or less; currently it has 126 characters",
       "ruleName": "Line Length"
     }
   },
@@ -19825,7 +19825,7 @@
         "file": "DalTests/ReleaseVerifyScriptTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 127 characters",
+      "reason": "Line should be 120 characters or less; currently it has 126 characters",
       "ruleName": "Line Length"
     }
   },
@@ -20140,7 +20140,7 @@
         "file": "DalTests/ReleaseVerifyScriptTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 132 characters",
+      "reason": "Line should be 120 characters or less; currently it has 129 characters",
       "ruleName": "Line Length"
     }
   },
@@ -20695,7 +20695,7 @@
         "file": "DalTests/VoiceInputModeIntegrationTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 126 characters",
+      "reason": "Line should be 120 characters or less; currently it has 125 characters",
       "ruleName": "Line Length"
     }
   },
@@ -20710,7 +20710,7 @@
         "file": "DalTests/VoiceInputModeIntegrationTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 129 characters",
+      "reason": "Line should be 120 characters or less; currently it has 128 characters",
       "ruleName": "Line Length"
     }
   },
@@ -20740,7 +20740,7 @@
         "file": "DalTests/VoiceInputModeIntegrationTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 127 characters",
+      "reason": "Line should be 120 characters or less; currently it has 126 characters",
       "ruleName": "Line Length"
     }
   },
@@ -22060,7 +22060,7 @@
         "file": "DalTests/VoicePolishQualityAuthorizationTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 123 characters",
+      "reason": "Line should be 120 characters or less; currently it has 122 characters",
       "ruleName": "Line Length"
     }
   },
@@ -22600,7 +22600,7 @@
         "file": "DalTests/VoicePolishRequestProbeTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 131 characters",
+      "reason": "Line should be 120 characters or less; currently it has 130 characters",
       "ruleName": "Line Length"
     }
   },
@@ -22615,7 +22615,7 @@
         "file": "DalTests/VoicePolishRequestProbeTests.swift",
         "character": 1
       },
-      "reason": "Line should be 120 characters or less; currently it has 178 characters",
+      "reason": "Line should be 120 characters or less; currently it has 177 characters",
       "ruleName": "Line Length"
     }
   },
