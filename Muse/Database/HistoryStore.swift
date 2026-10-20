@@ -1,5 +1,6 @@
 import Foundation
 import SQLite3
+import Darwin
 
 extension Notification.Name {
     static let historyStoreDidChange = Notification.Name("Muse.historyStoreDidChange")
@@ -46,10 +47,24 @@ actor HistoryStore {
         databasePath = dbPath
 
         let databaseURL = URL(fileURLWithPath: dbPath)
-        guard !SecureFilePermissions.isSymbolicLink(at: databaseURL) else {
+        guard ![dbPath, dbPath + "-wal", dbPath + "-shm"].contains(where: {
+            SecureFilePermissions.isSymbolicLink(at: URL(fileURLWithPath: $0))
+        }) else {
             AppLogger.log("[HistoryStore] 拒绝打开符号链接数据库: \(dbPath)")
             db = nil
             return
+        }
+
+        // 首次创建即为 0600；SQLite WAL/SHM 会沿用主库权限，避免先写入再 chmod。
+        if dbPath != ":memory:" {
+            let descriptor = open(dbPath, O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, 0o600)
+            guard descriptor >= 0 else {
+                db = nil
+                return
+            }
+            let secured = fchmod(descriptor, 0o600) == 0
+            close(descriptor)
+            guard secured else { db = nil; return }
         }
 
         if sqlite3_open(dbPath, &db) == SQLITE_OK {

@@ -126,6 +126,9 @@ final class AudioChunkUploadPipeline: @unchecked Sendable {
         }
         if !drained {
             senderTask.cancel()
+            if failureFlag.markFailed() {
+                emitInterrupted?(.streamingInterrupted)
+            }
             DebugFileLogger.log("audio chunk pipeline drain timeout; sender cancelled")
         }
         return failed

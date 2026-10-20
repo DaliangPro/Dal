@@ -19,9 +19,7 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
     @State private var editedFields: Set<String> = []
     @State private var llmTestStatus: SettingsTestStatus = .idle
     // 获取模型列表（2026-06-11 用户拍板新增）
-    @State private var fetchedModels: [String] = []
-    @State private var modelFetchStatus: SettingsTestStatus = .idle
-    @State private var modelFetchTask: Task<Void, Never>?
+    @State private var modelList = LLMModelListState()
     @State private var isEditingLLM = true
     @State private var hasStoredLLM = false
     @State private var testTask: Task<Void, Never>?
@@ -170,12 +168,11 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
         }
         .onDisappear {
             testTask?.cancel()
-            modelFetchTask?.cancel()
+            modelList.invalidate()
         }
         .onChange(of: selectedLLMProvider) { oldProvider, newProvider in
             handleLLMProviderChange(from: oldProvider, to: newProvider)
-            fetchedModels = []
-            modelFetchStatus = .idle
+            modelList.invalidate()
         }
         .onChange(of: effectiveLLMValues) { oldValues, newValues in
             handleEffectiveValuesChange(from: oldValues, to: newValues)
@@ -186,7 +183,7 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
 
     @ViewBuilder
     private var modelListFetchRows: some View {
-        if !fetchedModels.isEmpty {
+        if !modelList.models.isEmpty {
             settingsInspectorRow(
                 L("可选模型", "Models"),
                 labelWidth: ModelSettingsStyle.inspectorLabelWidth,
@@ -195,25 +192,28 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
             ) {
                 settingsInspectorInlineDropdown(
                     selection: fetchedModelSelection,
-                    options: fetchedModels.map { ($0, $0) },
+                    options: modelList.models.map { ($0, $0) },
                     width: inspectorControlWidth,
                     height: ModelSettingsStyle.inspectorFieldHeight
                 )
             }
         }
-        if modelFetchStatus == .testing || isFetchFailed || !fetchedModels.isEmpty {
+        if modelList.status == .testing || isFetchFailed || !modelList.models.isEmpty {
             HStack(spacing: 8) {
-                if modelFetchStatus == .testing {
+                if modelList.status == .testing {
                     Text(L("正在获取模型列表…", "Fetching models…"))
                         .font(TF.settingsFontMetadata)
                         .foregroundStyle(TF.settingsTextTertiary)
-                } else if case .failed(let message) = modelFetchStatus {
+                } else if case .failed(let message) = modelList.status {
                     Text(message)
                         .font(TF.settingsFontMetadata)
                         .foregroundStyle(TF.settingsAccentAmber)
                         .lineLimit(1)
                 } else {
-                    Text(L("共 \(fetchedModels.count) 个模型，选择后记得保存", "\(fetchedModels.count) models — remember to save"))
+                    Text(L(
+                        "共 \(modelList.models.count) 个模型，选择后记得保存",
+                        "\(modelList.models.count) models — remember to save"
+                    ))
                         .font(TF.settingsFontMetadata)
                         .foregroundStyle(TF.settingsTextTertiary)
                 }
@@ -223,7 +223,7 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
     }
 
     private var isFetchFailed: Bool {
-        if case .failed = modelFetchStatus { return true }
+        if case .failed = modelList.status { return true }
         return false
     }
 
@@ -238,28 +238,7 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
     }
 
     private func fetchModelList() {
-        let values = effectiveLLMValues
-        let provider = selectedLLMProvider
-        modelFetchTask?.cancel()
-        modelFetchStatus = .testing
-        modelFetchTask = Task {
-            do {
-                let models = try await LLMModelListFetcher.fetchModels(
-                    provider: provider,
-                    apiKey: values["apiKey"] ?? "",
-                    baseURL: values["baseURL"] ?? ""
-                )
-                await MainActor.run {
-                    fetchedModels = models
-                    modelFetchStatus = .idle
-                }
-            } catch {
-                await MainActor.run {
-                    fetchedModels = []
-                    modelFetchStatus = .failed(error.localizedDescription)
-                }
-            }
-        }
+        modelList.fetch(provider: selectedLLMProvider, values: effectiveLLMValues)
     }
 
     // MARK: - Local Qwen Status
@@ -343,6 +322,7 @@ struct LLMSettingsCard: View, SettingsCardHelpers {
         to newValues: [String: String]
     ) {
         guard oldValues != newValues else { return }
+        modelList.invalidate()
         invalidateConnectionTest()
     }
 
