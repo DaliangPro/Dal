@@ -10,6 +10,8 @@ struct SettingsBrandLogo: View {
     var lightOpacity: Double = 0.64
     var darkOpacity: Double = 0.70
 
+    // 沿用原品牌位的高度和左对齐位置，避免较窄的新字形按宽度撑高。
+    private static let layoutAspectRatio: CGFloat = 1126.0 / 461.0
     private static let inkRect = CGRect(x: 225, y: 374, width: 816, height: 506)
 
     var body: some View {
@@ -18,7 +20,11 @@ struct SettingsBrandLogo: View {
                 .renderingMode(.template)
                 .resizable()
                 .interpolation(.high)
-                .frame(width: width, height: width * Self.inkRect.height / Self.inkRect.width)
+                .scaledToFit()
+                // 保留原图的上下及左侧留白，按可见字形高度匹配视觉大小。
+                .frame(height: width * 373.0 / 1126.0)
+                .padding(.leading, width * 55.0 / 1126.0)
+                .frame(width: width, height: width / Self.layoutAspectRatio, alignment: .leading)
                 .foregroundStyle(Color.primary)
                 .opacity(colorScheme == .dark ? darkOpacity : lightOpacity)
                 .accessibilityElement(children: .ignore)
