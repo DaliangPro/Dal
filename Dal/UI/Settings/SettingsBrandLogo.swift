@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 使用原生文字呈现品牌，避免旧位图在安装后继续显示旧名称。
+/// 三处共用手写字标，原生文字随明暗主题着色并保留无障碍名称。
 struct SettingsBrandLogo: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -10,8 +10,7 @@ struct SettingsBrandLogo: View {
 
     var body: some View {
         Text("Dal")
-            .font(.system(size: width * 0.40, weight: .semibold, design: .rounded))
-            .tracking(-width * 0.012)
+            .font(.custom("SnellRoundhand-Bold", size: width * 0.52))
             .foregroundStyle(Color.primary)
             .opacity(colorScheme == .dark ? darkOpacity : lightOpacity)
             .frame(width: width, alignment: .leading)
