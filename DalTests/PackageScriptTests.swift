@@ -458,6 +458,7 @@ final class PackageScriptTests: XCTestCase {
         let mainExecutable = macOS.appendingPathComponent("Dal")
         try copyExecutable(from: URL(fileURLWithPath: "/usr/bin/true"), to: mainExecutable)
         try Data("fixture".utf8).write(to: resources.appendingPathComponent("AppIcon.icns"))
+        try Data("logo".utf8).write(to: resources.appendingPathComponent("BrandLogo.png"))
         try Data("original".utf8).write(to: resources.appendingPathComponent("payload.txt"))
         try infoPlist.write(
             to: contents.appendingPathComponent("Info.plist"),
@@ -508,6 +509,7 @@ final class PackageScriptTests: XCTestCase {
         try fileManager.createDirectory(at: sounds, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: home.appendingPathComponent(".Trash"), withIntermediateDirectories: true)
         try Data("icon".utf8).write(to: resources.appendingPathComponent("AppIcon.icns"))
+        try Data("logo".utf8).write(to: resources.appendingPathComponent("BrandLogo.png"))
         try Data("sound".utf8).write(to: sounds.appendingPathComponent("start.wav"))
         try copyExecutable(from: URL(fileURLWithPath: "/usr/bin/true"), to: binary)
 

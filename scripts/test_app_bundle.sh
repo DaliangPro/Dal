@@ -25,6 +25,7 @@ read_plist() {
 [ -f "$INFO_PLIST" ] || fail "Info.plist missing at $INFO_PLIST"
 [ -f "$APP_PATH/Contents/MacOS/Dal" ] || fail "app executable missing"
 [ -f "$APP_PATH/Contents/Resources/AppIcon.icns" ] || fail "app icon missing"
+[ -f "$APP_PATH/Contents/Resources/BrandLogo.png" ] || fail "brand wordmark missing"
 case "$DAL_DEFER_GATEKEEPER_ASSESSMENT" in
     0|1) ;;
     *) fail "DAL_DEFER_GATEKEEPER_ASSESSMENT must be 0 or 1" ;;

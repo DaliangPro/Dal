@@ -18310,7 +18310,7 @@
         "file": "DalTests/PackageScriptTests.swift",
         "character": 7
       },
-      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 593 lines",
+      "reason": "Class body should span 350 lines or less excluding comments and whitespace: currently spans 595 lines",
       "ruleName": "Type Body Length"
     }
   },
@@ -18591,11 +18591,11 @@
       "ruleDescription": "Files should not span too many lines.",
       "severity": "error",
       "location": {
-        "line": 661,
+        "line": 663,
         "file": "DalTests/PackageScriptTests.swift",
         "character": 1
       },
-      "reason": "File should contain 400 lines or less: currently contains 661",
+      "reason": "File should contain 400 lines or less: currently contains 663",
       "ruleName": "File Length"
     }
   },
