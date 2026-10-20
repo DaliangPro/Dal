@@ -8,7 +8,7 @@ if [ -e "$DESTINATION" ]; then
   exit 1
 fi
 ARTIFACT='sherpa-onnx-v1.12.33-osx-universal2-static-lib'
-STAGING="${RUNNER_TEMP:?需要 CI 临时目录}/muse-sherpa"
+STAGING="${RUNNER_TEMP:?需要 CI 临时目录}/dal-sherpa"
 mkdir -p "$STAGING" "$ROOT_DIR/Frameworks"
 curl --fail --location --retry 3 \
   "https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.12.33/$ARTIFACT.tar.bz2" \

@@ -29,7 +29,7 @@ version_is_greater() {
     '
 }
 
-EXPECTED_REPOSITORY="DaliangPro/Muse"
+EXPECTED_REPOSITORY="DaliangPro/Dal"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}"
 APP_VERSION="${APP_VERSION:-}"
 [ "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY" ] \
@@ -37,9 +37,9 @@ APP_VERSION="${APP_VERSION:-}"
 valid_version "$APP_VERSION" || fail "APP_VERSION must be bounded major.minor.patch"
 [ -x /usr/bin/jq ] || fail "jq is unavailable"
 
-TEST_MODE="${MUSE_RELEASE_VERSION_TEST_MODE:-0}"
-RELEASES_FIXTURE="${MUSE_RELEASE_RELEASES_FIXTURE:-}"
-UPDATES_FIXTURE="${MUSE_RELEASE_UPDATES_FIXTURE:-}"
+TEST_MODE="${DAL_RELEASE_VERSION_TEST_MODE:-0}"
+RELEASES_FIXTURE="${DAL_RELEASE_RELEASES_FIXTURE:-}"
+UPDATES_FIXTURE="${DAL_RELEASE_UPDATES_FIXTURE:-}"
 if [ "$TEST_MODE" = "1" ]; then
     [ -f "$RELEASES_FIXTURE" ] && [ ! -L "$RELEASES_FIXTURE" ] \
         || fail "release fixture is missing or unsafe"

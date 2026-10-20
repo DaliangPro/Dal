@@ -9,8 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Set.json"
-OUTPUT = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Core-Semantic-Test-Set.json"
+SOURCE = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json"
+OUTPUT = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Core-Semantic-Test-Set.json"
 STRESS_BOUNDARY_IDS = {
     "natural-long-09-asr-dirty-segments-1",
     "natural-long-10-asr-dirty-segments-2",
@@ -194,7 +194,7 @@ CONTRACTS = {
     "code-01": contract(
         "口述代码符号必须还原为精确路径和命令",
         ["记录长文本超过2048 tokens退原文的Bug及复现命令"],
-        ["Muse/VoicePolish/VoicePolishPipeline.swift", "2048 tokens", "回退原文", "swift test --filter VoicePolishPipelineTests"],
+        ["Dal/VoicePolish/VoicePolishPipeline.swift", "2048 tokens", "回退原文", "swift test --filter VoicePolishPipelineTests"],
         ["恢复斜杠、点号和双横线；删除幕后保真说明"],
         ["根因、修复方案、错误日志"],
         ["可使用代码格式或普通文本，但字符必须精确"],
@@ -309,7 +309,7 @@ def main() -> None:
 
     result = {
         "schema_version": 2,
-        "name": "Muse 语音润色核心语义测试集 V2",
+        "name": "Dal 语音润色核心语义测试集 V2",
         "created_at": "2026-08-17",
         "language": "zh-CN",
         "source_dataset": SOURCE.name,

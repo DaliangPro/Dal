@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qwen3-ASR WebSocket server for Muse.
+"""Qwen3-ASR WebSocket server for Dal.
 
 Same WebSocket protocol as the SenseVoice server so the Swift client
 (SenseVoiceWSClient) can connect without changes.

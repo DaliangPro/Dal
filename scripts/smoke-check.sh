@@ -57,8 +57,8 @@ run_step swift test
 
 if [ "$RUN_UI_INJECTION" = "1" ]; then
     echo
-    echo "==> MUSE_RUN_UI_INJECTION_TEST=1 swift test --filter TextInjectionEngineIntegrationTests"
-    MUSE_RUN_UI_INJECTION_TEST=1 swift test --filter TextInjectionEngineIntegrationTests
+    echo "==> DAL_RUN_UI_INJECTION_TEST=1 swift test --filter TextInjectionEngineIntegrationTests"
+    DAL_RUN_UI_INJECTION_TEST=1 swift test --filter TextInjectionEngineIntegrationTests
 fi
 
 if [ "$RUN_APP_LAUNCH" = "1" ]; then

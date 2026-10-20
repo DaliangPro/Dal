@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && /bin/pwd -P)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && /bin/pwd -P)"
-APP_NAME="Muse"
-APP_VERSION="${APP_VERSION:-2.1.2}"
+APP_NAME="Dal"
+APP_VERSION="${APP_VERSION:-2.2.0}"
 case "$APP_VERSION" in
     ''|.*|*.|*..*|*[!0-9.]*)
         echo "APP_VERSION must be numeric dot-separated" >&2
@@ -23,7 +23,7 @@ case "$ARTIFACT_KIND" in
 esac
 
 DIST_DIR="${DIST_DIR:-$PROJECT_DIR/dist}"
-DMG_NAME="${DMG_NAME:-Muse-v${APP_VERSION}-${ARTIFACT_KIND}.dmg}"
+DMG_NAME="${DMG_NAME:-Dal-v${APP_VERSION}-${ARTIFACT_KIND}.dmg}"
 case "$DMG_NAME" in
     [A-Za-z0-9]*.dmg) ;;
     *)
@@ -50,7 +50,7 @@ if [ -z "$CODESIGN_IDENTITY" ] || [ "$CODESIGN_IDENTITY" = "-" ]; then
     CODESIGN_IDENTITY="-"
     UPDATE_READY="no"
 elif [ "$CODESIGN_IDENTITY" = "Muse Local" ] && [ "$ALLOW_LOCAL_SIGNING" = "1" ]; then
-    # Muse 的公开手动分发沿用本机 Muse Local 证书；它没有 Developer ID
+    # Dal 的公开手动分发沿用本机 Muse Local 证书；它没有 Developer ID
     # TeamIdentifier，也不进入自动更新清单，但仍保留应用包的严格签名校验。
     UPDATE_READY="no"
 fi
@@ -59,11 +59,11 @@ CODESIGN_BIN="/usr/bin/codesign"
 HDIUTIL_BIN="/usr/bin/hdiutil"
 SHASUM_BIN="/usr/bin/shasum"
 MV_BIN="/bin/mv"
-if [ "${MUSE_DMG_TEST_MODE:-0}" = "1" ]; then
-    CODESIGN_BIN="${MUSE_DMG_CODESIGN_BIN:-$CODESIGN_BIN}"
-    HDIUTIL_BIN="${MUSE_DMG_HDIUTIL_BIN:-$HDIUTIL_BIN}"
-    SHASUM_BIN="${MUSE_DMG_SHASUM_BIN:-$SHASUM_BIN}"
-    MV_BIN="${MUSE_DMG_MV_BIN:-$MV_BIN}"
+if [ "${DAL_DMG_TEST_MODE:-0}" = "1" ]; then
+    CODESIGN_BIN="${DAL_DMG_CODESIGN_BIN:-$CODESIGN_BIN}"
+    HDIUTIL_BIN="${DAL_DMG_HDIUTIL_BIN:-$HDIUTIL_BIN}"
+    SHASUM_BIN="${DAL_DMG_SHASUM_BIN:-$SHASUM_BIN}"
+    MV_BIN="${DAL_DMG_MV_BIN:-$MV_BIN}"
     [ -x "$CODESIGN_BIN" ] || { echo "test codesign shim is not executable" >&2; exit 1; }
     [ -x "$HDIUTIL_BIN" ] || { echo "test hdiutil shim is not executable" >&2; exit 1; }
     [ -x "$SHASUM_BIN" ] || { echo "test shasum shim is not executable" >&2; exit 1; }
@@ -77,7 +77,7 @@ DMG_PATH="$DIST_DIR/$DMG_NAME"
 TX_ID="$(/usr/bin/uuidgen)"
 PARTIAL_DMG="$DIST_DIR/.${DMG_NAME%.dmg}.partial-$TX_ID.dmg"
 PREVIOUS_DMG="$DIST_DIR/.${DMG_NAME}.previous-$TX_ID"
-STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/muse-dmg.XXXXXX")"
+STAGING_DIR="$(mktemp -d "${TMPDIR:-/tmp}/dal-dmg.XXXXXX")"
 /bin/chmod 755 "$STAGING_DIR"
 PUBLISHED=0
 

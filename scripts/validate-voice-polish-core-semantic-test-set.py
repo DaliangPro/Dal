@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验 Muse 语音润色核心语义测试集的身份、来源和盲测边界。"""
+"""校验 Dal 语音润色核心语义测试集的身份、来源和盲测边界。"""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Set.json"
-CORE = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Core-Semantic-Test-Set.json"
+SOURCE = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json"
+CORE = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Core-Semantic-Test-Set.json"
 
 EXPECTED_SCHEMA_VERSION = 2
-EXPECTED_NAME = "Muse 语音润色核心语义测试集 V2"
+EXPECTED_NAME = "Dal 语音润色核心语义测试集 V2"
 EXPECTED_IDS = [
     "micro-02",
     "micro-04",

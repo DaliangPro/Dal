@@ -2,29 +2,29 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && /bin/pwd -P)"
-if [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
-    [ -n "${MUSE_PACKAGE_PROJECT_DIR:-}" ] || {
-        echo "MUSE_PACKAGE_PROJECT_DIR is required in package test mode" >&2
+if [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+    [ -n "${DAL_PACKAGE_PROJECT_DIR:-}" ] || {
+        echo "DAL_PACKAGE_PROJECT_DIR is required in package test mode" >&2
         exit 1
     }
-    PROJECT_DIR="$(cd "$MUSE_PACKAGE_PROJECT_DIR" && /bin/pwd -P)"
+    PROJECT_DIR="$(cd "$DAL_PACKAGE_PROJECT_DIR" && /bin/pwd -P)"
 else
     PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && /bin/pwd -P)"
 fi
 
 PACKAGING_SOURCE_COMMIT=""
 PACKAGING_SOURCE_TREE=""
-if [ "${MUSE_PACKAGE_TEST_MODE:-0}" != "1" ]; then
-    if [ -n "${MUSE_SOURCE_COMMIT:-}" ]; then
-        echo "MUSE_SOURCE_COMMIT cannot override provenance outside package test mode" >&2
+if [ "${DAL_PACKAGE_TEST_MODE:-0}" != "1" ]; then
+    if [ -n "${DAL_SOURCE_COMMIT:-}" ]; then
+        echo "DAL_SOURCE_COMMIT cannot override provenance outside package test mode" >&2
         exit 1
     fi
-    if [ -n "${MUSE_SOURCE_TREE:-}" ]; then
-        echo "MUSE_SOURCE_TREE cannot override provenance outside package test mode" >&2
+    if [ -n "${DAL_SOURCE_TREE:-}" ]; then
+        echo "DAL_SOURCE_TREE cannot override provenance outside package test mode" >&2
         exit 1
     fi
     git -C "$PROJECT_DIR" rev-parse --verify HEAD >/dev/null 2>&1 || {
-        echo "Unable to determine Muse source commit for packaged artifact" >&2
+        echo "Unable to determine Dal source commit for packaged artifact" >&2
         exit 1
     }
     if ! git -C "$PROJECT_DIR" diff --quiet -- \
@@ -33,7 +33,7 @@ if [ "${MUSE_PACKAGE_TEST_MODE:-0}" != "1" ]; then
         exit 1
     fi
     UNTRACKED_BUILD_INPUTS="$(git -C "$PROJECT_DIR" ls-files --others --exclude-standard -- \
-        Muse Frameworks Package.swift Package.resolved)"
+        Dal Frameworks Package.swift Package.resolved)"
     if [ -n "$UNTRACKED_BUILD_INPUTS" ]; then
         echo "Refusing to package untracked build inputs; commit the exact candidate source first" >&2
         exit 1
@@ -41,19 +41,25 @@ if [ "${MUSE_PACKAGE_TEST_MODE:-0}" != "1" ]; then
     PACKAGING_SOURCE_COMMIT="$(git -C "$PROJECT_DIR" rev-parse HEAD)"
     PACKAGING_SOURCE_TREE="$(git -C "$PROJECT_DIR" rev-parse 'HEAD^{tree}')"
 fi
-APP_PATH="${APP_PATH:-$PROJECT_DIR/dist/Muse.app}"
-QUALITY_BUILD_MANIFEST_PATH="${MUSE_QUALITY_BUILD_MANIFEST_PATH:-}"
+APP_PATH="${APP_PATH:-$PROJECT_DIR/dist/Dal.app}"
+# 在构建、签名、写清单或回收任何文件之前检查目标身份。
+python3 "$SCRIPT_DIR/app_identity.py" "$APP_PATH" --bundle-id "${APP_BUNDLE_ID:-pro.daliang.muse}"
+case "${APP_NAME:-Dal}" in
+    Dal|Dal-*|Dal\ *) ;;
+    *) echo "产品名必须以 Dal 命名" >&2; exit 1 ;;
+esac
+QUALITY_BUILD_MANIFEST_PATH="${DAL_QUALITY_BUILD_MANIFEST_PATH:-}"
 QUALITY_DATASET_PATH=""
-QUALITY_PROFILE="${MUSE_QUALITY_PROFILE:-legacy}"
+QUALITY_PROFILE="${DAL_QUALITY_PROFILE:-legacy}"
 QUALITY_CONTRACT_PATH=""
 if [ -n "$QUALITY_BUILD_MANIFEST_PATH" ]; then
     case "$QUALITY_PROFILE" in
         legacy|three_mode) ;;
-        *) echo "MUSE_QUALITY_PROFILE must be legacy or three_mode" >&2; exit 1 ;;
+        *) echo "DAL_QUALITY_PROFILE must be legacy or three_mode" >&2; exit 1 ;;
     esac
     case "$QUALITY_BUILD_MANIFEST_PATH" in
         /*) ;;
-        *) echo "MUSE_QUALITY_BUILD_MANIFEST_PATH must be an absolute path" >&2; exit 1 ;;
+        *) echo "DAL_QUALITY_BUILD_MANIFEST_PATH must be an absolute path" >&2; exit 1 ;;
     esac
     if [ -e "$QUALITY_BUILD_MANIFEST_PATH" ] || [ -L "$QUALITY_BUILD_MANIFEST_PATH" ]; then
         echo "Quality build manifest path must not already exist" >&2
@@ -67,21 +73,21 @@ if [ -n "$QUALITY_BUILD_MANIFEST_PATH" ]; then
     esac
     /bin/mkdir -p "$(/usr/bin/dirname "$QUALITY_BUILD_MANIFEST_PATH")"
 
-    if [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
-        QUALITY_DATASET_PATH="${MUSE_QUALITY_DATASET_PATH:-}"
+    if [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+        QUALITY_DATASET_PATH="${DAL_QUALITY_DATASET_PATH:-}"
         [ -n "$QUALITY_DATASET_PATH" ] || {
-            echo "MUSE_QUALITY_DATASET_PATH is required for a quality manifest in package test mode" >&2
+            echo "DAL_QUALITY_DATASET_PATH is required for a quality manifest in package test mode" >&2
             exit 1
         }
     else
-        if [ -n "${MUSE_QUALITY_DATASET_PATH:-}" ]; then
-            echo "MUSE_QUALITY_DATASET_PATH cannot override the frozen production dataset" >&2
+        if [ -n "${DAL_QUALITY_DATASET_PATH:-}" ]; then
+            echo "DAL_QUALITY_DATASET_PATH cannot override the frozen production dataset" >&2
             exit 1
         fi
         if [ "$QUALITY_PROFILE" = "three_mode" ]; then
-            QUALITY_DATASET_PATH="$PROJECT_DIR/docs/2026-09-10-Muse-Three-Mode-Quality-Test-Set.json"
+            QUALITY_DATASET_PATH="$PROJECT_DIR/docs/2026-09-10-Dal-Three-Mode-Quality-Test-Set.json"
         else
-            QUALITY_DATASET_PATH="$PROJECT_DIR/docs/2026-08-17-Muse-Voice-Polish-Quality-Test-Set.json"
+            QUALITY_DATASET_PATH="$PROJECT_DIR/docs/2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json"
         fi
     fi
     case "$QUALITY_DATASET_PATH" in
@@ -93,14 +99,14 @@ if [ -n "$QUALITY_BUILD_MANIFEST_PATH" ]; then
         exit 1
     fi
     if [ "$QUALITY_PROFILE" = "three_mode" ]; then
-        if [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
-            QUALITY_CONTRACT_PATH="${MUSE_QUALITY_CONTRACT_PATH:-}"
+        if [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+            QUALITY_CONTRACT_PATH="${DAL_QUALITY_CONTRACT_PATH:-}"
         else
-            if [ -n "${MUSE_QUALITY_CONTRACT_PATH:-}" ]; then
-                echo "MUSE_QUALITY_CONTRACT_PATH cannot override frozen production contracts" >&2
+            if [ -n "${DAL_QUALITY_CONTRACT_PATH:-}" ]; then
+                echo "DAL_QUALITY_CONTRACT_PATH cannot override frozen production contracts" >&2
                 exit 1
             fi
-            QUALITY_CONTRACT_PATH="$PROJECT_DIR/docs/2026-09-10-Muse-Three-Mode-Quality-Contracts.json"
+            QUALITY_CONTRACT_PATH="$PROJECT_DIR/docs/2026-09-10-Dal-Three-Mode-Quality-Contracts.json"
         fi
         case "$QUALITY_CONTRACT_PATH" in
             /*) ;;
@@ -112,20 +118,23 @@ if [ -n "$QUALITY_BUILD_MANIFEST_PATH" ]; then
         fi
     fi
 fi
-APP_NAME="${APP_NAME:-Muse}"
-APP_EXECUTABLE="Muse"
+APP_NAME="${APP_NAME:-Dal}"
+if [ "${APP_BUNDLE_ID:-pro.daliang.muse}" = "pro.daliang.muse" ] && [ "$APP_NAME" != "Dal" ]; then
+    echo "正式产品名称必须是 Dal" >&2; exit 1
+fi
+APP_EXECUTABLE="Dal"
 APP_ICON_NAME="AppIcon"
 APP_BUNDLE_ID="${APP_BUNDLE_ID:-pro.daliang.muse}"
-APP_URL_SCHEME="muse"
+APP_URL_SCHEME="dal"
 if [ "$APP_BUNDLE_ID" = "pro.daliang.muse.interactive-test" ]; then
-    APP_URL_SCHEME="muse-interactive-test"
+    APP_URL_SCHEME="dal-interactive-test"
 fi
-APP_VERSION="${APP_VERSION:-2.1.2}"
+APP_VERSION="${APP_VERSION:-2.2.0}"
 APP_BUILD="${APP_BUILD:-1}"
 MIN_SYSTEM_VERSION="${MIN_SYSTEM_VERSION:-14.0}"
-MICROPHONE_USAGE_DESCRIPTION="${MICROPHONE_USAGE_DESCRIPTION:-Muse 需要访问麦克风以录制语音并将其转换为文本。}"
-SPEECH_RECOGNITION_USAGE_DESCRIPTION="${SPEECH_RECOGNITION_USAGE_DESCRIPTION:-Muse 需要语音识别权限以将你的语音转写为文字。}"
-APPLE_EVENTS_USAGE_DESCRIPTION="${APPLE_EVENTS_USAGE_DESCRIPTION:-Muse 需要辅助功能权限来注入转写文字到其他应用}"
+MICROPHONE_USAGE_DESCRIPTION="${MICROPHONE_USAGE_DESCRIPTION:-Dal 需要访问麦克风以录制语音并将其转换为文本。}"
+SPEECH_RECOGNITION_USAGE_DESCRIPTION="${SPEECH_RECOGNITION_USAGE_DESCRIPTION:-Dal 需要语音识别权限以将你的语音转写为文字。}"
+APPLE_EVENTS_USAGE_DESCRIPTION="${APPLE_EVENTS_USAGE_DESCRIPTION:-Dal 需要辅助功能权限来注入转写文字到其他应用}"
 INFO_PLIST="$APP_PATH/Contents/Info.plist"
 SENSEVOICE_DIST="$PROJECT_DIR/sensevoice-server/dist/sensevoice-server"
 QWEN3_DIST="$PROJECT_DIR/qwen3-asr-server/dist/qwen3-asr-server"
@@ -237,21 +246,21 @@ run_swift_build() {
     fi
 }
 
-MUSE_PACKAGE_REQUIRE_PREBUILT="${MUSE_PACKAGE_REQUIRE_PREBUILT:-0}"
-case "$MUSE_PACKAGE_REQUIRE_PREBUILT" in
+DAL_PACKAGE_REQUIRE_PREBUILT="${DAL_PACKAGE_REQUIRE_PREBUILT:-0}"
+case "$DAL_PACKAGE_REQUIRE_PREBUILT" in
     0|1) ;;
-    *) echo "MUSE_PACKAGE_REQUIRE_PREBUILT must be 0 or 1" >&2; exit 1 ;;
+    *) echo "DAL_PACKAGE_REQUIRE_PREBUILT must be 0 or 1" >&2; exit 1 ;;
 esac
 
-if [ "$MUSE_PACKAGE_REQUIRE_PREBUILT" = "1" ]; then
-    BINARY="${MUSE_PACKAGE_PREBUILT_BINARY:-}"
-    EXPECTED_BINARY_SHA256="${MUSE_PACKAGE_PREBUILT_SHA256:-}"
+if [ "$DAL_PACKAGE_REQUIRE_PREBUILT" = "1" ]; then
+    BINARY="${DAL_PACKAGE_PREBUILT_BINARY:-}"
+    EXPECTED_BINARY_SHA256="${DAL_PACKAGE_PREBUILT_SHA256:-}"
     [ -n "$BINARY" ] && [ -f "$BINARY" ] && [ ! -L "$BINARY" ] && [ -x "$BINARY" ] || {
         echo "Signing-window packaging requires an executable regular prebuilt binary" >&2
         exit 1
     }
     [[ "$EXPECTED_BINARY_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
-        echo "MUSE_PACKAGE_PREBUILT_SHA256 must be 64 lowercase hexadecimal characters" >&2
+        echo "DAL_PACKAGE_PREBUILT_SHA256 must be 64 lowercase hexadecimal characters" >&2
         exit 1
     }
     ACTUAL_BINARY_SHA256="$(/usr/bin/shasum -a 256 "$BINARY" | /usr/bin/awk '{print $1}')"
@@ -259,10 +268,10 @@ if [ "$MUSE_PACKAGE_REQUIRE_PREBUILT" = "1" ]; then
         echo "Prebuilt release binary SHA256 mismatch" >&2
         exit 1
     }
-elif [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
-    BINARY="${MUSE_PACKAGE_BINARY:-}"
+elif [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+    BINARY="${DAL_PACKAGE_BINARY:-}"
     [ -f "$BINARY" ] || {
-        echo "MUSE_PACKAGE_BINARY must point to a fixture executable" >&2
+        echo "DAL_PACKAGE_BINARY must point to a fixture executable" >&2
         exit 1
     }
 else
@@ -275,12 +284,12 @@ else
         run_swift_build -c release --package-path "$PROJECT_DIR"
     fi
 
-    if [ -f "$PROJECT_DIR/.build/apple/Products/Release/Muse" ]; then
-        BINARY="$PROJECT_DIR/.build/apple/Products/Release/Muse"
-    elif [ -f "$PROJECT_DIR/.build/release/Muse" ]; then
-        BINARY="$PROJECT_DIR/.build/release/Muse"
+    if [ -f "$PROJECT_DIR/.build/apple/Products/Release/Dal" ]; then
+        BINARY="$PROJECT_DIR/.build/apple/Products/Release/Dal"
+    elif [ -f "$PROJECT_DIR/.build/release/Dal" ]; then
+        BINARY="$PROJECT_DIR/.build/release/Dal"
     else
-        BINARY="$(find "$PROJECT_DIR/.build" -path '*/release/Muse' -type f -not -path '*/x86_64/*' -not -path '*/arm64/*' | head -n 1)"
+        BINARY="$(find "$PROJECT_DIR/.build" -path '*/release/Dal' -type f -not -path '*/x86_64/*' -not -path '*/arm64/*' | head -n 1)"
     fi
 fi
 
@@ -289,31 +298,31 @@ if [ ! -f "$BINARY" ]; then
     exit 1
 fi
 
-if [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
-    MUSE_SOURCE_COMMIT_VALUE="${MUSE_SOURCE_COMMIT:-0000000000000000000000000000000000000000}"
-    MUSE_SOURCE_TREE_VALUE="${MUSE_SOURCE_TREE:-0000000000000000000000000000000000000000}"
+if [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+    DAL_SOURCE_COMMIT_VALUE="${DAL_SOURCE_COMMIT:-0000000000000000000000000000000000000000}"
+    DAL_SOURCE_TREE_VALUE="${DAL_SOURCE_TREE:-0000000000000000000000000000000000000000}"
 else
-    MUSE_SOURCE_COMMIT_VALUE="$PACKAGING_SOURCE_COMMIT"
-    MUSE_SOURCE_TREE_VALUE="$PACKAGING_SOURCE_TREE"
+    DAL_SOURCE_COMMIT_VALUE="$PACKAGING_SOURCE_COMMIT"
+    DAL_SOURCE_TREE_VALUE="$PACKAGING_SOURCE_TREE"
 fi
-MUSE_SOURCE_COMMIT_VALUE="$(printf '%s' "$MUSE_SOURCE_COMMIT_VALUE" | /usr/bin/tr '[:upper:]' '[:lower:]')"
-MUSE_SOURCE_TREE_VALUE="$(printf '%s' "$MUSE_SOURCE_TREE_VALUE" | /usr/bin/tr '[:upper:]' '[:lower:]')"
-[[ "$MUSE_SOURCE_COMMIT_VALUE" =~ ^[0-9a-f]{40}$ ]] || {
-    echo "MUSE_SOURCE_COMMIT must be a full 40-character Git commit" >&2
+DAL_SOURCE_COMMIT_VALUE="$(printf '%s' "$DAL_SOURCE_COMMIT_VALUE" | /usr/bin/tr '[:upper:]' '[:lower:]')"
+DAL_SOURCE_TREE_VALUE="$(printf '%s' "$DAL_SOURCE_TREE_VALUE" | /usr/bin/tr '[:upper:]' '[:lower:]')"
+[[ "$DAL_SOURCE_COMMIT_VALUE" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "DAL_SOURCE_COMMIT must be a full 40-character Git commit" >&2
     exit 1
 }
-[[ "$MUSE_SOURCE_TREE_VALUE" =~ ^[0-9a-f]{40}$ ]] || {
-    echo "MUSE_SOURCE_TREE must be a full 40-character Git tree" >&2
+[[ "$DAL_SOURCE_TREE_VALUE" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "DAL_SOURCE_TREE must be a full 40-character Git tree" >&2
     exit 1
 }
 
 echo "Packaging app bundle at $APP_PATH..."
+python3 "$SCRIPT_DIR/app_identity.py" "$APP_PATH" --bundle-id "$APP_BUNDLE_ID"
 trash_path "$APP_PATH/Contents"
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 cp "$BINARY" "$APP_PATH/Contents/MacOS/$APP_EXECUTABLE"
 /bin/chmod 755 "$APP_PATH/Contents/MacOS/$APP_EXECUTABLE"
-cp "$PROJECT_DIR/Muse/Resources/${APP_ICON_NAME}.icns" "$APP_PATH/Contents/Resources/${APP_ICON_NAME}.icns" 2>/dev/null || true
-cp "$PROJECT_DIR/Muse/Resources/BrandLogo.png" "$APP_PATH/Contents/Resources/BrandLogo.png" 2>/dev/null || true
+cp "$PROJECT_DIR/Dal/Resources/${APP_ICON_NAME}.icns" "$APP_PATH/Contents/Resources/${APP_ICON_NAME}.icns" 2>/dev/null || true
 
 cat >"$INFO_PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -340,8 +349,8 @@ cat >"$INFO_PLIST" <<EOF
     <string>${APP_VERSION}</string>
     <key>CFBundleVersion</key>
     <string>${APP_BUILD}</string>
-    <key>MuseSourceCommit</key>
-    <string>${MUSE_SOURCE_COMMIT_VALUE}</string>
+    <key>DalSourceCommit</key>
+    <string>${DAL_SOURCE_COMMIT_VALUE}</string>
     <key>LSMinimumSystemVersion</key>
     <string>${MIN_SYSTEM_VERSION}</string>
     <key>NSMicrophoneUsageDescription</key>
@@ -372,7 +381,7 @@ cat >"$INFO_PLIST" <<EOF
 EOF
 
 mkdir -p "$APP_PATH/Contents/Resources/Sounds"
-cp "$PROJECT_DIR/Muse/Resources/Sounds/"*.wav "$APP_PATH/Contents/Resources/Sounds/" 2>/dev/null || true
+cp "$PROJECT_DIR/Dal/Resources/Sounds/"*.wav "$APP_PATH/Contents/Resources/Sounds/" 2>/dev/null || true
 
 # Copy SenseVoice model if available (for full DMG builds)
 SENSEVOICE_MODEL_CACHE="$HOME/.cache/modelscope/hub/models/iic/SenseVoiceSmall"
@@ -521,23 +530,23 @@ if [ -n "$QUALITY_BUILD_MANIFEST_PATH" ]; then
         exit 1
     }
     DESIGNATED_REQUIREMENT_SHA256="$(printf '%s' "$DESIGNATED_REQUIREMENT" | /usr/bin/shasum -a 256 | /usr/bin/awk '{print $1}')"
-    if [ "${MUSE_PACKAGE_TEST_MODE:-0}" = "1" ]; then
+    if [ "${DAL_PACKAGE_TEST_MODE:-0}" = "1" ]; then
         MANIFEST_PACKAGE_MODE="test"
     else
         MANIFEST_PACKAGE_MODE="production"
     fi
 
-    MUSE_MANIFEST_PACKAGE_MODE="$MANIFEST_PACKAGE_MODE" \
-    MUSE_MANIFEST_BUNDLE_ID="$APP_BUNDLE_ID" \
-    MUSE_MANIFEST_SOURCE_COMMIT="$MUSE_SOURCE_COMMIT_VALUE" \
-    MUSE_MANIFEST_SOURCE_TREE="$MUSE_SOURCE_TREE_VALUE" \
-    MUSE_MANIFEST_EXECUTABLE_SHA256="$PACKAGED_EXECUTABLE_SHA256" \
-    MUSE_MANIFEST_DATASET_SHA256="$QUALITY_DATASET_SHA256" \
-    MUSE_MANIFEST_QUALITY_PROFILE="$QUALITY_PROFILE" \
-    MUSE_MANIFEST_CONTRACT_PATH="$QUALITY_CONTRACT_PATH" \
-    MUSE_MANIFEST_DATASET_PATH="$QUALITY_DATASET_PATH" \
-    MUSE_MANIFEST_DESIGNATED_REQUIREMENT="$DESIGNATED_REQUIREMENT" \
-    MUSE_MANIFEST_DESIGNATED_REQUIREMENT_SHA256="$DESIGNATED_REQUIREMENT_SHA256" \
+    DAL_MANIFEST_PACKAGE_MODE="$MANIFEST_PACKAGE_MODE" \
+    DAL_MANIFEST_BUNDLE_ID="$APP_BUNDLE_ID" \
+    DAL_MANIFEST_SOURCE_COMMIT="$DAL_SOURCE_COMMIT_VALUE" \
+    DAL_MANIFEST_SOURCE_TREE="$DAL_SOURCE_TREE_VALUE" \
+    DAL_MANIFEST_EXECUTABLE_SHA256="$PACKAGED_EXECUTABLE_SHA256" \
+    DAL_MANIFEST_DATASET_SHA256="$QUALITY_DATASET_SHA256" \
+    DAL_MANIFEST_QUALITY_PROFILE="$QUALITY_PROFILE" \
+    DAL_MANIFEST_CONTRACT_PATH="$QUALITY_CONTRACT_PATH" \
+    DAL_MANIFEST_DATASET_PATH="$QUALITY_DATASET_PATH" \
+    DAL_MANIFEST_DESIGNATED_REQUIREMENT="$DESIGNATED_REQUIREMENT" \
+    DAL_MANIFEST_DESIGNATED_REQUIREMENT_SHA256="$DESIGNATED_REQUIREMENT_SHA256" \
         /usr/bin/python3 - "$QUALITY_BUILD_MANIFEST_PATH" <<'PY'
 import datetime
 import hashlib
@@ -549,25 +558,25 @@ from pathlib import Path
 path = sys.argv[1]
 document = {
     "schema_version": 1,
-    "artifact_kind": "muse_voice_polish_quality_candidate",
-    "package_mode": os.environ["MUSE_MANIFEST_PACKAGE_MODE"],
-    "bundle_id": os.environ["MUSE_MANIFEST_BUNDLE_ID"],
-    "source_commit": os.environ["MUSE_MANIFEST_SOURCE_COMMIT"],
-    "source_tree": os.environ["MUSE_MANIFEST_SOURCE_TREE"],
-    "executable_sha256": os.environ["MUSE_MANIFEST_EXECUTABLE_SHA256"],
-    "dataset_sha256": os.environ["MUSE_MANIFEST_DATASET_SHA256"],
-    "designated_requirement": os.environ["MUSE_MANIFEST_DESIGNATED_REQUIREMENT"],
+    "artifact_kind": "dal_voice_polish_quality_candidate",
+    "package_mode": os.environ["DAL_MANIFEST_PACKAGE_MODE"],
+    "bundle_id": os.environ["DAL_MANIFEST_BUNDLE_ID"],
+    "source_commit": os.environ["DAL_MANIFEST_SOURCE_COMMIT"],
+    "source_tree": os.environ["DAL_MANIFEST_SOURCE_TREE"],
+    "executable_sha256": os.environ["DAL_MANIFEST_EXECUTABLE_SHA256"],
+    "dataset_sha256": os.environ["DAL_MANIFEST_DATASET_SHA256"],
+    "designated_requirement": os.environ["DAL_MANIFEST_DESIGNATED_REQUIREMENT"],
     "designated_requirement_sha256": os.environ[
-        "MUSE_MANIFEST_DESIGNATED_REQUIREMENT_SHA256"
+        "DAL_MANIFEST_DESIGNATED_REQUIREMENT_SHA256"
     ],
     "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(
         "+00:00", "Z"
     ),
 }
-document["quality_profile"] = os.environ["MUSE_MANIFEST_QUALITY_PROFILE"]
+document["quality_profile"] = os.environ["DAL_MANIFEST_QUALITY_PROFILE"]
 if document["quality_profile"] == "three_mode":
-    contract_path = Path(os.environ["MUSE_MANIFEST_CONTRACT_PATH"])
-    dataset_path = Path(os.environ["MUSE_MANIFEST_DATASET_PATH"])
+    contract_path = Path(os.environ["DAL_MANIFEST_CONTRACT_PATH"])
+    dataset_path = Path(os.environ["DAL_MANIFEST_DATASET_PATH"])
     contract_data = contract_path.read_bytes()
     contract = json.loads(contract_data)
     dataset = json.loads(dataset_path.read_bytes())
@@ -596,16 +605,16 @@ finally:
 PY
     QUALITY_BUILD_MANIFEST_SHA256="$(/usr/bin/shasum -a 256 "$QUALITY_BUILD_MANIFEST_PATH" | /usr/bin/awk '{print $1}')"
     echo "Quality build manifest ready at $QUALITY_BUILD_MANIFEST_PATH"
-    echo "MUSE_QUALITY_EXPECTED_MANIFEST_SHA256=$QUALITY_BUILD_MANIFEST_SHA256"
-    echo "MUSE_QUALITY_EXPECTED_SOURCE_COMMIT=$MUSE_SOURCE_COMMIT_VALUE"
-    echo "MUSE_QUALITY_EXPECTED_SOURCE_TREE=$MUSE_SOURCE_TREE_VALUE"
-    echo "MUSE_QUALITY_EXPECTED_EXECUTABLE_SHA256=$PACKAGED_EXECUTABLE_SHA256"
-    echo "MUSE_QUALITY_EXPECTED_DATASET_SHA256=$QUALITY_DATASET_SHA256"
+    echo "DAL_QUALITY_EXPECTED_MANIFEST_SHA256=$QUALITY_BUILD_MANIFEST_SHA256"
+    echo "DAL_QUALITY_EXPECTED_SOURCE_COMMIT=$DAL_SOURCE_COMMIT_VALUE"
+    echo "DAL_QUALITY_EXPECTED_SOURCE_TREE=$DAL_SOURCE_TREE_VALUE"
+    echo "DAL_QUALITY_EXPECTED_EXECUTABLE_SHA256=$PACKAGED_EXECUTABLE_SHA256"
+    echo "DAL_QUALITY_EXPECTED_DATASET_SHA256=$QUALITY_DATASET_SHA256"
     if [ "$QUALITY_PROFILE" = "three_mode" ]; then
         QUALITY_CONTRACT_SHA256="$(/usr/bin/shasum -a 256 "$QUALITY_CONTRACT_PATH" | /usr/bin/awk '{print $1}')"
-        echo "MUSE_QUALITY_EXPECTED_CONTRACT_SHA256=$QUALITY_CONTRACT_SHA256"
+        echo "DAL_QUALITY_EXPECTED_CONTRACT_SHA256=$QUALITY_CONTRACT_SHA256"
     fi
-    echo "MUSE_QUALITY_EXPECTED_DESIGNATED_REQUIREMENT_SHA256=$DESIGNATED_REQUIREMENT_SHA256"
+    echo "DAL_QUALITY_EXPECTED_DESIGNATED_REQUIREMENT_SHA256=$DESIGNATED_REQUIREMENT_SHA256"
 fi
 
 echo "App bundle ready at $APP_PATH"

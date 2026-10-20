@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark ARK models for Muse smart direct (typo correction) use case."""
+"""Benchmark ARK models for Dal smart direct (typo correction) use case."""
 
 import json
 import os
@@ -96,7 +96,7 @@ def call_model(model: str, text: str) -> tuple[str, int, str]:
 
 def main():
     print("=" * 70)
-    print("  Muse Smart Direct Mode - Model Benchmark")
+    print("  Dal Smart Direct Mode - Model Benchmark")
     print(f"  {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Base URL: {BASE_URL}")
     print("=" * 70)

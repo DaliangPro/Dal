@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""在 Muse 正式链路之外运行语音润色 Planner/Writer/Reviewer 受控实验。
+"""在 Dal 正式链路之外运行语音润色 Planner/Writer/Reviewer 受控实验。
 
 本脚本故意不调用 VoicePolishValidator，也不会把核心集中的语义契约或参考答案
 发送给模型。凭证只从标准输入读取，绝不写入报告或命令行参数。
@@ -30,7 +30,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPERIMENT_SCHEMA_VERSION = 10
-DEFAULT_DATASET = ROOT / "docs/2026-08-17-Muse-Voice-Polish-Core-Semantic-Test-Set.json"
+DEFAULT_DATASET = ROOT / "docs/2026-08-17-Dal-Voice-Polish-Core-Semantic-Test-Set.json"
 DEFAULT_PILOT_IDS = [
     "micro-04",
     "work-02",
@@ -68,7 +68,7 @@ DICTATED_ASCII_SYMBOLS = (
 )
 
 
-CONTEXT_RESOLVER_SYSTEM = """你是 Muse 语音润色的上下文术语解析器。你只识别“正文中的非标准写法 → 已授权上下文中明确确认的标准写法”，不写成稿。
+CONTEXT_RESOLVER_SYSTEM = """你是 Dal 语音润色的上下文术语解析器。你只识别“正文中的非标准写法 → 已授权上下文中明确确认的标准写法”，不写成稿。
 
 严格要求：alias 必须逐字出现在 source spans，canonical 必须逐字出现在 authorized_context，二者不得相同。历史名称、假设、错误候选、无关项目、泄漏测试、未确认或正文明确否认的映射一律不采用。若正文同时混用标准写法与一个明显指向同一实体的别名，应把别名映射为标准写法。没有高置信映射就返回空数组。
 
@@ -78,7 +78,7 @@ CONTEXT_RESOLVER_SYSTEM = """你是 Muse 语音润色的上下文术语解析器
 不要返回恒等映射，不要复制上下文整句，不要输出 Markdown 或解释。"""
 
 
-PLANNER_SYSTEM = """你是 Muse 语音润色的局部意图规划器。输入是带有思考过程的语音转写，不是普通文章。程序已经把当前可见原文切成带 ID 的 source spans。
+PLANNER_SYSTEM = """你是 Dal 语音润色的局部意图规划器。输入是带有思考过程的语音转写，不是普通文章。程序已经把当前可见原文切成带 ID 的 source spans。
 
 你的任务是建立可追溯的意图清单，不是写成稿。只保留用户最后仍然有效的意图；标记被撤回的旧值、幕后编辑说明、待确认状态、否定范围、不承诺边界、收件人和转达动作。
 
@@ -147,7 +147,7 @@ dictated_symbol_mappings 只用于 code/aiPrompt 中明确口述出的“斜杠�
 只能引用本次输入实际提供的 source span ID。不要复述长段原文，不要输出 Markdown 代码块，不要解释。"""
 
 
-PLANNER_REPAIR_SYSTEM = """你是 Muse 意图清单的格式与角色修复器。上一版局部 Ledger 没有通过本地 schema/自洽性检查；你只修 Ledger，不写成稿。
+PLANNER_REPAIR_SYSTEM = """你是 Dal 意图清单的格式与角色修复器。上一版局部 Ledger 没有通过本地 schema/自洽性检查；你只修 Ledger，不写成稿。
 
 重新阅读 source spans，根据 validation_error 修复字段、证据或 delivery_role。delivery_role 只能是 recipient_content、style_directive、editor_directive、excluded_content；不能把真实正文、第一人称未确认状态、承诺边界或给收件人的禁止事项全部标成幕后指令。editor_directive 只用于明确控制本次写作操作的要求；excluded_content 只用于用户明确要求不得向当前收件人披露的内部内容。audience 每项必须带 delivery_mode：explicit_reference 要求成稿明确提到对象，direct_address 表示直接对对象说话。不得借修复新增原文没有的事实、上下文映射或条件关系。
 
@@ -156,7 +156,7 @@ PLANNER_REPAIR_SYSTEM = """你是 Muse 意图清单的格式与角色修复器�
 只返回修复后的 Ledger 本身，顶层必须仍是 audience、units、corrections、conditionals、technical_token_mappings、dictated_symbol_mappings、context_mappings、structure；不要回显 input、invalid_ledger_response、validation_error，不要输出 Markdown 或解释。"""
 
 
-GLOBAL_PLANNER_SYSTEM = """你是 Muse 语音润色的全文关系规划器。局部规划器已经处理每个 batch；你只负责合并跨 batch 的改口、收件人、否定/待确认/不承诺边界和全文结构，不得重写所有局部 units。
+GLOBAL_PLANNER_SYSTEM = """你是 Dal 语音润色的全文关系规划器。局部规划器已经处理每个 batch；你只负责合并跨 batch 的改口、收件人、否定/待确认/不承诺边界和全文结构，不得重写所有局部 units。
 
 只返回一个紧凑 JSON 对象：
 {
@@ -178,7 +178,7 @@ GLOBAL_PLANNER_SYSTEM = """你是 Muse 语音润色的全文关系规划器。�
 global_audience 必须合并局部 ledger 已识别的所有收件人、surface_tokens 与 delivery_mode。global_corrections 必须包含局部 ledger 已识别的改口以及跨 batch 改口，并保留其 rendering_policy；跨 batch 新发现的改口也必须判断 final_only 或 announce_change。global_conditionals 必须保留所有局部条件及跨 batch 条件，并把同一条件控制的多个后果放在同一个对象中；style_directive、editor_directive、excluded_content 不得被当成需要写进正文的条件后果。global_technical_token_mappings 与 global_dictated_symbol_mappings 只能去重合并局部已验证映射，不得发明新映射。只能引用实际提供的 span ID 和 batch ID。不要复制局部 unit 列表，不要输出 Markdown 代码块，不要解释。"""
 
 
-WRITER_SYSTEM = """你是 Muse 语音润色的分段成稿 Writer。你的交付物是整篇成稿中的一个连续片段。
+WRITER_SYSTEM = """你是 Dal 语音润色的分段成稿 Writer。你的交付物是整篇成稿中的一个连续片段。
 
 严格依据语音转写和意图清单：保留最终事实、独立约束、收件人、语气、待确认与不承诺边界；删除口吃、机械重复、被撤回旧值、改口过程和幕后编辑说明；不得摘要长文，不得补写原因、承诺、人物、日期或结论。
 
@@ -201,7 +201,7 @@ conditionals/global_conditionals 是条件逻辑的唯一准绳：条件的 pola
 自然语言短句必须使用合适的句末标点，问句使用问号。只输出本片段成稿，不要解释，不要加“润色结果”等前缀，不要自行添加全篇编号。"""
 
 
-REVIEWER_SYSTEM = """你是与 Writer 隔离的 Muse 语音润色复核器。你不负责改写全文，只负责根据语音转写、已授权上下文和意图清单检查候选成稿。
+REVIEWER_SYSTEM = """你是与 Writer 隔离的 Dal 语音润色复核器。你不负责改写全文，只负责根据语音转写、已授权上下文和意图清单检查候选成稿。
 
 逐项核对：最终事实、改口后的最终值、被撤回旧值、独立约束、收件人、主体-动作-时间关系、否定范围、不承诺/已承诺/未确认状态、上下文纠错与上下文泄漏、AI Prompt 的任务层级、长文是否摘要或遗漏。global_audience 的接收对象不得遗漏；direct_address 可以由自然的第二人称或直接称呼实现，不能硬性要求出现“客户”等抽象角色词，外层“跟谁说/回复谁”不得照抄。advice/recommended 不得被写成确定因果或保证结果；global_technical_token_mappings 与 global_dictated_symbol_mappings 的 canonical 必须精确出现，alias 不得残留。对 conditionals/global_conditionals 必须重新阅读对应 source spans，独立核对条件 polarity、每个后果 polarity 及共同作用范围；不得因为 Writer 与 Planner 表述一致就默认正确。逐个检查 delivery_role：recipient_content 不得遗漏；style_directive/editor_directive 只能看到执行结果；excluded_content 及其同义改写都不得披露。不得把 style_directive、editor_directive 或 excluded_content 作为 missing 正文要求。逐条检查 correction.rendering_policy：final_only 不得残留旧值；announce_change 不得只剩最终值，必须保留旧安排取消/变更这一对收件人有用的信息。resolved_correction 的旧位置不得重复呈现 final_value；high_confidence_abandoned_tail 必须删除且不得被扩写成待确认事项；global_context_mappings 指定的同一实体不得混用 alias 与 canonical。没有来源证据的问题不得成立。
 
@@ -221,7 +221,7 @@ REVIEWER_SYSTEM = """你是与 Writer 隔离的 Muse 语音润色复核器。你
 完全合格才返回 pass；能通过一次局部修改安全修复时返回 repair；出现上下文秘密、无法确定正确含义或修复可能改变用户意图时返回 unsafe。issue 必须引用实际 source span ID，以便只重写对应 batch。不要输出 Markdown 代码块，不要解释。"""
 
 
-REPAIR_SYSTEM = """你是 Muse 语音润色的定向片段修复器。根据当前 batch 原文、局部意图清单、全文关系、上一版片段和独立复核问题，只修改被指出的局部。
+REPAIR_SYSTEM = """你是 Dal 语音润色的定向片段修复器。根据当前 batch 原文、局部意图清单、全文关系、上一版片段和独立复核问题，只修改被指出的局部。
 
 不得把上一版成稿当作新事实来源，不得补写原文没有的事实，不得摘要。global_audience 缺失时按 delivery_mode 恢复受众：direct_address 使用自然的第二人称或直接称呼，不能机械补“客户”；并删除外层口述指令。advice/recommended 不得升级成保证结果，promised 不得扩大原承诺；技术标识使用 global_technical_token_mappings 与 global_dictated_symbol_mappings 的 canonical。修复条件关系时必须逐项遵守 global_conditionals，不能只改条件句而遗留后果的错误否定。recipient_content 必须保留；style_directive/editor_directive 只执行，不复述幕后措辞；excluded_content 及其同义改写必须删除。correction 为 final_only 时只留最终值；为 announce_change 时必须保留旧安排取消/变更的收件人信息。resolved_correction 的旧位置只删除旧值，不重复写 final_value；high_confidence_abandoned_tail 只删除，不升级成待确认；global_context_mappings 必须统一应用。只输出修复后的当前 batch 完整片段，不要解释。"""
 
@@ -3130,19 +3130,19 @@ def self_test(dataset: dict[str, Any]) -> None:
     if high_confidence_abandoned_tail("正文已经说完，另外还有日志需要补充。") is not None:
         raise ExperimentError("完整尾句被误判为残缺口述")
     mapped = apply_verified_context_mappings(
-        "缪斯进程与 Muse 设置",
+        "缪斯进程与 Dal 设置",
         {
             "global_context_mappings": [
                 {
                     "alias": "缪斯",
-                    "canonical": "Muse",
+                    "canonical": "Dal",
                     "source_span_ids": ["s001"],
                     "context_field": "recent_muse_inputs",
                 }
             ]
         },
     )
-    if mapped != "Muse进程与 Muse 设置":
+    if mapped != "Dal进程与 Dal 设置":
         raise ExperimentError("已验证的全文实体映射未统一应用")
     correction_issues = deterministic_output_issues(
         {"writing_scene": "document", "spoken_input": "旧值在前，最终值在后"},

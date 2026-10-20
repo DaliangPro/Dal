@@ -1,19 +1,19 @@
-# Muse 修复执行日志
+# Dal 修复执行日志
 
 ## 执行基线
 
 - 执行日期：2026-07-20（PDT）
 - 审查基线：`7144781af818fd188eff0e67215b63deddcce660`
-- 工作分支：`codex/muse-hardening-v1`
+- 工作分支：`codex/dal-hardening-v1`
 - 开始前工作区：仅有用户既有未跟踪文件 `CODEX_REPAIR_PLAN.md`；执行过程中不覆盖、不修改、不纳入提交。
-- 真实用户数据目录：见下方 2026-07-21 审计更正；MUSE-160 隔离修复完成后的测试不再触碰真实 Muse 目录或系统钥匙串。
+- 真实用户数据目录：见下方 2026-07-21 审计更正；DAL-160 隔离修复完成后的测试不再触碰真实 Dal 目录或系统钥匙串。
 - 自动更新开关：`UpdateChecker.updateChannelEnabled = false`，保持关闭。
 
 ### 2026-07-21 真实数据测试隔离审计更正
 
-- MUSE-160 期间静态审计发现，既有 `AssetExtractionLowValueFilterTests` 使用默认 `AssetExtractionService()`，会在此前完整测试中打开默认 `history.db` / `language-assets.db`；既有 `KeychainServiceTests` 会访问真实系统钥匙串、`credentials.json` 与标准 UserDefaults。
-- 因而本日志在 MUSE-160 之前各任务中“完整测试未访问真实用户数据”的表述不准确，以本更正为准。相关测试通常在 teardown 恢复临时写入，但未再次读取真实目录或钥匙串核验持久影响，实际影响无法确认。
-- `b48b180` 已将低价值过滤测试改用内存数据库，并让 XCTest 下的 Keychain、遗留凭据 JSON、Provider 偏好和 debug log 使用进程内隔离；修复后的 467 项完整测试经独立静态复审，未发现默认路径继续访问真实 Muse 目录或系统钥匙串。
+- DAL-160 期间静态审计发现，既有 `AssetExtractionLowValueFilterTests` 使用默认 `AssetExtractionService()`，会在此前完整测试中打开默认 `history.db` / `language-assets.db`；既有 `KeychainServiceTests` 会访问真实系统钥匙串、`credentials.json` 与标准 UserDefaults。
+- 因而本日志在 DAL-160 之前各任务中“完整测试未访问真实用户数据”的表述不准确，以本更正为准。相关测试通常在 teardown 恢复临时写入，但未再次读取真实目录或钥匙串核验持久影响，实际影响无法确认。
+- `b48b180` 已将低价值过滤测试改用内存数据库，并让 XCTest 下的 Keychain、遗留凭据 JSON、Provider 偏好和 debug log 使用进程内隔离；修复后的 467 项完整测试经独立静态复审，未发现默认路径继续访问真实 Dal 目录或系统钥匙串。
 
 ### 基线验证
 
@@ -30,14 +30,14 @@
 
 | 任务 | 状态 | 提交 | 备注 |
 |---|---|---|---|
-| MUSE-010 | ✅ 完成 | `7ea2cb5` | 硬超时工具与三处调用统一完成。 |
-| MUSE-020 | ✅ 完成 | `b2d5cd0` | 会话资源所有权与 7 条竞态回归测试完成。 |
-| MUSE-030 | ✅ 完成 | `f396df3` | 火山连接生命周期与会话事件流已分离。 |
-| MUSE-040 | ✅ 完成 | `05227b5` | Apple Speech 会话令牌与可靠截止时间已完成。 |
-| MUSE-050 | ⚠️ 自动验收完成，人工项部分跳过 | `43c58b1` | AirPods、内置麦克风通过；USB 双声道声卡与聚合设备由用户明确跳过。 |
-| MUSE-060 | ✅ 完成 | `0239544` | 本地双引擎会话流、终态和迟到终校隔离完成。 |
+| DAL-010 | ✅ 完成 | `7ea2cb5` | 硬超时工具与三处调用统一完成。 |
+| DAL-020 | ✅ 完成 | `b2d5cd0` | 会话资源所有权与 7 条竞态回归测试完成。 |
+| DAL-030 | ✅ 完成 | `f396df3` | 火山连接生命周期与会话事件流已分离。 |
+| DAL-040 | ✅ 完成 | `05227b5` | Apple Speech 会话令牌与可靠截止时间已完成。 |
+| DAL-050 | ⚠️ 自动验收完成，人工项部分跳过 | `43c58b1` | AirPods、内置麦克风通过；USB 双声道声卡与聚合设备由用户明确跳过。 |
+| DAL-060 | ✅ 完成 | `0239544` | 本地双引擎会话流、终态和迟到终校隔离完成。 |
 
-### MUSE-010：建立真正的硬超时工具
+### DAL-010：建立真正的硬超时工具
 
 - 状态：✅ 完成。
 - 提交：`7ea2cb5`（`修复: 建立不依赖子任务取消协作的硬超时工具`）。
@@ -49,9 +49,9 @@
   - `swift test`：266 项，5 项按环境条件跳过，0 失败。
   - `swift build`：通过。
   - `git diff --check`：通过。
-- 遗留风险：Apple Speech 的完整会话令牌、迟到回调隔离和可注入 timeout 属 MUSE-040；本任务只替换其阻塞式 Task Group 超时。自动更新开关仍为 `false`。
+- 遗留风险：Apple Speech 的完整会话令牌、迟到回调隔离和可注入 timeout 属 DAL-040；本任务只替换其阻塞式 Task Group 超时。自动更新开关仍为 `false`。
 
-### MUSE-020：修复 RecognitionSession 跨会话资源竞态
+### DAL-020：修复 RecognitionSession 跨会话资源竞态
 
 - 状态：✅ 完成。
 - 提交：`b2d5cd0`（`修复: 将录音资源绑定会话身份并阻断迟到任务`）。
@@ -69,9 +69,9 @@
   - `swift test`：273 项，5 项按环境条件跳过，0 失败。
   - `swift build`：通过。
   - `git diff --check`：通过。
-- 遗留风险：本任务以可控 fake 验证跨会话所有权和迟到回调隔离，未执行真实云端 ASR 或麦克风人工录音；各 ASR client 自身的事件流生命周期分别由 MUSE-030、MUSE-040、MUSE-060 继续加固。自动更新开关仍为 `false`。
+- 遗留风险：本任务以可控 fake 验证跨会话所有权和迟到回调隔离，未执行真实云端 ASR 或麦克风人工录音；各 ASR client 自身的事件流生命周期分别由 DAL-030、DAL-040、DAL-060 继续加固。自动更新开关仍为 `false`。
 
-### MUSE-030：修复火山 ASR 重连后事件流永久关闭
+### DAL-030：修复火山 ASR 重连后事件流永久关闭
 
 - 状态：✅ 完成。
 - 提交：`f396df3`（`修复: 分离火山连接生命周期与识别事件流生命周期`）。
@@ -90,7 +90,7 @@
   - `git diff --check`：通过。
 - 遗留风险：测试使用可控 WebSocket fake，未连接真实火山服务执行断网/重连人工验收；服务端关闭帧的具体时序仍需日常网络波动场景观察。自动更新开关仍为 `false`。
 
-### MUSE-040：修复 Apple Speech 超时和迟到回调污染
+### DAL-040：修复 Apple Speech 超时和迟到回调污染
 
 - 状态：✅ 完成。
 - 提交：`05227b5`（`修复: 为 Apple Speech 增加会话令牌和可靠截止时间`）。
@@ -108,7 +108,7 @@
   - `git diff --check`：通过。
 - 遗留风险：回归测试使用可控 Apple recognition fake，未在真实麦克风与 Apple Speech 服务上人工验收授权、系统服务不可用及真实 5 秒超时时序。自动更新开关仍为 `false`。
 
-### MUSE-050：修复 CMSampleBuffer 多声道内存越界风险
+### DAL-050：修复 CMSampleBuffer 多声道内存越界风险
 
 - 状态：⚠️ 实现与自动验收完成；AirPods 与内置麦克风人工录音通过，USB 双声道声卡与聚合设备由用户明确跳过。
 - 提交：`43c58b1`（`修复: 按 AudioBufferList 安全转换采集音频`）。
@@ -140,9 +140,9 @@
 - USB 双声道声卡人工验收：用户于 2026-07-20 明确指示跳过；未切换至 USB 输入、未录音，不计为通过。跳过后复核发现 AirPods 已离线，系统默认输入自行回落至内置麦克风，并非本次操作切换。
 - 聚合音频设备人工验收：用户于 2026-07-20 明确指示停止并跳过剩余音频测试；未创建聚合设备、未切换输入、未录音，不计为通过。
 - 硬件盘点：当前可见 AirPods“听”（1 声道/24 kHz）、MacBook Pro 内置麦克风（1 声道/44.1 kHz）、Maono USB 双声道输入（48 kHz）、Maono AI USB 双声道输入（48 kHz）及多个虚拟多声道设备；未确认聚合音频设备。
-- 遗留风险：AirPods 与内置麦克风已通过；USB 双声道声卡和聚合音频设备均被明确跳过且未通过，MUSE-050 不具备完整四设备人工验收结论。自动更新开关仍为 `false`。
+- 遗留风险：AirPods 与内置麦克风已通过；USB 双声道声卡和聚合音频设备均被明确跳过且未通过，DAL-050 不具备完整四设备人工验收结论。自动更新开关仍为 `false`。
 
-### MUSE-060：修复 SenseVoiceWSClient 中断后终校事件丢失
+### DAL-060：修复 SenseVoiceWSClient 中断后终校事件丢失
 
 - 状态：✅ 完成。
 - 提交：`0239544`（`修复: 保持本地双引擎会话流直至终校完成`）。
@@ -165,25 +165,25 @@
 
 ## 批次 A 收口
 
-- 代码任务：MUSE-010 至 MUSE-060 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
+- 代码任务：DAL-010 至 DAL-060 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
 - 当前代码 HEAD：`023954481fb45ec0898811b3c94caf19d00ce1e5`。
 - 自动更新：`UpdateChecker.updateChannelEnabled = false`，未改动。
 - 真实用户数据：未访问、未修改 `~/Library/Application Support/Muse/`。
 - 收口自动验收：`bash scripts/health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建通过，全量 `swift test` 执行 299 项、5 项按环境条件跳过、0 失败，Shell 语法与两个 Python 服务语法检查通过。
 - 收口环境限制：`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按设计标记为 `SKIP`；未安装工具，也未降低构建或测试门槛。
 - 音频人工验收豁免：用户于 2026-07-20 明确要求停止并跳过剩余音频测试；USB 双声道声卡与聚合设备未通过，批次 A 仅按显式豁免继续推进，不代表原四设备门槛全部满足。
-- 待人工项：MUSE-030 真实火山断网/重连；MUSE-040 真实 Apple Speech 超时；MUSE-060 真实 SenseVoice 中断后 Qwen 终校。
+- 待人工项：DAL-030 真实火山断网/重连；DAL-040 真实 Apple Speech 超时；DAL-060 真实 SenseVoice 中断后 Qwen 终校。
 
 ## 批次 B
 
 | 任务 | 状态 | 提交 | 备注 |
 |---|---|---|---|
-| MUSE-070 | ✅ 完成 | `b387d76` | 本地服务进程级 token 鉴权与 HTTP、LLM、WebSocket 输入边界完成。 |
-| MUSE-080 | ✅ 完成 | `aad11af` | 本地服务进程身份校验、可靠停止和增量端口解析完成。 |
-| MUSE-090 | ✅ 完成 | `aa2d925` | 火山协议 Header、未对齐长度读取及压缩/JSON 资源边界完成。 |
-| MUSE-100 | ✅ 完成 | `4e18a03` | 进程级剪贴板租约、代际恢复闸门与并发注入事务完成。 |
+| DAL-070 | ✅ 完成 | `b387d76` | 本地服务进程级 token 鉴权与 HTTP、LLM、WebSocket 输入边界完成。 |
+| DAL-080 | ✅ 完成 | `aad11af` | 本地服务进程身份校验、可靠停止和增量端口解析完成。 |
+| DAL-090 | ✅ 完成 | `aa2d925` | 火山协议 Header、未对齐长度读取及压缩/JSON 资源边界完成。 |
+| DAL-100 | ✅ 完成 | `4e18a03` | 进程级剪贴板租约、代际恢复闸门与并发注入事务完成。 |
 
-### MUSE-070：给本地 ASR 和 LLM 服务增加鉴权与输入上限
+### DAL-070：给本地 ASR 和 LLM 服务增加鉴权与输入上限
 
 - 状态：✅ 完成。
 - 提交：`b387d76`（`修复: 为本地推理服务增加会话鉴权和请求边界`）。
@@ -205,7 +205,7 @@
   - `git diff --check`：通过。
 - 遗留风险：测试通过 FastAPI TestClient、stub 模型和可控 WebSocket 验证，不加载真实 ASR/LLM 模型；当前环境未安装 PyInstaller，未执行冻结制品导入冒烟。启动 gate 以当前打包入口 `main()` 为边界，未来若改用 `uvicorn module:app` 需同步迁移到 lifespan/startup gate。`shellcheck`、`swiftlint`、`periphery` 未安装，按健康检查既有规则标记为跳过。未执行任何麦克风或音频设备测试。自动更新开关仍为 `false`。
 
-### MUSE-080：修复本地服务 PID 误杀、停止泄漏和端口解析
+### DAL-080：修复本地服务 PID 误杀、停止泄漏和端口解析
 
 - 状态：✅ 完成。
 - 提交：`aad11af`（`修复: 校验本地服务进程身份并可靠回收子进程`）。
@@ -226,7 +226,7 @@
   - `git diff --check`：通过。
 - 遗留风险：进程测试只终止测试自身创建的 `/bin/sleep` 与忽略 TERM 的 Python fixture，未启动真实 ASR/LLM 模型，也未读取或迁移真实用户数据目录中的既有 PID 台账；Python 服务类型属于 manager 持有的逻辑身份，操作系统层仅能再次证明解释器路径。`proc_pidinfo` 复核与 `kill` 之间仍存在极小的系统调用竞态窗口，当前实现已按任务要求在每次信号前重复校验。按用户指示未执行任何麦克风、音频设备或真机音频测试。自动更新开关仍为 `false`。
 
-### MUSE-090：加固火山二进制协议解析
+### DAL-090：加固火山二进制协议解析
 
 - 状态：✅ 完成。
 - 提交：`aa2d925`（`修复: 为火山协议解析增加对齐安全和大小上限`）。
@@ -247,7 +247,7 @@
   - `git diff --check`：通过。
 - 遗留风险：回归测试使用合成二进制、固定 zlib fixture 与本地 Compression API，未连接真实火山服务验证线上异常帧；4 MiB、16 MiB、10,000 条、1 MiB 和 4 KiB 均为任务卡要求或其“有限长度”要求的明确本地策略，若服务端协议未来提高合法上限需同步调整并补兼容测试。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行任何麦克风、音频设备或真机音频测试。自动更新开关仍为 `false`。
 
-### MUSE-100：修复连续剪贴板注入丢失原剪贴板
+### DAL-100：修复连续剪贴板注入丢失原剪贴板
 
 - 状态：✅ 完成。
 - 提交：`4e18a03`（`修复: 用剪贴板租约协调连续文本注入`）。
@@ -274,27 +274,27 @@
 
 ## 批次 B 收口
 
-- 代码任务：MUSE-070 至 MUSE-100 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
+- 代码任务：DAL-070 至 DAL-100 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
 - 当前代码 HEAD：`4e18a03e84b056f26f0e2a13e373641162f1d12c`。
 - 自动更新：`UpdateChecker.updateChannelEnabled = false`，未改动；Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，因此继续保持关闭。
-- 真实用户数据：未访问、未修改 `~/Library/Application Support/Muse/`；MUSE-100 新增剪贴板测试全部使用唯一命名 pasteboard。
+- 真实用户数据：未访问、未修改 `~/Library/Application Support/Muse/`；DAL-100 新增剪贴板测试全部使用唯一命名 pasteboard。
 - 收口自动验收：`bash scripts/health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建通过，全量 `swift test` 执行 344 项、5 项按环境条件跳过、0 失败，Shell/Python 语法和 12 项 Python 服务测试通过。
 - 收口环境限制：`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按设计标记为 `SKIP`；未安装工具，也未降低构建或测试门槛。
 - 音频测试：遵照用户指示，本批次未执行任何麦克风、音频设备或真机音频测试。
-- 待人工项：MUSE-070 冻结后的真实本地 ASR/LLM 制品鉴权与模型加载；MUSE-080 真实服务进程停止与既有 PID 台账迁移；MUSE-090 真实火山异常帧；MUSE-100 TextEdit、微信剪贴板 fallback、Electron 与 nonactivatingPanel 连续注入。以上不影响本批次自动验收结论，仍须在发布前真机 gate 中完成。
+- 待人工项：DAL-070 冻结后的真实本地 ASR/LLM 制品鉴权与模型加载；DAL-080 真实服务进程停止与既有 PID 台账迁移；DAL-090 真实火山异常帧；DAL-100 TextEdit、微信剪贴板 fallback、Electron 与 nonactivatingPanel 连续注入。以上不影响本批次自动验收结论，仍须在发布前真机 gate 中完成。
 
 ## 批次 C
 
 | 任务 | 状态 | 提交 | 备注 |
 |---|---|---|---|
-| MUSE-110 | ✅ 完成 | `ef60ef4` | 候选转资产幂等事务、提炼最终状态原子提交及失败状态独立兜底完成。 |
-| MUSE-120 | ✅ 完成 | `2c9a716` | 固定版本清单、逐文件 SHA256、ephemeral 下载、staging 原子安装与失败回滚完成。 |
-| MUSE-130 | ✅ 完成 | `2d9d915` | Provider 级 Endpoint 策略、共享 ephemeral 会话、重定向阻断及有界 SSE 完整性校验完成。 |
-| MUSE-140 | ✅ 完成 | `df15455` | 显式 schema 迁移、内置文件保护、用户词优先与 100 条严格下发上限完成。 |
-| MUSE-150 | ✅ 完成 | `a18762d` | Provider 能力统一门控、启动前回退说明与 Release 本地服务路径闭锁完成。 |
-| MUSE-160 | ✅ 完成 | `b48b180` | JSON 恢复态、数据库 throwing 查询、UI 故障提示、统一日志脱敏与测试数据隔离完成。 |
+| DAL-110 | ✅ 完成 | `ef60ef4` | 候选转资产幂等事务、提炼最终状态原子提交及失败状态独立兜底完成。 |
+| DAL-120 | ✅ 完成 | `2c9a716` | 固定版本清单、逐文件 SHA256、ephemeral 下载、staging 原子安装与失败回滚完成。 |
+| DAL-130 | ✅ 完成 | `2d9d915` | Provider 级 Endpoint 策略、共享 ephemeral 会话、重定向阻断及有界 SSE 完整性校验完成。 |
+| DAL-140 | ✅ 完成 | `df15455` | 显式 schema 迁移、内置文件保护、用户词优先与 100 条严格下发上限完成。 |
+| DAL-150 | ✅ 完成 | `a18762d` | Provider 能力统一门控、启动前回退说明与 Release 本地服务路径闭锁完成。 |
+| DAL-160 | ✅ 完成 | `b48b180` | JSON 恢复态、数据库 throwing 查询、UI 故障提示、统一日志脱敏与测试数据隔离完成。 |
 
-### MUSE-110：让候选入库和提炼提交具备事务性与幂等性
+### DAL-110：让候选入库和提炼提交具备事务性与幂等性
 
 - 状态：✅ 完成。
 - 提交：`ef60ef4`（`修复: 原子提交语料候选、资产和提炼运行状态`）。
@@ -309,26 +309,26 @@
   - queued/running 状态也纳入错误处理；任一数据/状态提交失败后，用独立事务保存 failed。若 action log 自身不可用，自动退化为不含日志的 failed 状态事务，避免任务永久停在 queued/running，并始终向调用方重抛原始错误。
   - `insert(job:)`、`insert(run:)` 与 Candidate 入库接口改为 throwing；UI 捕获并展示错误。Store 支持注入 `NotificationCenter`，事务成功后仅发送一次通知，并启用、校验 SQLite foreign keys 以覆盖真实 COMMIT 失败。
 - 修改文件：
-  - `Muse/Database/LanguageAssetStore.swift`
-  - `Muse/Services/AssetExtractionService.swift`
-  - `Muse/UI/Settings/AssetLibraryTab.swift`
-  - `MuseTests/LanguageAssetStoreTests.swift`
-  - `MuseTests/LanguageAssetTransactionTests.swift`
-  - `MuseTests/AssetExtractionCommitTests.swift`
+  - `Dal/Database/LanguageAssetStore.swift`
+  - `Dal/Services/AssetExtractionService.swift`
+  - `Dal/UI/Settings/AssetLibraryTab.swift`
+  - `DalTests/LanguageAssetStoreTests.swift`
+  - `DalTests/LanguageAssetTransactionTests.swift`
+  - `DalTests/AssetExtractionCommitTests.swift`
 - 验证：
   - `swift test --filter 'LanguageAssetTransactionTests|AssetExtractionCommitTests|LanguageAssetStoreTests|AssetExtractionRetryTests|AssetExtractionNormalizerTests'`：44 项，0 失败。
   - `swift test --sanitize thread --filter 'LanguageAssetTransactionTests|AssetExtractionCommitTests'`：12 项，0 失败，未报告数据竞争。
   - `swift test`：356 项，5 项按既有环境条件跳过，0 失败。
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、356 项 Swift 测试、Shell/Python 语法和 12 项 Python 服务测试全部通过。
-  - `git diff --check`：通过；独立只读复审未发现 MUSE-110 阻断问题。
+  - `git diff --check`：通过；独立只读复审未发现 DAL-110 阻断问题。
 - 遗留风险：旧版本曾为同一 Candidate 生成随机 Asset UUID，现有历史库没有可靠映射字段，本次不扫描或迁移真实用户数据，因此历史内容级重复无法自动合并；`commitExtraction` 的最终提交显式重放时仍会以 `OR REPLACE` 覆盖后来人工修改的 Candidate/Result 状态并新增一条 action log，正常服务流程不会重放同一 final commit，后续若引入自动重试需增加 run 级提交幂等键；action-log 表损坏时优先保证 failed job/run 落库，因此该次失败可能只有应用日志而没有数据库 action log。测试全部使用临时数据库和 SQLite trigger 注入，未在真实用户库验证迁移或多进程锁竞争。按用户指示未执行任何音频测试。自动更新开关仍为 `false`。
 
-### MUSE-120：给模型下载增加固定版本、哈希和原子安装
+### DAL-120：给模型下载增加固定版本、哈希和原子安装
 
 - 状态：✅ 完成。
 - 提交：`2c9a716`（`修复: 固定模型版本并以哈希和原子目录安装`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `21ec6adff2cfee4aa52084a6ce5eada69c56076c`；保留既有 `REPAIR_EXECUTION_LOG.md` 修改及未跟踪的 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 356 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `21ec6adff2cfee4aa52084a6ce5eada69c56076c`；保留既有 `REPAIR_EXECUTION_LOG.md` 修改及未跟踪的 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 356 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先新增模型清单校验和安装事务测试；修复前运行定向测试明确编译失败，报告缺少固定制品清单、逐文件校验、可注入下载边界、归档安全检查和事务安装 API。
   - 再先新增调用方取消、取消后迟到进度、固定 revision 绑定续传、归档链接根目录边界、回滚删除失败及 backup 清理失败用例；各用例修复前分别出现下载未取消且仍安装、迟到进度多回调一次、错误复用 12 字节旧续传、缺少根目录校验 API、正式目录保留 7 字节损坏内容及验证后的新模型因清理错误被错误回滚等红灯，随后逐项修复转绿。
@@ -339,10 +339,10 @@
   - tar 在解压前真实列举条目并拒绝绝对路径、`..` 越界、特殊文件及越界软/硬链接；只解压到 staging，解压前后重验归档 SHA256，并审计解压树中的真实目录、普通文件和符号链接边界。
   - 模型删除先取消进行中的操作；哈希和 tar 工作移出 actor 临界区，operation ID 防止旧任务清理新状态。健康检查新增模型制品策略门，阻止浮动 revision、默认 URLSession 或缺失清单完整性测试回归。
 - 修改文件：
-  - `Muse/Services/ModelArtifactManifest.swift`
-  - `Muse/Services/ModelManager.swift`
-  - `MuseTests/ModelArtifactVerificationTests.swift`
-  - `MuseTests/ModelInstallationTransactionTests.swift`
+  - `Dal/Services/ModelArtifactManifest.swift`
+  - `Dal/Services/ModelManager.swift`
+  - `DalTests/ModelArtifactVerificationTests.swift`
+  - `DalTests/ModelInstallationTransactionTests.swift`
   - `scripts/health-check.sh`
 - 验证：
   - `swift test --filter 'ModelArtifactVerificationTests|ModelInstallationTransactionTests'`：29 项，0 失败。
@@ -350,14 +350,14 @@
   - `swift test`：385 项，5 项按既有环境条件跳过，0 失败。
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、385 项 Swift 测试、模型制品策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
-  - `git diff --check`：通过；独立只读复审未发现 MUSE-120 的 P0/P1 阻断问题，17 个文件的版本、大小与 SHA256 元数据和官方来源一致。
+  - `git diff --check`：通过；独立只读复审未发现 DAL-120 的 P0/P1 阻断问题，17 个文件的版本、大小与 SHA256 元数据和官方来源一致。
 - 遗留风险：本任务未下载或加载最大约 5.6 GB 的真实模型，因此真实 CDN 重定向后的文件名/Content-Length/续传兼容性、真实 Python 模型加载仍属于发布前人工 gate；进程若恰好在“旧目录 → backup”和“候选目录 → 正式目录”之间崩溃，可能留下隐藏 backup，当前覆盖所有可捕获运行时失败，但尚无安装 journal 或启动恢复；backup 删除若因权限问题在删除前失败，会保留已验证的新正式目录和隐藏 backup 供后续清理；bsdtar 列举、校验和解压是独立进程，虽在解压前后重验归档并审计结果，同用户恶意进程理论上仍可制造本地竞态。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过，未安装工具或降低门槛。未触碰真实用户数据目录，按用户指示未执行任何音频测试。自动更新开关仍为 `false`。
 
-### MUSE-130：加固 LLM Endpoint、SSE 和网络会话
+### DAL-130：加固 LLM Endpoint、SSE 和网络会话
 
 - 状态：✅ 完成。
 - 提交：`2d9d915`（`修复: 强制安全 LLM 地址并校验流式响应完整性`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `b81be17c0a0d12616a88bf22e36275aee2f1ddf7`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build`、`swift build -c release` 通过，`swift test` 执行 385 项、5 项按既有环境条件跳过、0 失败，健康检查通过。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `b81be17c0a0d12616a88bf22e36275aee2f1ddf7`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build`、`swift build -c release` 通过，`swift test` 执行 385 项、5 项按既有环境条件跳过、0 失败，健康检查通过。
 - 测试优先：
   - 先新增云端/本地 URL 策略、凭证规范化、ephemeral 会话、local token、SSE 格式/完整性、响应上限及错误脱敏测试；修复前定向测试明确编译失败，缺少 Endpoint policy 与流式 parser API。
   - 随后依次以失败测试锁定 JSON/Authorization/query 脱敏、IPv6 与 CRLF、无 delta 的 `finish_reason`、空端口、有限读取、重定向、部分传输、取消传播与 parser 错误分类，均先观察红灯再实施修复。
@@ -369,16 +369,16 @@
   - SSE 改为逐字节读取：原始总量 16 MiB、单行 4 MiB、单 event 4 MiB、累计文本 2 MiB；支持 `data:`、可选空格、CRLF、空行、多行 event、`[DONE]` 与非空 `finish_reason`，提前断流返回可重试 truncated，取消和既有 parser 错误保持原类型。
   - 非流式响应和预热改为有界读取；错误体有限保留并脱敏 API key、token、Authorization 与 URL query，用户可见错误不再携带原始服务响应。
 - 修改文件：
-  - `Muse/LLM/ClaudeChatClient.swift`
-  - `Muse/LLM/DoubaoChatClient.swift`
-  - `Muse/LLM/LLMEndpointPolicy.swift`
-  - `Muse/LLM/LLMModelListFetcher.swift`
-  - `Muse/LLM/Providers/ClaudeLLMConfig.swift`
-  - `Muse/LLM/Providers/LLMBaseURLValidator.swift`
-  - `Muse/LLM/Providers/OpenAICompatibleLLMConfig.swift`
-  - `Muse/Services/KeychainService.swift`
-  - `MuseTests/LLMEndpointPolicyTests.swift`
-  - `MuseTests/LLMStreamingParserTests.swift`
+  - `Dal/LLM/ClaudeChatClient.swift`
+  - `Dal/LLM/DoubaoChatClient.swift`
+  - `Dal/LLM/LLMEndpointPolicy.swift`
+  - `Dal/LLM/LLMModelListFetcher.swift`
+  - `Dal/LLM/Providers/ClaudeLLMConfig.swift`
+  - `Dal/LLM/Providers/LLMBaseURLValidator.swift`
+  - `Dal/LLM/Providers/OpenAICompatibleLLMConfig.swift`
+  - `Dal/Services/KeychainService.swift`
+  - `DalTests/LLMEndpointPolicyTests.swift`
+  - `DalTests/LLMStreamingParserTests.swift`
 - 验证：
   - `swift test --filter 'LLMEndpointPolicyTests|LLMStreamingParserTests|LLMProviderConfigTests|LLMModelListFetcherTests|LocalServiceAuthTests|DoubaoChatClientTests'`：45 项，0 失败。
   - `swift test`：414 项，5 项按既有环境条件跳过，0 失败。
@@ -387,11 +387,11 @@
   - `git diff --check`：通过；两轮独立只读复审均未发现剩余 P0/P1。
 - 遗留风险：未连接真实云端 LLM 或本地 Qwen 服务进行网络联调，服务商若依赖重定向须把配置改为最终 HTTPS Endpoint；未使用真实 API key，也未读写真实用户数据目录。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
 
-### MUSE-140：保护词库迁移并严格限制热词下发
+### DAL-140：保护词库迁移并严格限制热词下发
 
 - 状态：✅ 完成。
 - 提交：`df15455`（`修复: 保留词库文件改动并严格限制下发热词`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `2e991df0432e3ea19922c4f4122087a4d27145bb`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build` 通过；`swift test` 执行 414 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `2e991df0432e3ea19922c4f4122087a4d27145bb`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build` 通过；`swift test` 执行 414 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先新增词库迁移、内置文件保护、用户文件保留、热词去空/去重/截断、Finder 入口、缓存隔离与重载测试；修复前定向测试明确编译失败，报告缺少可注入 `VocabularyStorageContext`、schema 迁移 API、重载 API、Finder 回调和截断结果字段。
   - 再以失败测试锁定旧 v2 完成标记不得复活已删除 legacy 数据、legacy snippet 替换文本须保留大小写、损坏 legacy payload 不得推进 schema，以及用户 `cloudcode` 必须覆盖内置 `Cloud Code`；各项均先观察红灯再修复转绿。
@@ -403,16 +403,16 @@
   - snippet 覆盖键与实际匹配语义统一移除全部空白并忽略大小写，保留用户 replacement 原始大小写；缓存按 builtin/user URL 分区并以 generation 防止失效期间写回旧规则。
   - 批量编辑入口仅创建并打开用户自定义文件；snippet 重载只失效缓存并刷新编辑草稿，hotword 重载才同步并重启本地服务，URL command 同步执行对应重载。
 - 修改文件：
-  - `Muse/ASR/ASRRequestOptionsFactory.swift`
-  - `Muse/AppURLCommandHandler.swift`
-  - `Muse/Services/HotwordStorage.swift`
-  - `Muse/Services/SenseVoiceServerManager.swift`
-  - `Muse/Services/SnippetStorage.swift`
-  - `Muse/Services/VocabularyStorageContext.swift`
-  - `Muse/UI/Settings/VocabularyBuiltInFooter.swift`
-  - `Muse/UI/Settings/VocabularyTab.swift`
-  - `MuseTests/SnippetStorageConcurrencyTests.swift`
-  - `MuseTests/VocabularyMigrationTests.swift`
+  - `Dal/ASR/ASRRequestOptionsFactory.swift`
+  - `Dal/AppURLCommandHandler.swift`
+  - `Dal/Services/HotwordStorage.swift`
+  - `Dal/Services/SenseVoiceServerManager.swift`
+  - `Dal/Services/SnippetStorage.swift`
+  - `Dal/Services/VocabularyStorageContext.swift`
+  - `Dal/UI/Settings/VocabularyBuiltInFooter.swift`
+  - `Dal/UI/Settings/VocabularyTab.swift`
+  - `DalTests/SnippetStorageConcurrencyTests.swift`
+  - `DalTests/VocabularyMigrationTests.swift`
 - 验证：
   - `swift test --filter 'VocabularyMigrationTests|SnippetStorageConcurrencyTests|VocabularySnippetGroupingTests|VolcProtocolTests|RecognitionSessionTests|RecognitionSessionRaceTests'`：76 项，0 失败。
   - `swift test --sanitize thread --filter 'VocabularyMigrationTests|SnippetStorageConcurrencyTests'`：16 项，0 失败，未报告数据竞争。
@@ -420,13 +420,13 @@
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、428 项 Swift 测试、模型制品策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
   - `git diff --check`：通过；独立只读终审未发现剩余 P0/P1。
-- 遗留风险：未在真实用户词库上执行迁移，未实际点击 Finder/UI 入口，也未联调真实本地 ASR 服务；损坏的现有新版 JSON 文件如何向用户恢复属于 MUSE-160 范围。本任务没有访问或修改 `~/Library/Application Support/Muse/`。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
+- 遗留风险：未在真实用户词库上执行迁移，未实际点击 Finder/UI 入口，也未联调真实本地 ASR 服务；损坏的现有新版 JSON 文件如何向用户恢复属于 DAL-160 范围。本任务没有访问或修改 `~/Library/Application Support/Muse/`。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
 
-### MUSE-150：统一 Provider 可用性并封闭正式版开发路径
+### DAL-150：统一 Provider 可用性并封闭正式版开发路径
 
 - 状态：✅ 完成。
 - 提交：`a18762d`（`修复: 统一识别引擎可用性并封闭正式版开发路径`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `cb3ffad7df76cfad75c41a23ba432154e4e3f651`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build` 通过；`swift test` 执行 428 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `cb3ffad7df76cfad75c41a23ba432154e4e3f651`；仅保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 `swift build` 通过；`swift test` 执行 428 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先扩充 Provider 能力、启动回退和服务入口解析测试；修复前运行 `swift test --filter 'ASRProviderRegistryTests|ServerExecutableResolutionTests'` 明确编译失败，报告缺少 capability 注入重载、启动回退 API、`ServerExecutableResolver`、构建策略、解析结果与错误类型。
   - 随后补齐 Release 忽略显式开发根、DEBUG 无变量/相对变量拒绝、bundle 优先与 fail-closed、服务目录和脚本符号链接逃逸、缺脚本/缺 Python、非可执行或不可信 Python、合法 venv 外链、双服务同根及两 manager 策略一致等边界测试。
@@ -434,17 +434,17 @@
   - `ASRProviderRegistry.supports` 先统一检查 capability；不可用 Provider 的直出和自定义模式全部不可选，模式列表为空，`resolvedMode` 回退直出。ProviderEntry 的 UI 可用性也要求 capability 与 client 同时成立。
   - Sherpa capability 同时要求编译支持和共享 resolver 能找到可信服务入口；启动迁移完成后、热键注册、本地服务启动和连通性探测之前，历史不可用选择按显式顺序回退到 Volcano/Apple，并先持久化再显示一次性说明。
   - 新增共享 `ServerExecutableResolver`：bundle 永远优先；候选存在但越界或不可执行时直接失败，不回落开发目录。Release 构建不读取开发变量且只允许 bundle 内入口。
-  - DEBUG 仅接受绝对路径 `MUSE_DEV_SERVER_ROOT`，不再向上遍历或扫描 `~/muse`、`~/projects/muse`；开发根、服务目录和 `server.py` 必须归当前有效用户，canonical path 不得越界，脚本和 Python 必须为普通文件，Python 目标必须属于当前用户或 root 且可执行。
+  - DEBUG 仅接受绝对路径 `DAL_DEV_SERVER_ROOT`，不再向上遍历或扫描 `~/dal`、`~/projects/dal`；开发根、服务目录和 `server.py` 必须归当前有效用户，canonical path 不得越界，脚本和 Python 必须为普通文件，Python 目标必须属于当前用户或 root 且可执行。
   - venv Python 可合法链接到开发根之外的可信解释器，避免破坏 Homebrew/uv 创建的真实虚拟环境；SenseVoice 与 Qwen3 统一走相同解析器，ModelManager 的在位判断与 ServerManager 的实际启动结论一致。
 - 修改文件：
-  - `Muse/ASR/ASRProviderRegistry.swift`
-  - `Muse/AppStartupCoordinator.swift`
-  - `Muse/MuseApp.swift`
-  - `Muse/Services/ModelManager.swift`
-  - `Muse/Services/SenseVoiceServerManager.swift`
-  - `Muse/Services/ServerExecutableResolver.swift`
-  - `MuseTests/ASRProviderRegistryTests.swift`
-  - `MuseTests/ServerExecutableResolutionTests.swift`
+  - `Dal/ASR/ASRProviderRegistry.swift`
+  - `Dal/AppStartupCoordinator.swift`
+  - `Dal/DalApp.swift`
+  - `Dal/Services/ModelManager.swift`
+  - `Dal/Services/SenseVoiceServerManager.swift`
+  - `Dal/Services/ServerExecutableResolver.swift`
+  - `DalTests/ASRProviderRegistryTests.swift`
+  - `DalTests/ServerExecutableResolutionTests.swift`
 - 验证：
   - `swift test --filter 'ASRProviderRegistryTests|ServerExecutableResolutionTests'`：25 项，0 失败。
   - `swift test --filter 'ASRProviderRegistryTests|ServerExecutableResolutionTests|AppStateTests|RecognitionSessionTests|RecognitionSessionRaceTests|ModelArtifactVerificationTests|ServerProcessIdentityTests'`：87 项，0 失败。
@@ -452,13 +452,13 @@
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、450 项 Swift 测试、模型制品策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
   - `git diff --check`：通过；独立只读终审未发现 P0/P1 或阻断性测试缺口，并独立复跑 25 项定向测试与 Release 构建通过。
-- 遗留风险：未实际启动开发 Python 服务、未用带本地服务的签名 App bundle 验证包装脚本，也未目视验收启动回退 NSAlert；测试全部使用临时目录与注入的构建/所有者策略，未访问真实用户目录。默认 `scripts/package-app.sh` 构建 Release 且通常不带 `BUNDLE_LOCAL_ASR=1`，收紧后这类包不再执行仓库 venv，这是计划要求；本地制品必须显式打包服务，开发调试必须使用 DEBUG 并设置 `MUSE_DEV_SERVER_ROOT`。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
+- 遗留风险：未实际启动开发 Python 服务、未用带本地服务的签名 App bundle 验证包装脚本，也未目视验收启动回退 NSAlert；测试全部使用临时目录与注入的构建/所有者策略，未访问真实用户目录。默认 `scripts/package-app.sh` 构建 Release 且通常不带 `BUNDLE_LOCAL_ASR=1`，收紧后这类包不再执行仓库 venv，这是计划要求；本地制品必须显式打包服务，开发调试必须使用 DEBUG 并设置 `DAL_DEV_SERVER_ROOT`。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
 
-### MUSE-160：显式传播存储故障并统一日志脱敏
+### DAL-160：显式传播存储故障并统一日志脱敏
 
 - 状态：✅ 完成。
 - 提交：`b48b180`（`修复: 显式传播存储故障并统一日志脱敏`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `678a2d9a5f2d620c8ed8e728353171db06b38dff`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 450 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `678a2d9a5f2d620c8ed8e728353171db06b38dff`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 450 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先新增 `JSONFileStoreRecoveryTests`、`DatabaseFailurePropagationTests`、`LogRedactionTests`；修复前定向测试明确编译失败，报告缺少显式 JSON 读取状态、throwing 查询、共享脱敏器及可注入 debug log writer。
   - 随后以失败测试锁定隔离后恢复 URL 稳定、损坏 builtin 不推进 schema、恢复期间禁止保存、Basic/自定义 URL query/多行与转义 JSON、argv 多词敏感值、既有轮转权限、测试进程禁止写真实 debug.log；均先观察红灯再修复转绿。
@@ -470,41 +470,41 @@
   - 新增共用 `LogRedactor`，覆盖 Authorization、API/access/local token、Prompt、语音正文、URL query、JSON 字符串/数组/对象及启动参数；`AppLogger` 默认 `.private`，识别日志仅公开固定状态与计数。
   - debug log 写入和轮转提炼为可注入 writer；活动文件与 `.1` 均强制 `0600`，既有轮转文件也会修复权限。XCTest 下静态 debug logger 和 Keychain/credentials/UserDefaults 读写使用无真实目录副作用的隔离路径。
 - 修改文件：
-  - 存储与数据库：`Muse/Services/JSONFileStore.swift`、`ModeStorage.swift`、`HotwordStorage.swift`、`SnippetStorage.swift`、`StorageRecoveryNotice.swift`、`KeychainService.swift`、`Muse/Database/HistoryStore.swift`、`LanguageAssetStore.swift`。
-  - 日志与调用方：`Muse/Services/AppLogger.swift`、`DebugFileLogger.swift`、`LogRedactor.swift`、`AssetExtractionService.swift`、`ModelManager.swift`、`SenseVoiceServerManager.swift`、`Muse/LLM/LLMEndpointPolicy.swift`、`Muse/ASR/AppleASRClient.swift`、`Muse/Session/RecognitionSession.swift`、`Muse/MuseApp.swift`。
-  - UI：`Muse/UI/AppState.swift`、`Settings/AssetLibraryDataSnapshot.swift`、`AssetLibraryExtractionViewModel.swift`、`AssetLibraryTab.swift`、`GeneralSettingsTab.swift`、`SettingsView.swift`。
-  - 测试：`MuseTests/JSONFileStoreRecoveryTests.swift`、`DatabaseFailurePropagationTests.swift`、`LogRedactionTests.swift`、`KeychainServiceTests.swift`、`AssetExtractionNormalizerTests.swift`、`AppStateTests.swift`。
+  - 存储与数据库：`Dal/Services/JSONFileStore.swift`、`ModeStorage.swift`、`HotwordStorage.swift`、`SnippetStorage.swift`、`StorageRecoveryNotice.swift`、`KeychainService.swift`、`Dal/Database/HistoryStore.swift`、`LanguageAssetStore.swift`。
+  - 日志与调用方：`Dal/Services/AppLogger.swift`、`DebugFileLogger.swift`、`LogRedactor.swift`、`AssetExtractionService.swift`、`ModelManager.swift`、`SenseVoiceServerManager.swift`、`Dal/LLM/LLMEndpointPolicy.swift`、`Dal/ASR/AppleASRClient.swift`、`Dal/Session/RecognitionSession.swift`、`Dal/DalApp.swift`。
+  - UI：`Dal/UI/AppState.swift`、`Settings/AssetLibraryDataSnapshot.swift`、`AssetLibraryExtractionViewModel.swift`、`AssetLibraryTab.swift`、`GeneralSettingsTab.swift`、`SettingsView.swift`。
+  - 测试：`DalTests/JSONFileStoreRecoveryTests.swift`、`DatabaseFailurePropagationTests.swift`、`LogRedactionTests.swift`、`KeychainServiceTests.swift`、`AssetExtractionNormalizerTests.swift`、`AppStateTests.swift`。
 - 验证：
   - `swift test --filter 'JSONFileStoreRecoveryTests|DatabaseFailurePropagationTests|LogRedactionTests|KeychainServiceTests|AssetExtractionLowValueFilterTests|AppStateTests'`：38 项，0 失败。
   - `swift test`：467 项，5 项按既有环境条件跳过，0 失败。
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、467 项 Swift 测试、模型制品策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
-  - `git diff --check`：通过；三轮独立只读审计确认默认测试不访问真实 Muse 目录或系统钥匙串，且未发现剩余 P0/P1。
-- 遗留风险：隔离前的既有完整测试曾打开默认数据库并访问真实系统钥匙串，测试虽设计为恢复临时写入，但未获授权再次检查真实目录或钥匙串，无法确认是否存在持久影响；此事实已在文首审计更正。未用真实损坏配置或真实数据库目视验收恢复提示与错误重试；同一次设置页打开只提示扫描到的第一份损坏文件，多个损坏文件需后续再次打开设置页处理；非 throwing Store API 为兼容边界继续保留并记录错误，核心生产链路已不再使用；显式 `MUSE_REAL_EXTRACTION=1` 的旧质量测试在安全隔离后无法读取真实钥匙串，后续应改用独立集成测试凭据。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
+  - `git diff --check`：通过；三轮独立只读审计确认默认测试不访问真实 Dal 目录或系统钥匙串，且未发现剩余 P0/P1。
+- 遗留风险：隔离前的既有完整测试曾打开默认数据库并访问真实系统钥匙串，测试虽设计为恢复临时写入，但未获授权再次检查真实目录或钥匙串，无法确认是否存在持久影响；此事实已在文首审计更正。未用真实损坏配置或真实数据库目视验收恢复提示与错误重试；同一次设置页打开只提示扫描到的第一份损坏文件，多个损坏文件需后续再次打开设置页处理；非 throwing Store API 为兼容边界继续保留并记录错误，核心生产链路已不再使用；显式 `DAL_REAL_EXTRACTION=1` 的旧质量测试在安全隔离后无法读取真实钥匙串，后续应改用独立集成测试凭据。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，自动更新开关继续保持 `false`。
 
 ## 批次 C 收口
 
-- 代码任务：MUSE-110 至 MUSE-160 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
+- 代码任务：DAL-110 至 DAL-160 已按依赖顺序实施，每项均先红灯、再修复、跑定向与全量测试、最后独立提交。
 - 当前代码 HEAD：`b48b180db68b37a9a6ded45c1d255ad6a9254a32`。
 - 自动更新：`UpdateChecker.updateChannelEnabled = false`，未改动；Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未完成，因此继续保持关闭。
 - 真实用户数据：审计确认隔离前的既有完整测试会打开默认数据库并访问系统钥匙串，纠正了此前“未访问”的错误记录；未获授权再次检查或回滚，持久影响无法确认。`b48b180` 已隔离默认数据库、debug log、凭据文件、Provider 偏好与系统钥匙串路径，之后的收口测试未再触碰。
 - 收口自动验收：`bash scripts/health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建通过，全量 `swift test` 执行 467 项、5 项按环境条件跳过、0 失败，模型制品策略、Shell/Python 语法和 12 项 Python 服务测试通过。
 - 收口环境限制：`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按设计标记为 `SKIP`；未安装工具，也未降低构建或测试门槛。
 - 音频测试：遵照用户指示，本批次未执行麦克风、AirPods 或其他音频真机测试；完整 `swift test` 中的纯单元音频缓冲测试仍按仓库硬门槛执行。
-- 待人工项：真实模型 CDN/安装恢复、真实云端与本地 LLM 联调、词库迁移和损坏恢复 UI、Provider 启动回退、冻结本地服务路径，以及 MUSE-120 要求的 Cloud/Local 双制品签名与 SHA256 验收。以上均继续作为发布前 gate，不据此开启自动更新。
+- 待人工项：真实模型 CDN/安装恢复、真实云端与本地 LLM 联调、词库迁移和损坏恢复 UI、Provider 启动回退、冻结本地服务路径，以及 DAL-120 要求的 Cloud/Local 双制品签名与 SHA256 验收。以上均继续作为发布前 gate，不据此开启自动更新。
 
 ## 批次 D
 
 | 任务 | 状态 | 提交 | 备注 |
 |---|---|---|---|
-| MUSE-170 | ✅ 完成 | `828c726` | 外层签名保持最后；Mach-O/MetalLib 嵌套代码、Cloud/Local 内容和严格验签均有自动回归门槛。 |
-| MUSE-180 | ✅ 完成 | `f89d7db` | Cloud/Local 清单、SHA256、不可变验签、ready 握手、可回滚同卷替换与 DMG 发布链均有自动回归门槛；自动更新仍关闭。 |
+| DAL-170 | ✅ 完成 | `828c726` | 外层签名保持最后；Mach-O/MetalLib 嵌套代码、Cloud/Local 内容和严格验签均有自动回归门槛。 |
+| DAL-180 | ✅ 完成 | `f89d7db` | Cloud/Local 清单、SHA256、不可变验签、ready 握手、可回滚同卷替换与 DMG 发布链均有自动回归门槛；自动更新仍关闭。 |
 
-### MUSE-170：修复 App Bundle 最终签名顺序
+### DAL-170：修复 App Bundle 最终签名顺序
 
 - 状态：✅ 完成。
 - 提交：`828c726`（`修复: 调整应用签名顺序并验证最终 Bundle`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `537d50220d3d8ce397f3eb26e9fab991de0ce530`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 467 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `537d50220d3d8ce397f3eb26e9fab991de0ce530`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 467 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先新增脚本语法、嵌套签名失败、签名后禁写、Cloud/Local 内容、严格验签与篡改失效测试；首个策略测试在缺少 `scripts/sign-app-bundle.sh` 时明确失败，实施后逐项转绿。
   - 独立测试审计指出原 fixture 未执行真实 `package-app.sh`、嵌套失败由测试分支制造、篡改未走正式验证脚本等假绿风险；测试随后改为在临时项目中执行真实打包链，用可注入失败 signer、无扩展且无执行位的 Mach-O、正式 `test_app_bundle.sh` 与篡改制品锁定行为。
@@ -516,7 +516,7 @@
   - Local 构建在任何构建或替换既有 Bundle 之前验证两套 dist 和可执行 launcher，缺件明确失败且保留原 Contents。
   - `test_app_bundle.sh` 对 Cloud/Local 执行同一 `codesign --verify --deep --strict --verbose=4` 门槛；Developer ID authority 继续执行 `spctl --assess`。健康检查新增签名策略静态门槛。
 - 修改文件：
-  - `MuseTests/PackageScriptTests.swift`
+  - `DalTests/PackageScriptTests.swift`
   - `scripts/health-check.sh`
   - `scripts/package-app.sh`
   - `scripts/sign-app-bundle.sh`
@@ -524,22 +524,22 @@
 - 验证：
   - `swift test --filter PackageScriptTests`：10 项，0 失败。
   - `bash -n scripts/package-app.sh scripts/sign-app-bundle.sh scripts/test_app_bundle.sh scripts/health-check.sh`：通过。
-  - 临时真实 Cloud 打包：ad-hoc 外层签名与两次严格验证通过；第一次额外手工复验误传旧 bundle id `com.haujet.muse` 而失败，改用仓库实际 `pro.daliang.muse` 后重跑通过，属于验收命令参数错误而非制品失败。
+  - 临时真实 Cloud 打包：ad-hoc 外层签名与两次严格验证通过；第一次额外手工复验误传旧 bundle id `com.haujet.dal` 而失败，改用仓库实际 `pro.daliang.muse` 后重跑通过，属于验收命令参数错误而非制品失败。
   - 真实 MLX `mlx.metallib` 临时验收：脚本明确输出嵌套签名，MetalLib 单体和最终 App 严格验签均通过；临时目录均已移入废纸篓，可恢复。
   - `swift build`、`swift build -c release`：通过。
   - `swift test`：477 项，5 项按既有环境条件跳过，0 失败。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、477 项 Swift 测试、模型与签名策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
   - `git diff --check`：通过；独立只读终审确认无剩余 P0/P1。
-- 遗留风险：仓库当前没有两套完整冻结服务 dist，因此真实 Local 成品未能在本机打包；Local 自动验收使用执行真实打包脚本的隔离 fixture，真实 Qwen MetalLib 另行完成签名验证。没有 Developer ID identity，故只验证 ad-hoc 严格签名，`spctl` 的发布证书路径仍是发布前 gate；未生成/公证 DMG，也未做 Cloud/Local 真机安装。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。测试均使用临时目录和隔离 HOME，未访问真实 Muse 用户数据目录或系统钥匙串；但 MUSE-160 已披露的更早测试隔离事故仍无法确认持久影响。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未全部完成，自动更新开关仍为 `false`。
+- 遗留风险：仓库当前没有两套完整冻结服务 dist，因此真实 Local 成品未能在本机打包；Local 自动验收使用执行真实打包脚本的隔离 fixture，真实 Qwen MetalLib 另行完成签名验证。没有 Developer ID identity，故只验证 ad-hoc 严格签名，`spctl` 的发布证书路径仍是发布前 gate；未生成/公证 DMG，也未做 Cloud/Local 真机安装。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按既有规则跳过。测试均使用临时目录和隔离 HOME，未访问真实 Dal 用户数据目录或系统钥匙串；但 DAL-160 已披露的更早测试隔离事故仍无法确认持久影响。按用户指示未执行麦克风、AirPods 或其他音频真机测试。Cloud、Local 双制品签名、SHA256、更新与回滚真机验收尚未全部完成，自动更新开关仍为 `false`。
 
-### MUSE-180：重构自动更新与回滚为不可变双制品链
+### DAL-180：重构自动更新与回滚为不可变双制品链
 
 - 状态：✅ 完成。
 - 提交：`f89d7db`（`修复: 建立双制品不可变签名更新链`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `acb62675de5a803399c38803db7ebf1dc83c2b86`；保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 Debug 构建与全量测试通过，自动更新开关为 `false`。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `acb62675de5a803399c38803db7ebf1dc83c2b86`；保留既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入提交。基线 Debug 构建与全量测试通过，自动更新开关为 `false`。
 - 测试优先：
   - 先新增双制品 manifest、必填 SHA256、严格 URL/版本与禁止 legacy fallback 测试；初始实现因缺少新类型及严格解析而编译失败，非法版本测试也明确红灯。
-  - 更新脚本首轮不可变制品策略测试出现 8 项失败；随后用隔离 fixture 逐项锁定带空格挂载路径、精确 `Muse.app`、当前/挂载/复制/正式路径验签、Bundle/Team/version、Cloud/Local 内容、首次及挂载前二次 SHA、四个 rename/清理故障相位和 Trash 实际内容。
+  - 更新脚本首轮不可变制品策略测试出现 8 项失败；随后用隔离 fixture 逐项锁定带空格挂载路径、精确 `Dal.app`、当前/挂载/复制/正式路径验签、Bundle/Team/version、Cloud/Local 内容、首次及挂载前二次 SHA、四个 rename/清理故障相位和 Trash 实际内容。
   - 独立审计发现父 App 固定延时退出会令早期失败无日志且无法重启；先补缺失接口编译红灯、ready 生命周期与早期 stderr 测试，再实现父进程安全日志描述符和 ready 后退出握手。
   - DMG 动态顺序测试先因脚本绕过测试 shim、直接调用系统 `codesign` 而失败；实现显式测试模式后，证明创建、签名、严格验签、镜像验证、SHA256、发布的实际顺序及中途失败不发布。
   - 终审以真实 `TERM` 故障注入复现破坏性 rename 后不回滚；加入 `HUP/INT/TERM` 统一进入 EXIT 回滚后转绿。随后以编译红灯和 spoof 测试将 ready 改为随机 UUID 目录，并删除 Shell 对日志路径的二次打开；悬空日志符号链接测试也先红后以 `O_EXCL | O_NOFOLLOW` 收口。
@@ -551,13 +551,13 @@
   - 父进程以 `0600`、`O_EXCL | O_NOFOLLOW` 创建并继承更新日志，使用随机 ready 目录握手；预检失败时保留父 App，ready 后才退出。失败或不完整日志保留并显示有界诊断，只有精确终态 `SUCCESS` 才清理 staging。
   - `build-dmg.sh` 强制显式 Cloud/Local、数值版本和安全文件名；发布制品要求 Developer ID App/DMG 签名、严格验签、镜像验证和 SHA256，验证全部成功后才替换正式 DMG。ad-hoc 仅生成不可发布开发制品。
 - 修改文件：
-  - `Muse/Services/AppUpdater.swift`
-  - `Muse/Services/UpdateChecker.swift`
-  - `MuseTests/AppUpdaterChecksumTests.swift`
-  - `MuseTests/AppUpdaterScriptTests.swift`
-  - `MuseTests/AppUpdaterStatusTests.swift`
-  - `MuseTests/DMGScriptTests.swift`
-  - `MuseTests/UpdateManifestTests.swift`
+  - `Dal/Services/AppUpdater.swift`
+  - `Dal/Services/UpdateChecker.swift`
+  - `DalTests/AppUpdaterChecksumTests.swift`
+  - `DalTests/AppUpdaterScriptTests.swift`
+  - `DalTests/AppUpdaterStatusTests.swift`
+  - `DalTests/DMGScriptTests.swift`
+  - `DalTests/UpdateManifestTests.swift`
   - `scripts/build-dmg.sh`
 - 验证：
   - `swift test --filter 'UpdateManifestTests|AppUpdaterScriptTests|AppUpdaterChecksumTests|AppUpdaterStatusTests|DMGScriptTests'`：52 项，0 失败。
@@ -566,11 +566,11 @@
   - `bash -n scripts/build-dmg.sh`、`git diff --check`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、520 项 Swift 测试、模型与签名策略、全部 Shell/Python 语法和 12 项 Python 服务测试通过。
   - 独立最终复审确认无剩余 P0/P1，并独立复跑 `AppUpdaterScriptTests|AppUpdaterStatusTests` 29 项、0 失败。
-- 遗留风险：本机没有 Developer ID 身份和两套完整冻结服务 dist，未生成/公证真实 Cloud/Local 发布 DMG，也未执行真实旧版到新版更新、失败回滚、Gatekeeper 或断电恢复验收；`updates.json` 尚无可发布的真实双制品信息。`SIGKILL`、突然断电或系统崩溃无法由进程内 trap 收口，两个 rename 之间仍需持久事务日志与启动恢复才能达到正式开放门槛。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按规则跳过。所有自动安装测试均使用临时目录和隔离 HOME，未访问真实 Muse 用户数据目录。按用户指示未执行麦克风、AirPods 或其他音频真机测试；完整 `swift test` 中的纯单元音频缓冲测试仍按硬门槛执行。Cloud、Local 双制品签名、SHA256、真实更新与回滚验收尚未全部完成，因此 `UpdateChecker.updateChannelEnabled` 继续保持 `false`。
+- 遗留风险：本机没有 Developer ID 身份和两套完整冻结服务 dist，未生成/公证真实 Cloud/Local 发布 DMG，也未执行真实旧版到新版更新、失败回滚、Gatekeeper 或断电恢复验收；`updates.json` 尚无可发布的真实双制品信息。`SIGKILL`、突然断电或系统崩溃无法由进程内 trap 收口，两个 rename 之间仍需持久事务日志与启动恢复才能达到正式开放门槛。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按规则跳过。所有自动安装测试均使用临时目录和隔离 HOME，未访问真实 Dal 用户数据目录。按用户指示未执行麦克风、AirPods 或其他音频真机测试；完整 `swift test` 中的纯单元音频缓冲测试仍按硬门槛执行。Cloud、Local 双制品签名、SHA256、真实更新与回滚验收尚未全部完成，因此 `UpdateChecker.updateChannelEnabled` 继续保持 `false`。
 
 ## 批次 D 收口
 
-- 代码任务：MUSE-170、MUSE-180 已按依赖顺序完成，各自先红灯、后修复、通过定向与全量测试并独立提交。
+- 代码任务：DAL-170、DAL-180 已按依赖顺序完成，各自先红灯、后修复、通过定向与全量测试并独立提交。
 - 当前代码 HEAD：`f89d7db19725eb3c57907230b9dc41df705fd357`。
 - 自动更新：Cloud/Local 双制品协议、签名与回滚代码链已建立，但真实 Developer ID 双制品、SHA256 manifest、更新和回滚真机验收仍未完成，开关继续为 `false`。
 - 收口自动验收：Debug/Release 构建通过；全量 `swift test` 520 项、5 项跳过、0 失败；`health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`。
@@ -580,14 +580,14 @@
 
 | 任务 | 状态 | 提交 | 备注 |
 |---|---|---|---|
-| MUSE-190 | ✅ 完成 | `a441ce6` | Apple 识别强制端侧，拒绝 locale 回退并提供可操作错误；隐私文案与实现一致。 |
-| MUSE-200 | ✅ 完成 | `f9a8ce9` | macOS CI、双制品签名公证、不可变跨作业复验与发布门槛已落库；真实发布环境和真机 gate 未完成，自动更新仍关闭。 |
+| DAL-190 | ✅ 完成 | `a441ce6` | Apple 识别强制端侧，拒绝 locale 回退并提供可操作错误；隐私文案与实现一致。 |
+| DAL-200 | ✅ 完成 | `f9a8ce9` | macOS CI、双制品签名公证、不可变跨作业复验与发布门槛已落库；真实发布环境和真机 gate 未完成，自动更新仍关闭。 |
 
-### MUSE-190：对齐 Apple 识别的端侧行为和隐私说明
+### DAL-190：对齐 Apple 识别的端侧行为和隐私说明
 
 - 状态：✅ 完成。
 - 提交：`a441ce627c9e276ce7665e7d0f3b66173e48e274`（`修复: 对齐 Apple 识别的端侧行为和隐私说明`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `a4eeb486df4529afb59cefe3a2d9badca7425955`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 520 项、5 项按既有环境条件跳过、0 失败。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `a4eeb486df4529afb59cefe3a2d9badca7425955`；保留执行日志中的进行中标记及既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖或纳入代码提交。基线 `swift build` 通过；`swift test` 执行 520 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 先新增 Apple 请求强制端侧、端侧不支持错误、配置 locale 传递及中英文隐私文案测试；修复前定向测试明确编译失败，缺少端侧配置入口与错误类型。
   - 将识别会话工厂改为 throwing 后，先补旧工厂迟到失败不得清理新会话的竞态回归测试。
@@ -599,25 +599,25 @@
   - throwing 工厂异常在清理前核对 `sessionID`；旧连接的迟到失败转换为取消，不能使新会话失效。
   - README、设置页和首次引导的中英文说明统一为 Apple 仅端侧、识别音频不上传，不支持时切换语言或火山引擎。
 - 修改文件：
-  - `Muse/ASR/AppleASRClient.swift`
-  - `Muse/UI/Settings/ASRSettingsFooter.swift`
-  - `Muse/UI/Setup/SetupWizardView.swift`
+  - `Dal/ASR/AppleASRClient.swift`
+  - `Dal/UI/Settings/ASRSettingsFooter.swift`
+  - `Dal/UI/Setup/SetupWizardView.swift`
   - `README.md`
-  - `MuseTests/AppleASRClientLifecycleTests.swift`
-  - `MuseTests/AppleASRConfigurationTests.swift`
+  - `DalTests/AppleASRClientLifecycleTests.swift`
+  - `DalTests/AppleASRConfigurationTests.swift`
 - 验证：
   - `swift test --filter 'AppleASRConfigurationTests|AppleASRClientLifecycleTests'`：16 项，0 失败。
   - `swift test`：530 项，5 项按既有环境条件跳过，0 失败。
   - `swift build`、`swift build -c release`：通过。
   - `bash scripts/health-check.sh`：`HEALTH_CHECK_RESULT: PASS`；Debug/Release 构建、530 项 Swift 测试、模型与签名策略、Shell/Python 语法和 12 项 Python 服务测试全部通过。
   - `git diff --check`：通过；三轮独立只读复审完成，最终确认无剩余 P0/P1、无云端 fallback，并独立复跑 16 项定向测试通过。
-- 遗留风险：遵照用户指示未执行麦克风、AirPods、真实 Apple Speech 或其他音频真机测试；端侧 locale 的实际可用性仍取决于目标 macOS、硬件与已安装语言资产，自动测试只覆盖框架边界与可控工厂。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按规则跳过。测试使用 fake 与临时资源，未访问真实 Muse 用户数据目录。Cloud、Local 双制品签名、SHA256、真实更新与回滚验收尚未全部完成，因此 `UpdateChecker.updateChannelEnabled` 继续保持 `false`。
+- 遗留风险：遵照用户指示未执行麦克风、AirPods、真实 Apple Speech 或其他音频真机测试；端侧 locale 的实际可用性仍取决于目标 macOS、硬件与已安装语言资产，自动测试只覆盖框架边界与可控工厂。`shellcheck`、`swiftlint`、`periphery` 未安装，健康检查按规则跳过。测试使用 fake 与临时资源，未访问真实 Dal 用户数据目录。Cloud、Local 双制品签名、SHA256、真实更新与回滚验收尚未全部完成，因此 `UpdateChecker.updateChannelEnabled` 继续保持 `false`。
 
-### MUSE-200：建立持续集成与双制品发布验签门槛
+### DAL-200：建立持续集成与双制品发布验签门槛
 
 - 状态：✅ 仓库实现完成；正式发布仍被外部环境与真机验收 gate 阻断。
-- 提交：`f9a8ce9a97fc93e0adbad9efe6378d37383b7d3c`（`配置: 建立 Muse 持续集成和发布验签门槛`）。
-- 开始状态：分支 `codex/muse-hardening-v1`，HEAD `ce65e1579593978cb08636b06219d77ea754f021`；开始前除执行日志的任务认领外，仅有用户既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖、未修改、未纳入提交。基线 `swift build` 通过；`swift test` 执行 530 项、5 项按既有环境条件跳过、0 失败。
+- 提交：`f9a8ce9a97fc93e0adbad9efe6378d37383b7d3c`（`配置: 建立 Dal 持续集成和发布验签门槛`）。
+- 开始状态：分支 `codex/dal-hardening-v1`，HEAD `ce65e1579593978cb08636b06219d77ea754f021`；开始前除执行日志的任务认领外，仅有用户既有未跟踪文件 `CODEX_REPAIR_PLAN.md`，未覆盖、未修改、未纳入提交。基线 `swift build` 通过；`swift test` 执行 530 项、5 项按既有环境条件跳过、0 失败。
 - 测试优先：
   - 首轮补 CI、发布工作流和双制品验证合同后，定向测试先出现 14 项测试、20 个断言失败；扩展 Swift 工具链固定、依赖冻结、签名与环境保护合同时先出现 19 项测试、23 个失败。
   - 再以失败测试锁定严格版本递增、稳定 Release 判定、跨作业 artifact ID/digest、签名窗口预构建 SHA、Bundle 权限归一化和安全清理；签名窗口阶段 4 项测试先出现 5 个失败。
@@ -625,9 +625,9 @@
   - 独立复审指出默认并发只保留一个 pending 发布；先让 `testReleaseWorkflowBuildsAndRevalidatesBothProductsBeforePublishing` 明确 1 项失败，再按 GitHub 官方语法加入 `queue: max`，目标测试转绿。
 - 修改：
   - 新增 push/PR macOS CI，固定 Xcode 26.2 / Swift 6.2 和官方 Action commit SHA；每次执行 Debug/Release 构建、完整 Swift 测试、健康检查、全部 Bash 语法、6 个 Python 入口语法及 12 项 Python 安全测试。`shellcheck`、SwiftLint 仅在工具存在时执行，已安装工具失败不会被吞掉。
-  - 新增严格 SwiftLint 配置和可移植相对路径 baseline，覆盖 `Muse` 与 `MuseTests`；在仓库根目录及另一绝对路径复制中均以 SwiftLint 0.65.0 `--strict --no-cache` 通过。
+  - 新增严格 SwiftLint 配置和可移植相对路径 baseline，覆盖 `Dal` 与 `DalTests`；在仓库根目录及另一绝对路径复制中均以 SwiftLint 0.65.0 `--strict --no-cache` 通过。
   - 两套冻结服务构建固定 Python 3.12.10 / 3.14.6、uv 0.11.30 与完整 lock 依赖；旧 build/dist 只移入废纸篓，不再永久删除或覆盖 spec。
-  - 发布工作流用 `release-signing`、`release` 两个受保护环境串联质量、签名和公开阶段；所有发布请求在 `muse-release` 并发组串行排队，公开前后各复核线上最高稳定版本，拒绝已有 tag、草稿或预发布同版本。
+  - 发布工作流用 `release-signing`、`release` 两个受保护环境串联质量、签名和公开阶段；所有发布请求在 `dal-release` 并发组串行排队，公开前后各复核线上最高稳定版本，拒绝已有 tag、草稿或预发布同版本。
   - 签名密钥仅在消费 SHA256 锁定的预构建 Swift 二进制时导入临时 keychain；Cloud/Local 均由内到外使用 Developer ID、时间戳和 Hardened Runtime 签名，提交 Apple 公证、staple 后执行 DMG/App 严格验签、Gatekeeper、Team ID 和镜像验证。
   - 仅在两套公证制品全部通过后计算真实 SHA256、生成并校验 manifest fragment；跨作业传递锚定本次运行的 artifact ID 与 digest，公开前下载候选和远端草稿资产再次复验，失败时只清理当前运行创建且带标记的草稿。
   - 发布工作流保留 TextEdit、微信、Electron、nonactivatingPanel、Apple Speech、火山重连、本地双引擎、Cloud/Local 更新和失败回滚共 10 项人工真机 gate；未确认时禁止公开 Release。
@@ -635,7 +635,7 @@
   - 工作流与静态检查：`.github/workflows/ci.yml`、`.github/workflows/release-verify.yml`、`.swiftlint.yml`、`.swiftlint-baseline.json`。
   - 发布与构建脚本：`scripts/health-check.sh`、`release-verify.sh`、`run-signed-release-build.sh`、`prepare-release-binary.sh`、`notarize-release-artifacts.sh`、`verify-release-environments.sh`、`verify-release-artifact.sh`、`verify-release-version.sh`、`build-sensevoice-server.sh`、`build-qwen3-asr-server.sh`、`build-dmg.sh`、`package-app.sh`、`sign-app-bundle.sh`、`test_app_bundle.sh`。
   - 冻结依赖：`sensevoice-server/requirements.lock.txt`、`qwen3-asr-server/requirements.lock.txt`。
-  - 测试：`MuseTests/CIWorkflowTests.swift`、`ReleaseVerifyScriptTests.swift`、`PackageScriptTests.swift`、`DMGScriptTests.swift`。
+  - 测试：`DalTests/CIWorkflowTests.swift`、`ReleaseVerifyScriptTests.swift`、`PackageScriptTests.swift`、`DMGScriptTests.swift`。
 - 验证：
   - `swift test --filter 'CIWorkflowTests|ReleaseVerifyScriptTests|PackageScriptTests|DMGScriptTests|UpdateManifestTests|AppUpdaterChecksumTests|AppUpdaterScriptTests|AppUpdaterStatusTests'`：86 项，0 失败。
   - 最终 `swift test --filter CIWorkflowTests`：11 项，0 失败；最终 `swift test`：554 项，5 项按既有环境条件跳过，0 失败。
@@ -652,21 +652,21 @@
 
 ## 批次 E 收口
 
-- 代码任务：MUSE-190、MUSE-200 已按依赖顺序完成仓库实现，均先建立失败测试、再修复、通过定向和完整测试并独立提交。
+- 代码任务：DAL-190、DAL-200 已按依赖顺序完成仓库实现，均先建立失败测试、再修复、通过定向和完整测试并独立提交。
 - 当前代码 HEAD：`f9a8ce9a97fc93e0adbad9efe6378d37383b7d3c`。
 - 收口自动验收：`swift build`、`swift build -c release` 通过；最终完整 `swift test` 执行 554 项、5 项按条件跳过、0 失败；`bash scripts/health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`；严格 SwiftLint 在根目录与另一绝对路径均通过。
 - 自动更新：仓库内双制品签名、公证、SHA256 和发布 fail-closed 链已建立，但真实 Developer ID/Notary 制品、GitHub 受保护环境、10 项真机更新与回滚验收尚未完成，开关继续保持 `false`。
 - 外部阻断：需要仓库管理员配置 `release-signing`、`release` 受保护环境及签名/公证 secrets/variables，再用正式候选执行 Cloud/Local 公证、Gatekeeper、更新和回滚验收；在此之前不得公开发布或开启自动更新。
-- 用户数据与音频：本批次未访问真实 Muse 用户数据目录；遵照用户明确指示，未执行麦克风、AirPods、Apple Speech 或其他音频真机测试。
+- 用户数据与音频：本批次未访问真实 Dal 用户数据目录；遵照用户明确指示，未执行麦克风、AirPods、Apple Speech 或其他音频真机测试。
 
-## GitHub 合入与 Muse 2.0.0 发布准备
+## GitHub 合入与 Dal 2.0.0 发布准备
 
 - 日期：2026-07-21。
-- 安全加固主分支合入：PR [#1](https://github.com/DaliangPro/Muse/pull/1) 已合并，合并提交 `d75da1d3a8d2948d359ff49356adfc8c3f1e14cb`；对应主分支 CI [29878764682](https://github.com/DaliangPro/Muse/actions/runs/29878764682) 通过。
-- 2.0.0 发布准备：提交 `983e2ceb4f580f85cf6e6d538d85ecb47904be5e` 将本地打包、DMG 构建和应用包验收的默认版本统一为 `2.0.0`，新增中文发布说明及回归测试；PR [#2](https://github.com/DaliangPro/Muse/pull/2) 已合并，合并提交 `e551e0a536a84225ea33604f7da2b7caf783848d`。
+- 安全加固主分支合入：PR [#1](https://github.com/DaliangPro/Dal/pull/1) 已合并，合并提交 `d75da1d3a8d2948d359ff49356adfc8c3f1e14cb`；对应主分支 CI [29878764682](https://github.com/DaliangPro/Dal/actions/runs/29878764682) 通过。
+- 2.0.0 发布准备：提交 `983e2ceb4f580f85cf6e6d538d85ecb47904be5e` 将本地打包、DMG 构建和应用包验收的默认版本统一为 `2.0.0`，新增中文发布说明及回归测试；PR [#2](https://github.com/DaliangPro/Dal/pull/2) 已合并，合并提交 `e551e0a536a84225ea33604f7da2b7caf783848d`。
 - 测试优先：发布版本回归测试在实施前出现 4 个预期失败；实施后单项测试、51 项相关测试均通过。隔离英文环境完整 `swift test` 执行 555 项，5 项按环境条件跳过，0 失败；`bash scripts/health-check.sh` 返回 `HEALTH_CHECK_RESULT: PASS`。
-- GitHub 验收：发布准备分支的 push CI [29879645023](https://github.com/DaliangPro/Muse/actions/runs/29879645023) 与 PR CI [29879660827](https://github.com/DaliangPro/Muse/actions/runs/29879660827) 均通过；合并后的主分支 CI [29879945587](https://github.com/DaliangPro/Muse/actions/runs/29879945587) 通过。
-- GitHub 发布：按 `v1.7.4` 的普通开源项目发布方式创建轻量 tag `v2.0.0`，指向 `17551ec1ff5cca0eeb3196e7e0f3a27fd4f6abef`；[Muse v2.0.0](https://github.com/DaliangPro/Muse/releases/tag/v2.0.0) 已作为稳定版公开发布，附件为 Apple Silicon（arm64）`Muse-v2.0.0.dmg`。
+- GitHub 验收：发布准备分支的 push CI [29879645023](https://github.com/DaliangPro/Dal/actions/runs/29879645023) 与 PR CI [29879660827](https://github.com/DaliangPro/Dal/actions/runs/29879660827) 均通过；合并后的主分支 CI [29879945587](https://github.com/DaliangPro/Dal/actions/runs/29879945587) 通过。
+- GitHub 发布：按 `v1.7.4` 的普通开源项目发布方式创建轻量 tag `v2.0.0`，指向 `17551ec1ff5cca0eeb3196e7e0f3a27fd4f6abef`；[Dal v2.0.0](https://github.com/DaliangPro/Dal/releases/tag/v2.0.0) 已作为稳定版公开发布，附件为 Apple Silicon（arm64）`Dal-v2.0.0.dmg`。
 - 制品验证：应用使用既有 `Muse Local` 本地证书签名，严格代码签名验证、Bundle 元数据测试和 DMG 完整性验证通过。上传后重新下载的文件与本地候选逐字节一致，GitHub 记录及本地复算 SHA256 均为 `b9b37d1d6ce11ed90b9d5a8f2e45d2a4b8e24ac11db018c27b3e3eb87e0aa9a9`。
 - 分发边界：本次是与 `v1.7.4` 相同的 GitHub 手动下载发布，不是 Developer ID 公证制品，也不声称受保护的 Cloud/Local 正式发布链或真机 gate 已完成。遵照用户指示未执行音频测试。
 - 自动更新：`updates.json` 仍指向 `1.7.4`，`UpdateChecker.updateChannelEnabled` 继续保持 `false`；2.0.0 仅通过 GitHub Release 手动下载，不进入自动更新通道。

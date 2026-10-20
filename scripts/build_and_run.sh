@@ -14,16 +14,10 @@ elif [ "$#" -gt 0 ]; then
   exit 2
 fi
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="Muse"
+APP_NAME="Dal"
 APP_BUNDLE_ID="pro.daliang.muse"
-APP_PATH="${MUSE_APP_PATH:-/Applications/Muse.app}"
+APP_PATH="${DAL_APP_PATH:-/Applications/Dal.app}"
 APP_EXECUTABLE="$APP_PATH/Contents/MacOS/$APP_NAME"
-PREVIEW_APP_PATH="$ROOT_DIR/dist/Muse-Preview.app"
-
-quit_app() {
-  local bundle_id="$1"
-  /usr/bin/osascript -e "tell application id \"$bundle_id\" to quit" >/dev/null 2>&1 || true
-}
 
 running_app_pids() {
   /bin/ps -axo pid=,command= | /usr/bin/awk -v executable="$APP_EXECUTABLE" '
@@ -38,37 +32,6 @@ running_app_pids() {
   '
 }
 
-wait_for_app_exit() {
-  local attempts="${1:-20}"
-  while [ "$attempts" -gt 0 ]; do
-    if [ -z "$(running_app_pids)" ]; then
-      return 0
-    fi
-    sleep 0.1
-    attempts=$((attempts - 1))
-  done
-  return 1
-}
-
-terminate_running_instances() {
-  quit_app "$APP_BUNDLE_ID"
-  if wait_for_app_exit 20; then
-    return 0
-  fi
-
-  local pid
-  while IFS= read -r pid; do
-    if [[ "$pid" =~ ^[0-9]+$ ]]; then
-      /bin/kill "$pid" >/dev/null 2>&1 || true
-    fi
-  done < <(running_app_pids)
-
-  if ! wait_for_app_exit 20; then
-    echo "ERROR: existing $APP_NAME process did not exit: $(running_app_pids)" >&2
-    return 1
-  fi
-}
-
 verify_single_running_instance() {
   local pids count
   pids="$(running_app_pids)"
@@ -79,23 +42,8 @@ verify_single_running_instance() {
   fi
 }
 
-move_preview_to_trash() {
-  if [ -d "$PREVIEW_APP_PATH" ]; then
-    local stamp
-    stamp="$(date +%Y%m%d-%H%M%S)"
-    /bin/mv "$PREVIEW_APP_PATH" "$HOME/.Trash/Muse-Preview-$stamp.app"
-  fi
-}
-
 build_app() {
-  quit_app "pro.daliang.muse.preview"
-  terminate_running_instances
-  move_preview_to_trash
-
-  APP_PATH="$APP_PATH" \
-  APP_NAME="$APP_NAME" \
-  APP_BUNDLE_ID="$APP_BUNDLE_ID" \
-  "$ROOT_DIR/scripts/package-app.sh"
+  APP_PATH="$APP_PATH" LAUNCH_APP=0 bash "$ROOT_DIR/scripts/deploy.sh"
 }
 
 open_app() {
@@ -120,7 +68,7 @@ case "$MODE" in
   --logs|logs)
     build_app
     open_app
-    /usr/bin/log stream --info --style compact --predicate "process == \"Muse\""
+    /usr/bin/log stream --info --style compact --predicate "process == \"Dal\""
     ;;
   --telemetry|telemetry)
     build_app
@@ -129,7 +77,7 @@ case "$MODE" in
     ;;
   --debug|debug)
     build_app
-    /usr/bin/lldb -- "$APP_PATH/Contents/MacOS/Muse"
+    /usr/bin/lldb -- "$APP_PATH/Contents/MacOS/Dal"
     ;;
   *)
     echo "usage: $0 [run|--verify|--logs|--telemetry|--debug] [--args <app arguments...>]" >&2

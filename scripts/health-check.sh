@@ -77,8 +77,8 @@ python_service_tests() {
 
 model_artifact_policy() {
   local sources=(
-    "Muse/Services/ModelArtifactManifest.swift"
-    "Muse/Services/ModelManager.swift"
+    "Dal/Services/ModelArtifactManifest.swift"
+    "Dal/Services/ModelManager.swift"
   )
 
   if grep -Ein 'https?://[^"[:space:]]*/resolve/(main|master|latest)/' "${sources[@]}"; then
@@ -93,7 +93,7 @@ model_artifact_policy() {
     echo "ERROR: model downloads are missing an ephemeral URLSession configuration"
     return 1
   fi
-  if ! grep -q 'ModelArtifactManifest\.all' MuseTests/ModelArtifactVerificationTests.swift; then
+  if ! grep -q 'ModelArtifactManifest\.all' DalTests/ModelArtifactVerificationTests.swift; then
     echo "ERROR: model artifact manifest integrity test is missing"
     return 1
   fi
@@ -132,7 +132,7 @@ package_signing_policy() {
     echo "ERROR: bundle validation script is missing strict verification"
     return 1
   fi
-  if [ ! -f MuseTests/PackageScriptTests.swift ]; then
+  if [ ! -f DalTests/PackageScriptTests.swift ]; then
     echo "ERROR: package signing regression tests are missing"
     return 1
   fi
@@ -151,8 +151,8 @@ ci_release_policy() {
     "scripts/verify-release-version.sh"
     ".swiftlint.yml"
     ".swiftlint-baseline.json"
-    "MuseTests/CIWorkflowTests.swift"
-    "MuseTests/ReleaseVerifyScriptTests.swift"
+    "DalTests/CIWorkflowTests.swift"
+    "DalTests/ReleaseVerifyScriptTests.swift"
   )
   local file
   for file in "${required_files[@]}"; do
@@ -161,11 +161,11 @@ ci_release_policy() {
       return 1
     fi
   done
-  if ! grep -Fq 'static let updateChannelEnabled = false' Muse/Services/UpdateChecker.swift; then
+  if ! grep -Fq 'static let updateChannelEnabled = false' Dal/Services/UpdateChecker.swift; then
     echo "ERROR: automatic updates must remain disabled until real dual-artifact acceptance"
     return 1
   fi
-  if grep -Fq 'static let updateChannelEnabled = true' Muse/Services/UpdateChecker.swift; then
+  if grep -Fq 'static let updateChannelEnabled = true' Dal/Services/UpdateChecker.swift; then
     echo "ERROR: automatic update channel was enabled before real acceptance"
     return 1
   fi
@@ -177,7 +177,7 @@ run_optional_tool() {
   shift 2
   if command -v "$command_name" >/dev/null 2>&1; then
     run_step "$name" "$@"
-  elif [ "${MUSE_REQUIRE_STATIC_TOOLS:-0}" = "1" ]; then
+  elif [ "${DAL_REQUIRE_STATIC_TOOLS:-0}" = "1" ]; then
     echo
     echo "==> $name"
     echo "ERROR: $command_name not installed; CI static quality gate is mandatory"
@@ -190,7 +190,7 @@ run_optional_tool() {
 }
 
 echo "CODE HEALTH CHECK"
-echo "Project: Muse"
+echo "Project: Dal"
 echo "Branch:  $(git branch --show-current 2>/dev/null || echo unknown)"
 echo "Date:    $(date '+%Y-%m-%d %H:%M:%S %Z')"
 

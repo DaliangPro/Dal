@@ -15,10 +15,10 @@ RUNNER_TEMP="${RUNNER_TEMP:-}"
     || fail "RUNNER_TEMP must be an existing non-symbolic-link directory"
 RUNNER_TEMP="$(cd "$RUNNER_TEMP" && /bin/pwd -P)"
 
-PREBUILT_BINARY="${MUSE_PACKAGE_PREBUILT_BINARY:-}"
+PREBUILT_BINARY="${DAL_PACKAGE_PREBUILT_BINARY:-}"
 case "$PREBUILT_BINARY" in
-    "$RUNNER_TEMP"/*/Muse) ;;
-    *) fail "MUSE_PACKAGE_PREBUILT_BINARY must be a Muse path below RUNNER_TEMP" ;;
+    "$RUNNER_TEMP"/*/Dal) ;;
+    *) fail "DAL_PACKAGE_PREBUILT_BINARY must be a Dal path below RUNNER_TEMP" ;;
 esac
 PREBUILT_DIR="$(dirname "$PREBUILT_BINARY")"
 [ ! -e "$PREBUILT_DIR" ] && [ ! -L "$PREBUILT_DIR" ] \
@@ -68,12 +68,12 @@ else
     run_swift_build -c release --package-path "$PROJECT_DIR"
 fi
 
-if [ -f "$PROJECT_DIR/.build/apple/Products/Release/Muse" ]; then
-    SOURCE_BINARY="$PROJECT_DIR/.build/apple/Products/Release/Muse"
-elif [ -f "$PROJECT_DIR/.build/release/Muse" ]; then
-    SOURCE_BINARY="$PROJECT_DIR/.build/release/Muse"
+if [ -f "$PROJECT_DIR/.build/apple/Products/Release/Dal" ]; then
+    SOURCE_BINARY="$PROJECT_DIR/.build/apple/Products/Release/Dal"
+elif [ -f "$PROJECT_DIR/.build/release/Dal" ]; then
+    SOURCE_BINARY="$PROJECT_DIR/.build/release/Dal"
 else
-    SOURCE_BINARY="$(/usr/bin/find "$PROJECT_DIR/.build" -path '*/release/Muse' -type f \
+    SOURCE_BINARY="$(/usr/bin/find "$PROJECT_DIR/.build" -path '*/release/Dal' -type f \
         -not -path '*/x86_64/*' -not -path '*/arm64/*' -print -quit)"
 fi
 [ -n "$SOURCE_BINARY" ] && [ -f "$SOURCE_BINARY" ] && [ ! -L "$SOURCE_BINARY" ] \

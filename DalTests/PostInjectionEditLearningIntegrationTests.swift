@@ -1,0 +1,573 @@
+import AppKit
+import XCTest
+@testable import Dal
+
+@MainActor
+final class PostInjectionEditLearningIntegrationTests: XCTestCase {
+    func testNormalNativeEditorDoesNotNeedOptionalSubroleToStartLearning() {
+        _ = NSApplication.shared
+        let editor = NSTextView()
+        XCTAssertEqual(editor.accessibilityRole(), .textArea)
+        XCTAssertNil(editor.accessibilitySubrole(), "原生普通文本框本来就可以不提供 Subrole")
+        XCTAssertTrue(PostInjectionEditLearningMonitor.supportsCapture(
+            role: editor.accessibilityRole()?.rawValue, subrole: editor.accessibilitySubrole()?.rawValue,
+            editable: nil, protectedContent: nil
+        ))
+        let password = NSSecureTextField()
+        XCTAssertFalse(PostInjectionEditLearningMonitor.supportsCapture(
+            role: password.accessibilityRole()?.rawValue, subrole: password.accessibilitySubrole()?.rawValue,
+            editable: nil, protectedContent: nil
+        ))
+    }
+
+    func testSessionSlowClipboardNativeEditAutomaticallyLearnsAndCorrectsNextOutput() async throws {
+        try await verifyNativeSession(reportsCount: true)
+    }
+
+    func testSessionWithoutCharacterCountAutomaticallyLearnsAndCorrectsNextOutput() async throws {
+        try await verifyNativeSession(reportsCount: false)
+    }
+
+    func testReportedTabletsEditIsObservedSavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeAutomaticLearning(alias: "Tablets", canonical: "Typeless")
+    }
+
+    func testActualLetterFragmentEditIsObservedAutomaticallySavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeAutomaticLearning(alias: "l f deck", canonical: "AlphaDeck")
+    }
+
+    func testActualSplitWordEditIsObservedAutomaticallySavedAndUndoableWithoutCharacterCount() async throws {
+        try await verifyNativeAutomaticLearning(alias: "book list", canonical: "Bookless")
+    }
+
+    private func verifyNativeAutomaticLearning(alias: String, canonical: String) async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        let original = "我正在用 \(alias)."
+        editor.replace(with: original)
+        await fixture.insert(id: "tablets-native", text: original)
+        let status = AutomaticLearningStatus()
+        let observer = NotificationCenter.default.addObserver(
+            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: .main
+        ) { note in
+            guard let feedback = note.object as? AutomaticLearningFeedback else { return }
+            let undo = note.userInfo?["undo"] as? AutomaticLearningUndo
+            MainActor.assumeIsolated { status.update(feedback, undo: undo) }
+        }
+        defer { NotificationCenter.default.removeObserver(observer); editor.available = false }
+        await fixture.monitor.start(
+            injectedText: original, historyID: "tablets-native", capture: .field(editor.fieldWithoutCount), historyStore: fixture.history
+        )
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "我正在用 \(canonical)")
+        try await waitUntil { status.latest?.didPersist == true }
+        let saved = try await fixture.history.fetchVoicePolishCorrections()
+        XCTAssertEqual(saved.count, 1, "真实观察完成后直接保存，不调用额外确认动作")
+        XCTAssertEqual(status.latest?.detail, "\(alias) → \(canonical)")
+        let session = RecognitionSession(historyStore: fixture.history)
+        let transcript = RecognitionTranscript(confirmedSegments: [original], partialText: "", authoritativeText: original, isFinal: true)
+        let learned = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)
+        XCTAssertEqual(learned?.finalText, "我正在用 \(canonical).")
+        let undo = try XCTUnwrap(status.undo)
+        await undo.perform()
+        let undone = await session.postProcessForTesting(rawText: original, transcript: transcript, mode: .direct, vocabularyContext: fixture.context)
+        XCTAssertEqual(undone?.finalText, original)
+    }
+
+    private func verifyNativeSession(reportsCount: Bool) async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        let learningField = reportsCount ? editor.field : editor.fieldWithoutCount
+        let injection = LearningClipboardInjection(editor: editor)
+        let session = RecognitionSession(
+            audioEngine: LearningChainAudio(), injectionEngine: injection, historyStore: fixture.history,
+            asrClientFactory: { _ in LearningChainRecognizer(text: "cloud.") }, selectedASRProvider: { .apple },
+            asrConfigLoader: { _ in AppleASRConfig(credentials: [:])! }, microphonePermission: { true },
+            promptContextCapture: { PromptContext(selectedText: "", clipboardText: "") },
+            writingContextCapture: { _ in WritingContext() },
+            frontmostApplicationBundleIdentifier: { "pro.example.editor" },
+            requestOptionsProvider: { _ in (ASRRequestOptions(), 0) },
+            editLearningMonitor: fixture.monitor, editLearningFieldCapture: { await MainActor.run {
+                let supported = PostInjectionEditLearningMonitor.supportsCapture(
+                    role: editor.view.accessibilityRole()?.rawValue,
+                    subrole: editor.view.accessibilitySubrole()?.rawValue,
+                    editable: editor.view.isEditable, protectedContent: nil
+                )
+                return supported ? .field(learningField) : .unavailable(.unsafeField)
+            } },
+            vocabularyContext: fixture.context
+        )
+        let appState = AppState(initialModes: ProcessingMode.defaults)
+        let status = AutomaticLearningStatus()
+        let notification = NotificationCenter.default.addObserver(
+            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: .main
+        ) { note in
+            guard let feedback = note.object as? AutomaticLearningFeedback else { return }
+            MainActor.assumeIsolated {
+                status.update(feedback)
+                appState.showAutomaticLearningFeedback(feedback)
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(notification); appState.cancel() }
+
+        await session.startRecording(mode: .direct)
+        await session.stopRecording()
+        let phase = await session.state
+        XCTAssertEqual(phase, .idle, "等候上屏验证不能阻塞下一次输入")
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        XCTAssertEqual(editor.view.string, "cloud.")
+        editor.replace(with: "Claude")
+        try await waitUntil { status.latest?.didPersist == true }
+        XCTAssertTrue(appState.feedbackMessage.contains("Claude"), "真实观察循环必须发出成功反馈")
+        let corrections = try await fixture.history.fetchVoicePolishCorrections()
+        XCTAssertEqual(corrections.count, 1)
+        XCTAssertFalse(try XCTUnwrap(corrections.first).learnStyle)
+        XCTAssertEqual(TerminologyRepository.projections(context: fixture.context).corrections["cloud"], "Claude")
+
+        editor.hasVerifiedOriginal = false
+        await session.startRecording(mode: .direct)
+        await session.stopRecording()
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 2 }
+        XCTAssertEqual(editor.view.string, "Claude.", "下一次完整会话须自动应用学到的规则")
+        editor.available = false
+    }
+
+    func testRealObservationCanLearnOtherWordsWithoutHardCodedCloudRule() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "generic", text: "我使用 alfadeck 编辑")
+        editor.replace(with: "我使用 alfadeck 编辑")
+        await fixture.monitor.start(
+            injectedText: editor.view.string, historyID: "generic", capture: .field(editor.field), historyStore: fixture.history
+        )
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "我使用 AlphaDeck 编辑")
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["alfadeck"] == "AlphaDeck"
+        }
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+        editor.available = false
+    }
+
+    func testUnextractableIntermediateEditDoesNotEndActualObservation() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "intermediate", text: "cloud.")
+        editor.replace(with: "cloud.")
+        await fixture.monitor.start(
+            injectedText: "cloud.", historyID: "intermediate", capture: .field(editor.field), historyStore: fixture.history
+        )
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "cloud!")
+        try await Task.sleep(for: .seconds(2.2))
+        editor.replace(with: "Claude")
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        editor.available = false
+    }
+
+    func testFocusLeavesWhileWaitingForPasteNeverReadsAnotherField() async throws {
+        let editor = LearningNativeEditor()
+        editor.available = false
+        let target = await PostInjectionEditLearningMonitor.capture(
+            injectedText: "cloud.", historyID: "not-focused", field: editor.field
+        )
+        XCTAssertNil(target)
+        XCTAssertEqual(editor.rangeReads, 0)
+    }
+
+    func testCaptureFailureDoesNotPostTechnicalFailureNotification() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let reportCount = NotificationReportCounter()
+        let token = NotificationCenter.default.addObserver(
+            forName: .voicePolishAutomaticLearningDidFinish, object: nil, queue: nil
+        ) { _ in reportCount.increment() }
+        defer { NotificationCenter.default.removeObserver(token) }
+
+        await fixture.monitor.start(
+            injectedText: "cloud.", historyID: "unsupported", capture: .unavailable(.unsupportedField),
+            historyStore: fixture.history
+        )
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertEqual(reportCount.value, 0, "输入框能力不足时不应弹出技术失败提示")
+    }
+
+    func testTransientFieldLookupRetriesUntilInputBoxBecomesReadable() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "delayed-field", text: "cloud.")
+        editor.replace(with: "cloud.")
+        let attempts = NotificationReportCounter()
+        await fixture.monitor.start(
+            injectedText: "cloud.", historyID: "delayed-field",
+            captureProvider: {
+                let attempt = attempts.incrementAndRead()
+                if attempt < 3 { return .unavailable(.unavailable) }
+                return .field(editor.field)
+            },
+            historyStore: fixture.history
+        )
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "Claude")
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        XCTAssertGreaterThanOrEqual(attempts.value, 3)
+    }
+
+    func testQuickFocusDepartureUsesOnlyLastVerifiedSnapshot() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "quick-departure", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "quick-departure",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "Claude")
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
+        let reads = editor.rangeReads
+        editor.available = false
+        editor.allowsFocusFinalization = true
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+        XCTAssertEqual(editor.rangeReads, reads, "失焦后不能再读取正文或新输入框")
+    }
+
+    func testSafetyFailureDoesNotCommitCachedCorrection() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "unsafe-departure", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "unsafe-departure",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "Claude")
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
+        editor.available = false
+        // 安全/能力检查失败不能当成正常切换焦点。
+        editor.allowsFocusFinalization = false
+        try await Task.sleep(for: .milliseconds(700))
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
+    func testActualObservationContinuesAfterRelatedEditExtendsIdleTimeout() async throws {
+        let clock = LearningObservationClock()
+        let fixture = try LearningChainFixture(timing: PostInjectionObservationTiming(
+            pollingInterval: .milliseconds(20), stableDuration: .milliseconds(60),
+            idleTimeout: .milliseconds(400), maximumLifetime: .seconds(2)
+        ), clock: clock)
+        let editor = LearningNativeEditor()
+        defer { editor.available = false; clock.finish(); fixture.cleanup() }
+        await fixture.insert(id: "extended", text: "cloud.")
+        editor.replace(with: "cloud.")
+        await fixture.monitor.start(injectedText: "cloud.", historyID: "extended",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 && clock.isWaiting }
+        editor.replace(with: "cloud!")
+        try clock.advance(to: .milliseconds(250))
+        try await waitUntil { fixture.diagnostics.sampledCandidates == 1 && clock.isWaiting }
+        // 已越过最初400ms空闲期，仍处于第一次相关修改续至650ms的窗口内。
+        editor.replace(with: "Claude")
+        try clock.advance(to: .milliseconds(500))
+        try await waitUntil { fixture.diagnostics.sampledCandidates == 2 && clock.isWaiting }
+        try clock.advance(to: .milliseconds(600))
+        try await waitUntil {
+            TerminologyRepository.projections(context: fixture.context).corrections["cloud"] == "Claude"
+        }
+    }
+
+    func testRangeReadFailureClearsSnapshotBeforeFocusDeparture() async throws {
+        let fixture = try LearningChainFixture()
+        defer { fixture.cleanup() }
+        let editor = LearningNativeEditor()
+        await fixture.insert(id: "range-failed", text: "cloud")
+        editor.replace(with: "cloud")
+        await fixture.monitor.start(injectedText: "cloud", historyID: "range-failed",
+                                    capture: .field(editor.field), historyStore: fixture.history)
+        try await waitUntil { fixture.diagnostics.verifiedCaptures == 1 }
+        editor.replace(with: "Claude")
+        try await waitUntil { fixture.diagnostics.sampledCandidates >= 1 }
+        editor.failsRangeReads = true
+        try await waitUntil { editor.didFailRangeRead }
+        // 等本轮 nil 候选处理完成，随后模拟正常切换焦点。
+        try await Task.sleep(for: .milliseconds(50))
+        editor.available = false
+        editor.allowsFocusFinalization = true
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNil(TerminologyRepository.projections(context: fixture.context).corrections["cloud"])
+    }
+
+    private func waitUntil(_ condition: @MainActor () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !condition(), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(25))
+        }
+        XCTAssertTrue(condition(), "自动学习链路没有按期完成")
+    }
+}
+
+private final class NotificationReportCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return count
+    }
+
+    func increment() {
+        lock.lock()
+        count += 1
+        lock.unlock()
+    }
+
+    func incrementAndRead() -> Int {
+        lock.lock()
+        count += 1
+        let result = count
+        lock.unlock()
+        return result
+    }
+}
+
+/// 使用真实 AppKit 输入框及其范围读取方法，只有系统焦点查询由固定测试对象替代。
+@MainActor
+private final class LearningNativeEditor {
+    let view = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 160))
+    var available = true
+    var hasVerifiedOriginal = false
+    var rangeReads = 0
+    var lastReadText: String?
+    var allowsFocusFinalization = false
+    var failsRangeReads = false
+    var didFailRangeRead = false
+
+    init() { view.isRichText = false }
+
+    func replace(with text: String) {
+        view.string = text
+        view.setSelectedRange(NSRange(location: (text as NSString).length, length: 0))
+    }
+
+    nonisolated var field: PostInjectionLearningField {
+        PostInjectionLearningField(
+            isAvailable: { await MainActor.run { self.available } },
+            selectedRange: { await MainActor.run {
+                let range = self.view.accessibilitySelectedTextRange()
+                return CFRange(location: range.location, length: range.length)
+            } },
+            characterCount: { await MainActor.run { self.view.accessibilityNumberOfCharacters() } },
+            stringForRange: { range in await MainActor.run {
+                self.rangeReads += 1
+                if self.failsRangeReads { self.didFailRangeRead = true; return nil }
+                let text = self.view.accessibilityString(for: NSRange(location: range.location, length: range.length))
+                if text == self.view.string, !(text ?? "").isEmpty {
+                    self.lastReadText = text
+                    self.hasVerifiedOriginal = true
+                }
+                return text
+            } },
+            canFinishAfterFocusLoss: { await MainActor.run { self.allowsFocusFinalization } }
+        )
+    }
+
+    nonisolated var fieldWithoutCount: PostInjectionLearningField {
+        let native = field
+        return PostInjectionLearningField(
+            isAvailable: native.isAvailable, selectedRange: native.selectedRange, characterCount: { nil },
+            readRange: { range in await MainActor.run {
+                guard range.location >= 0, range.length >= 0,
+                      range.location + range.length <= self.view.accessibilityNumberOfCharacters() else { return .outOfBounds }
+                self.rangeReads += 1
+                guard let text = self.view.accessibilityString(for: NSRange(location: range.location, length: range.length)) else { return .unavailable }
+                if text == self.view.string, !text.isEmpty { self.hasVerifiedOriginal = true }
+                return .text(text)
+            } }
+        )
+    }
+}
+
+private final class LearningChainDiagnostics: @unchecked Sendable {
+    private let lock = NSLock()
+    private var captures = 0
+    private var samples = 0
+    func record(_ message: String) {
+        lock.lock(); defer { lock.unlock() }
+        if message.hasPrefix("learning.capture verified ") { captures += 1 }
+        if message.hasPrefix("learning.observe sampled ") { samples += 1 }
+    }
+    var verifiedCaptures: Int { lock.lock(); defer { lock.unlock() }; return captures }
+    var sampledCandidates: Int { lock.lock(); defer { lock.unlock() }; return samples }
+}
+
+/// 只推进逻辑观察时间；真实原生范围读取与保存仍走完整异步链路。
+private final class LearningObservationClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private let origin = ContinuousClock.now
+    private var elapsed: Duration = .zero
+    private var sleeper: CheckedContinuation<Void, Never>?
+    private var finished = false
+
+    var now: ContinuousClock.Instant {
+        lock.lock(); defer { lock.unlock() }
+        return origin + elapsed
+    }
+
+    var isWaiting: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return sleeper != nil
+    }
+
+    func sleep() async {
+        await withCheckedContinuation { continuation in
+            lock.lock()
+            if finished {
+                elapsed += .seconds(10)
+                lock.unlock()
+                continuation.resume()
+            } else {
+                precondition(sleeper == nil)
+                sleeper = continuation
+                lock.unlock()
+            }
+        }
+    }
+
+    func advance(to next: Duration) throws {
+        lock.lock()
+        guard next >= elapsed, let continuation = sleeper else {
+            lock.unlock()
+            throw NSError(domain: "DalLearningObservationClock", code: 1)
+        }
+        elapsed = next
+        sleeper = nil
+        lock.unlock()
+        continuation.resume()
+    }
+
+    func finish() {
+        lock.lock()
+        finished = true
+        elapsed += .seconds(10)
+        let continuation = sleeper
+        sleeper = nil
+        lock.unlock()
+        continuation?.resume()
+    }
+}
+
+private struct LearningChainFixture {
+    let context: VocabularyStorageContext
+    let history: HistoryStore
+    let monitor: PostInjectionEditLearningMonitor
+    let suiteName: String
+    let diagnostics: LearningChainDiagnostics
+
+    init(timing: PostInjectionObservationTiming = PostInjectionObservationTiming(),
+         clock: LearningObservationClock? = nil) throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("DalLearningChain-\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        suiteName = "DalLearningChain.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        context = VocabularyStorageContext(
+            supportDirectory: directory, userDefaults: defaults, fileManager: .default,
+            hotwordsDidChange: {}, revealFile: { _ in }
+        )
+        try HotwordStorage.saveBuiltin(["Claude"], context: context)
+        try SnippetStorage.saveBuiltin([], context: context)
+        _ = try TerminologyRepository.migrateIfNeeded(context: context)
+        VoicePolishSettings.setTerminologyLearningEnabled(true, defaults: defaults)
+        history = HistoryStore(path: directory.appendingPathComponent("history.db").path)
+        let diagnostics = LearningChainDiagnostics()
+        self.diagnostics = diagnostics
+        monitor = PostInjectionEditLearningMonitor(
+            coordinator: TerminologyHistoryTransactionCoordinator(context: context), settingsContext: context,
+            observationTiming: timing,
+            observationNow: { clock?.now ?? ContinuousClock.now },
+            observationSleep: { duration in
+                if let clock { await clock.sleep() } else { try await Task.sleep(for: duration) }
+            },
+            diagnostic: { diagnostics.record($0) }
+        )
+    }
+
+    func insert(id: String, text: String) async {
+        await history.insert(HistoryRecord(
+            id: id, createdAt: Date(), durationSeconds: 1, rawText: text, processingMode: "直出",
+            processedText: nil, finalText: text, status: "completed", characterCount: text.count
+        ))
+    }
+
+    func cleanup() {
+        context.userDefaults.removePersistentDomain(forName: suiteName)
+        try? FileManager.default.trashItem(at: context.supportDirectory, resultingItemURL: nil)
+    }
+}
+
+private final class LearningClipboardInjection: TextInjecting, @unchecked Sendable {
+    var preserveClipboard = true
+    private let engine: TextInjectionEngine
+
+    init(editor: LearningNativeEditor) {
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("DalLearningChain.\(UUID())"))
+        engine = TextInjectionEngine(
+            pasteboard: pasteboard, clipboardLeaseCoordinator: ClipboardLeaseCoordinator(),
+            pasteSimulator: {
+                let text = pasteboard.string(forType: .string) ?? ""
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(350))
+                    editor.replace(with: text)
+                }
+                return true
+            }, sleep: { _ in }, logger: { _ in }
+        )
+    }
+
+    func inject(_ text: String) -> InjectionOutcome {
+        engine.injectViaClipboard(text, hasFrontmostApplication: true)
+    }
+}
+
+private actor LearningChainRecognizer: SpeechRecognizer {
+    let events: AsyncStream<RecognitionEvent>
+    private let continuation: AsyncStream<RecognitionEvent>.Continuation
+    private let text: String
+
+    init(text: String) {
+        let pair = AsyncStream<RecognitionEvent>.makeStream()
+        events = pair.stream
+        continuation = pair.continuation
+        self.text = text
+    }
+
+    func connect(config: any ASRProviderConfig, options: ASRRequestOptions) async throws {}
+    func endAudio() async throws {
+        continuation.yield(.transcript(RecognitionTranscript(
+            confirmedSegments: [text], partialText: "", authoritativeText: text, isFinal: true
+        )))
+        continuation.yield(.completed)
+        continuation.finish()
+    }
+    func disconnect() async {}
+}
+
+private final class LearningChainAudio: AudioCaptureControlling, @unchecked Sendable {
+    func warmUp() {}
+    func setAudioHandlers(onChunk: ((Data) -> Void)?, onLevel: ((Float) -> Void)?) {}
+    func setAudioChunkHandler(_ handler: ((Data) -> Void)?) {}
+    func clearAudioHandlers() {}
+    func start(timeout: Duration) async throws {}
+    func stop() {}
+    func getRecordedAudio() -> Data { Data() }
+}

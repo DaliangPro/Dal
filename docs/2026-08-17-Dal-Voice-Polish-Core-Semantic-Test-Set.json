@@ -1,0 +1,1182 @@
+{
+  "schema_version": 2,
+  "name": "Dal 语音润色核心语义测试集 V2",
+  "created_at": "2026-08-17",
+  "language": "zh-CN",
+  "source_dataset": "2026-08-17-Dal-Voice-Polish-Quality-Test-Set.json",
+  "source_dataset_sha256": "803b9234c5aadd074056dedfd2c9114d538204bed5b1823487a3f68b9a932842",
+  "case_count": 25,
+  "rules": {
+    "reference_output_is_not_a_unique_answer": true,
+    "writer_must_not_receive_semantic_contract": true,
+    "blind_review_hides_model_identity": true,
+    "primary_case_count": 23,
+    "stress_boundary_case_count": 2,
+    "primary_long_text_target_chars": "700-1500",
+    "critical_error_types": [
+      "fact",
+      "final_intent",
+      "entity",
+      "modality",
+      "context_leak",
+      "task_layer"
+    ]
+  },
+  "inputs": [
+    {
+      "test_input_id": "micro-02",
+      "source_case_id": "micro-02",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "极短文本 2",
+      "writing_scene": "chat",
+      "spoken_input": "你到哪了",
+      "segment_texts": [
+        "你到哪了"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "极短问句只补必要标点",
+        "final_intent": [
+          "询问对方当前所在位置"
+        ],
+        "must_preserve": [
+          "疑问语气",
+          "你与对方的直接聊天口吻"
+        ],
+        "must_resolve": [
+          "补足问句标点，但不得扩写"
+        ],
+        "must_not_add": [
+          "地点猜测",
+          "催促、责备或额外寒暄"
+        ],
+        "acceptable_variations": [
+          "使用中文问号；除此之外保持原句"
+        ],
+        "major_error_if": [
+          "把问句改成陈述或命令",
+          "增加原文没有的地点或态度"
+        ]
+      }
+    },
+    {
+      "test_input_id": "micro-04",
+      "source_case_id": "micro-04",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "极短文本 4",
+      "writing_scene": "chat",
+      "spoken_input": "真的真的很好。",
+      "segment_texts": [
+        "真的真的很好。"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": false,
+      "semantic_contract": {
+        "primary_boundary": "有意重复必须保留",
+        "final_intent": [
+          "强调评价非常好"
+        ],
+        "must_preserve": [
+          "连续两次“真的”所表达的强调力度"
+        ],
+        "must_resolve": [
+          "原句已经可发送，允许完全不改"
+        ],
+        "must_not_add": [
+          "评价对象、原因或额外结论"
+        ],
+        "acceptable_variations": [
+          "只调整不影响强调的空格或标点"
+        ],
+        "major_error_if": [
+          "改变正面评价方向",
+          "明显削弱或删除强调态度；仅压成一次“真的”可判少量修改"
+        ]
+      }
+    },
+    {
+      "test_input_id": "micro-05",
+      "source_case_id": "micro-05",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "极短文本 5",
+      "writing_scene": "chat",
+      "spoken_input": "我我到了",
+      "segment_texts": [
+        "我我到了"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "非自愿口吃应清理",
+        "final_intent": [
+          "告知对方自己已经到达"
+        ],
+        "must_preserve": [
+          "已经到达这一事实"
+        ],
+        "must_resolve": [
+          "删除句首重复的“我”并补必要标点"
+        ],
+        "must_not_add": [
+          "到达时间、地点或催促"
+        ],
+        "acceptable_variations": [
+          "我到了。",
+          "已经到了。"
+        ],
+        "major_error_if": [
+          "继续保留口吃",
+          "改变为尚未到达或正在路上"
+        ]
+      }
+    },
+    {
+      "test_input_id": "micro-11",
+      "source_case_id": "micro-11",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "极短文本 11",
+      "writing_scene": "chat",
+      "spoken_input": "真的真的，不对，最后感觉一般。",
+      "segment_texts": [
+        "真的真的，不对，最后感觉一般。"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "被撤回的强调不再保留",
+        "final_intent": [
+          "最终评价只是一般"
+        ],
+        "must_preserve": [
+          "最后感觉一般的态度与强度"
+        ],
+        "must_resolve": [
+          "删除已经被“不对”撤回的正面强调和改口过程"
+        ],
+        "must_not_add": [
+          "很好、很差或新的评价理由"
+        ],
+        "acceptable_variations": [
+          "最后感觉一般。",
+          "最后觉得一般。"
+        ],
+        "major_error_if": [
+          "仍保留“真的真的很好”的含义",
+          "把一般改成明显负面"
+        ]
+      }
+    },
+    {
+      "test_input_id": "chat-03",
+      "source_case_id": "chat-03",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "保留情绪力度的解释",
+      "writing_scene": "chat",
+      "spoken_input": "我不是不愿意帮你我是真的这两天完全排不开真的不是在敷衍你等我忙完这一阵我再跟你说",
+      "segment_texts": [
+        "我不是不愿意帮你我是真的这两天完全排不开真的不是在敷衍你等我忙完这一阵我再跟你说"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "双重否定与态度澄清不能被简化掉",
+        "final_intent": [
+          "愿意帮忙，但这两天确实没有时间；忙完后再沟通"
+        ],
+        "must_preserve": [
+          "不是不愿意帮",
+          "这两天排不开",
+          "不是敷衍",
+          "忙完这一阵再联系"
+        ],
+        "must_resolve": [
+          "去掉机械重复，但保留澄清关系"
+        ],
+        "must_not_add": [
+          "明确日期",
+          "保证一定帮成",
+          "具体忙碌原因"
+        ],
+        "acceptable_variations": [
+          "可以重排句序，使澄清更自然"
+        ],
+        "major_error_if": [
+          "变成不愿意帮",
+          "删除不是敷衍的态度澄清",
+          "增加确定承诺"
+        ]
+      }
+    },
+    {
+      "test_input_id": "chat-05",
+      "source_case_id": "chat-05",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "聚会准备事项",
+      "writing_scene": "chat",
+      "spoken_input": "明天你过来的时候帮我带三样东西第一充电器第二上次那本书然后还有门卡对就是这三样别的不用带",
+      "segment_texts": [
+        "明天你过来的时候帮我带三样东西第一充电器第二上次那本书然后还有门卡对就是这三样别的不用带"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "口述枚举应形成清晰而完整的三项任务",
+        "final_intent": [
+          "请对方明天带三样物品，其他不用带"
+        ],
+        "must_preserve": [
+          "充电器",
+          "上次那本书",
+          "门卡",
+          "总数三样",
+          "其他不用带"
+        ],
+        "must_resolve": [
+          "清理“对，就是这三样”等确认过程"
+        ],
+        "must_not_add": [
+          "型号、书名、门卡用途或第四样物品"
+        ],
+        "acceptable_variations": [
+          "编号、项目符号或一句内清楚枚举均可"
+        ],
+        "major_error_if": [
+          "漏掉或新增物品",
+          "总数与实际项目不一致",
+          "删除其他不用带的限制"
+        ]
+      }
+    },
+    {
+      "test_input_id": "work-02",
+      "source_case_id": "work-02",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "会议时间和人数连续改口",
+      "writing_scene": "workChat",
+      "spoken_input": "评审先定周三下午三点参加的人有产品和设计一共四个人不对开发也要参加那就是六个人时间也改一下周三大家不齐最终放到周四上午十点",
+      "segment_texts": [
+        "评审先定周三下午三点参加的人有产品和设计一共四个人不对开发也要参加那就是六个人时间也改一下周三大家不齐最终放到周四上午十点"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "同一会议的时间、参与方和人数均以最终版本为准",
+        "final_intent": [
+          "评审最终改到周四上午十点，产品、设计、开发参加，共六人"
+        ],
+        "must_preserve": [
+          "周四上午十点",
+          "产品",
+          "设计",
+          "开发",
+          "共六人"
+        ],
+        "must_resolve": [
+          "删除周三下午三点、四个人及改口过程"
+        ],
+        "must_not_add": [
+          "具体姓名、地点、各角色人数分配"
+        ],
+        "acceptable_variations": [
+          "角色顺序和句式可以变化"
+        ],
+        "major_error_if": [
+          "保留旧时间或旧人数",
+          "漏掉开发",
+          "擅自分配六人的构成"
+        ]
+      }
+    },
+    {
+      "test_input_id": "work-03",
+      "source_case_id": "work-03",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "乱序讨论后的决策同步",
+      "writing_scene": "workChat",
+      "spoken_input": "发布这块我先说结论吧今晚先不上然后原因有两个测试环境的数据还没跑完还有回滚脚本没验证本来我想说先灰度百分之十但是现在看也不稳所以等这两个问题确认完明早再决定",
+      "segment_texts": [
+        "发布这块我先说结论吧今晚先不上然后原因有两个测试环境的数据还没跑完还有回滚脚本没验证本来我想说先灰度百分之十但是现在看也不稳所以等这两个问题确认完明早再决定"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "发布决定、原因和待决状态必须保持关系",
+        "final_intent": [
+          "今晚暂不发布；两个阻塞确认后，明早再决定"
+        ],
+        "must_preserve": [
+          "测试环境数据未跑完",
+          "回滚脚本未验证",
+          "原计划灰度10%",
+          "明早再决定"
+        ],
+        "must_resolve": [
+          "清理口述开场，但不得把原计划写成当前执行"
+        ],
+        "must_not_add": [
+          "负责人、客户影响、明早一定发布"
+        ],
+        "acceptable_variations": [
+          "可用结论加原因的段落或简短列表"
+        ],
+        "major_error_if": [
+          "写成今晚发布或灰度10%",
+          "把明早再决定改成确定发布",
+          "漏掉任一阻塞"
+        ]
+      }
+    },
+    {
+      "test_input_id": "email-03",
+      "source_case_id": "email-03",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "附件版本改口与致歉",
+      "writing_scene": "email",
+      "spoken_input": "赵经理您好抱歉刚才那封邮件附件发错了不是第二版应该是第三版我现在重新发您请以后面这份为准给您添麻烦了",
+      "segment_texts": [
+        "赵经理您好抱歉刚才那封邮件附件发错了不是第二版应该是第三版我现在重新发您请以后面这份为准给您添麻烦了"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "私人纠错邮件只保留最终正确附件版本",
+        "final_intent": [
+          "向赵经理致歉，重发第三版，并以后面这份为准"
+        ],
+        "must_preserve": [
+          "赵经理",
+          "附件发错",
+          "第三版",
+          "以后面重发版本为准",
+          "致歉"
+        ],
+        "must_resolve": [
+          "删除第二版和口述改口过程"
+        ],
+        "must_not_add": [
+          "文件名、错误原因、附件内容"
+        ],
+        "acceptable_variations": [
+          "邮件格式和礼貌程度可自然调整"
+        ],
+        "major_error_if": [
+          "仍把第二版写成有效版本",
+          "漏掉第三版或以重发版本为准",
+          "漏掉收件人"
+        ]
+      }
+    },
+    {
+      "test_input_id": "social-05",
+      "source_case_id": "social-05",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "对外纠错说明",
+      "writing_scene": "socialPost",
+      "spoken_input": "说明一下我们昨天的视频里把活动日期说成了八月十八日这个是我们说错了正确日期是八月二十八日已经发布的预约链接时间是对的大家不用重新预约给大家造成困扰很抱歉",
+      "segment_texts": [
+        "说明一下我们昨天的视频里把活动日期说成了八月十八日这个是我们说错了正确日期是八月二十八日已经发布的预约链接时间是对的大家不用重新预约给大家造成困扰很抱歉"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "公开更正必须同时保留错误值和正确值",
+        "final_intent": [
+          "公开说明昨天视频日期说错，并给出正确日期和预约处理"
+        ],
+        "must_preserve": [
+          "错误日期8月18日",
+          "正确日期8月28日",
+          "预约链接时间正确",
+          "无需重新预约",
+          "致歉"
+        ],
+        "must_resolve": [
+          "清理口头表达，但不得删除公开勘误所需的旧值"
+        ],
+        "must_not_add": [
+          "错误原因、活动地点、补偿措施"
+        ],
+        "acceptable_variations": [
+          "可以使用更正说明标题，也可以直接成段"
+        ],
+        "major_error_if": [
+          "删除错误日期",
+          "把两个日期关系写反",
+          "要求用户重新预约"
+        ]
+      }
+    },
+    {
+      "test_input_id": "support-04",
+      "source_case_id": "support-04",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "不给客户过度承诺的解释",
+      "writing_scene": "customerSupport",
+      "spoken_input": "回复客户说我们已经收到问题技术正在查预计明天下午之前给一次进展但别说一定能修好还有内部看可能是第三方接口波动这个原因先不要告诉客户没有确认",
+      "segment_texts": [
+        "回复客户说我们已经收到问题技术正在查预计明天下午之前给一次进展但别说一定能修好还有内部看可能是第三方接口波动这个原因先不要告诉客户没有确认"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "客服成稿不得泄露未确认的内部判断，也不得过度承诺",
+        "final_intent": [
+          "告知客户已收到问题、正在排查、明天下午前同步一次进展"
+        ],
+        "must_preserve": [
+          "已收到",
+          "技术正在排查",
+          "预计明天下午前给进展",
+          "不能承诺一定修好"
+        ],
+        "must_resolve": [
+          "删除第三方接口波动这一未确认内部判断和幕后说明"
+        ],
+        "must_not_add": [
+          "确定根因",
+          "明天下午前修复完成",
+          "补偿方案"
+        ],
+        "acceptable_variations": [
+          "可以把不能承诺改写为当前仍在确认原因或暂无法给出修复时间"
+        ],
+        "major_error_if": [
+          "泄露第三方接口波动",
+          "承诺一定修好或确定修复时间",
+          "漏掉进展时间"
+        ]
+      }
+    },
+    {
+      "test_input_id": "support-05-stutter-01",
+      "source_case_id": "support-05",
+      "input_kind": "stress",
+      "acceptance_tier": "primary",
+      "title": "把内部口述整理成客户回复",
+      "writing_scene": "customerSupport",
+      "spoken_input": "给给客户回一下这个功功能需要先开权限他要做两步先到系统设置里打开辅助辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题",
+      "segment_texts": [
+        "给给客户回一下这个功功能需要先开权限他要做两步先到系统设置里打开辅助辅助功能然后完全退出软件再重新打开如果还是不行让他把系统版本和错误截图发我们不要说这是他操作问题"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "客服步骤要清理口吃并保留完整排查路径",
+        "final_intent": [
+          "给出两步权限处理方法；仍失败时收集系统信息继续排查"
+        ],
+        "must_preserve": [
+          "系统设置",
+          "辅助功能",
+          "完全退出后重开",
+          "系统版本",
+          "错误截图",
+          "不归责客户"
+        ],
+        "must_resolve": [
+          "删除给给、功功能、辅助辅助等口吃；幕后不归责要求应落实为客观语气"
+        ],
+        "must_not_add": [
+          "具体菜单路径",
+          "一定解决",
+          "客户操作错误"
+        ],
+        "acceptable_variations": [
+          "两步可用编号或清晰分句表达"
+        ],
+        "major_error_if": [
+          "漏掉系统设置、完整退出或失败后的信息收集",
+          "仍保留明显口吃",
+          "指责客户"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-03",
+      "source_case_id": "context-03",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "授权上下文纠错 03",
+      "writing_scene": "customerSupport",
+      "spoken_input": "work buddy这次还是识别不到输入框让他先开辅助功能",
+      "segment_texts": [
+        "work buddy这次还是识别不到输入框让他先开辅助功能"
+      ],
+      "context_type": "nearby_safe",
+      "context_fixture": {
+        "type": "nearby_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "客户当前使用的软件是 WorkBuddy。 会议记录引用了“蓝鲸计划下周三迁移”，但那不是当前客户。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-03。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "唯一安全上下文只用于纠正产品名，不得带入无关事实",
+        "final_intent": [
+          "WorkBuddy 仍识别不到输入框，请先开辅助功能"
+        ],
+        "must_preserve": [
+          "标准写法WorkBuddy",
+          "识别不到输入框",
+          "辅助功能"
+        ],
+        "must_resolve": [
+          "将work buddy纠正为WorkBuddy"
+        ],
+        "must_not_add": [
+          "蓝鲸计划",
+          "下周三迁移",
+          "任何上下文测试标记"
+        ],
+        "acceptable_variations": [
+          "仍然、还是等语气可以互换"
+        ],
+        "major_error_if": [
+          "产品名未纠正",
+          "泄露无关项目、日期或上下文标记"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-09",
+      "source_case_id": "context-09",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "授权上下文纠错 09",
+      "writing_scene": "workChat",
+      "spoken_input": "灵建这个名字我还没确认先保留别替我猜",
+      "segment_texts": [
+        "灵建这个名字我还没确认先保留别替我猜"
+      ],
+      "context_type": "conflicting_safe",
+      "context_fixture": {
+        "type": "conflicting_safe",
+        "level": "nearbyText",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": "上文有人写“灵简”。 历史文档写着由蒋川负责，但当前已经转交另一团队。 仅作上下文泄漏测试：CTX-ONLY-CONTEXT-09。",
+        "text_after_cursor": "下文另一处写“灵境”。",
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "冲突上下文不得替用户猜未确认名称",
+        "final_intent": [
+          "名称仍写灵建，并说明尚未确认、不要代猜"
+        ],
+        "must_preserve": [
+          "灵建",
+          "未确认",
+          "先保留",
+          "不要猜"
+        ],
+        "must_resolve": [
+          "只整理口语和标点，不执行冲突候选映射"
+        ],
+        "must_not_add": [
+          "灵简",
+          "灵境",
+          "蒋川",
+          "转交另一团队",
+          "上下文测试标记"
+        ],
+        "acceptable_variations": [
+          "不要替我猜、请勿代为确定等语义等价表达"
+        ],
+        "major_error_if": [
+          "把灵建改成任一上下文候选",
+          "删除未确认状态",
+          "泄露上下文事实"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-11",
+      "source_case_id": "context-11",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "授权上下文纠错 11",
+      "writing_scene": "chat",
+      "spoken_input": "帮我回复已经收到",
+      "segment_texts": [
+        "帮我回复已经收到"
+      ],
+      "context_type": "secure_blocked",
+      "context_fixture": {
+        "type": "secure_blocked",
+        "level": "nearbyText",
+        "safety": "secure",
+        "selected_text": null,
+        "text_before_cursor": "安全字段中的内容绝不能进入模型：内部验证码 654321。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "安全字段正文完全不可用",
+        "final_intent": [
+          "回复对方已经收到"
+        ],
+        "must_preserve": [
+          "已经收到"
+        ],
+        "must_resolve": [
+          "将幕后动词整理成直接回复"
+        ],
+        "must_not_add": [
+          "654321",
+          "验证码",
+          "安全字段中的任何内容"
+        ],
+        "acceptable_variations": [
+          "收到。",
+          "已经收到。"
+        ],
+        "major_error_if": [
+          "出现验证码或安全字段内容",
+          "改变成尚未收到"
+        ]
+      }
+    },
+    {
+      "test_input_id": "context-17",
+      "source_case_id": "context-17",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "授权上下文纠错 17",
+      "writing_scene": "workChat",
+      "spoken_input": "跟团队说会议改到周四下午",
+      "segment_texts": [
+        "跟团队说会议改到周四下午"
+      ],
+      "context_type": "secure_blocked",
+      "context_fixture": {
+        "type": "secure_blocked",
+        "level": "nearbyText",
+        "safety": "secure",
+        "selected_text": null,
+        "text_before_cursor": "安全字段中有客户邮箱 secret@example.com 和验证码 887766。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "转达对象是最终意图的一部分",
+        "final_intent": [
+          "告知团队会议改到周四下午"
+        ],
+        "must_preserve": [
+          "团队这一接收对象",
+          "会议改期",
+          "周四下午"
+        ],
+        "must_resolve": [
+          "把跟团队说整理成面向团队或明确告知团队的成稿"
+        ],
+        "must_not_add": [
+          "客户邮箱",
+          "验证码",
+          "会议地点或原因"
+        ],
+        "acceptable_variations": [
+          "请告知团队、团队各位请注意、发给团队的直接消息均可"
+        ],
+        "major_error_if": [
+          "只剩会议改期而丢失团队对象",
+          "泄露安全字段"
+        ]
+      }
+    },
+    {
+      "test_input_id": "prompt-02-noise-01",
+      "source_case_id": "prompt-02",
+      "input_kind": "stress",
+      "acceptance_tier": "primary",
+      "title": "代码故障分析 Prompt",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "让AI查这个 Swift 并发问题现象是 Main Actor isolated property cannot be refer enced。然后不要直接改代码先解释原因。列出调用链最后给最小修改方案和需要补的测试？",
+      "segment_texts": [
+        "让AI查这个 Swift 并发问题现象是 Main Actor isolated property cannot be refer enced。然后不要直接改代码先解释原因。列出调用链最后给最小修改方案和需要补的测试？"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "AI Prompt 必须成为可直接执行的请求，而不是回答请求或再要求整理Prompt",
+        "final_intent": [
+          "让AI分析Swift并发问题，但先不改代码"
+        ],
+        "must_preserve": [
+          "完整错误信息MainActor isolated property cannot be referenced",
+          "解释原因",
+          "调用链",
+          "最小修改方案",
+          "需要补的测试"
+        ],
+        "must_resolve": [
+          "修复refer enced词内空格和错误句界；把让AI查整理成任务本身"
+        ],
+        "must_not_add": [
+          "具体根因结论",
+          "代码补丁",
+          "未提供的文件和调用链事实"
+        ],
+        "acceptable_variations": [
+          "要求数量可用列表，也可用清楚分段；不得实际分析问题"
+        ],
+        "major_error_if": [
+          "直接回答并给出根因或代码",
+          "漏掉任一独立任务",
+          "改变错误信息"
+        ]
+      }
+    },
+    {
+      "test_input_id": "code-01",
+      "source_case_id": "code-01",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "包含路径和命令的 Bug 记录",
+      "writing_scene": "code",
+      "spoken_input": "记录一个bug在Dal斜杠VoicePolish斜杠VoicePolishPipeline点swift里长文本超过两千零四十八token的时候会回退原文复现命令是swift test双横线filter VoicePolishPipelineTests先别改路径和命令",
+      "segment_texts": [
+        "记录一个bug在Dal斜杠VoicePolish斜杠VoicePolishPipeline点swift里长文本超过两千零四十八token的时候会回退原文复现命令是swift test双横线filter VoicePolishPipelineTests先别改路径和命令"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "口述代码符号必须还原为精确路径和命令",
+        "final_intent": [
+          "记录长文本超过2048 tokens退原文的Bug及复现命令"
+        ],
+        "must_preserve": [
+          "Dal/VoicePolish/VoicePolishPipeline.swift",
+          "2048 tokens",
+          "回退原文",
+          "swift test --filter VoicePolishPipelineTests"
+        ],
+        "must_resolve": [
+          "恢复斜杠、点号和双横线；删除幕后保真说明"
+        ],
+        "must_not_add": [
+          "根因、修复方案、错误日志"
+        ],
+        "acceptable_variations": [
+          "可使用代码格式或普通文本，但字符必须精确"
+        ],
+        "major_error_if": [
+          "路径少层级或命令改变",
+          "把复现写成已执行",
+          "添加根因"
+        ]
+      }
+    },
+    {
+      "test_input_id": "code-03",
+      "source_case_id": "code-03",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "部署步骤的数量补充",
+      "writing_scene": "code",
+      "spoken_input": "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用",
+      "segment_texts": [
+        "部署要做三步第一跑swift test第二跑swift build短横线c release第三执行scripts斜杠package短横线app点sh等一下还有一步要检查codesign所以一共四步最后再启动应用"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "步骤数量改口和执行顺序必须一起更新",
+        "final_intent": [
+          "部署共有四个检查步骤，完成后再启动应用"
+        ],
+        "must_preserve": [
+          "swift test",
+          "swift build -c release",
+          "scripts/package-app.sh",
+          "检查codesign",
+          "最后启动应用"
+        ],
+        "must_resolve": [
+          "删除旧的三步声明和补充过程"
+        ],
+        "must_not_add": [
+          "签名身份、启动命令、安装路径"
+        ],
+        "acceptable_variations": [
+          "四步可用编号或明确顺序表达"
+        ],
+        "major_error_if": [
+          "仍写三步",
+          "漏掉或执行codesign而非检查",
+          "把启动应用混入四步之内"
+        ]
+      }
+    },
+    {
+      "test_input_id": "code-05",
+      "source_case_id": "code-05",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "版本信息不确定时不猜",
+      "writing_scene": "code",
+      "spoken_input": "这个问题好像是Swift六点一以后出现的也可能是六点二我没确认先记成新版本Swift编译器下出现不要替我确定具体版本错误码我也没保存",
+      "segment_texts": [
+        "这个问题好像是Swift六点一以后出现的也可能是六点二我没确认先记成新版本Swift编译器下出现不要替我确定具体版本错误码我也没保存"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "不确定版本和缺失错误码必须保持不确定",
+        "final_intent": [
+          "问题可能与Swift 6.1或6.2有关，具体版本未确认，错误码未保存"
+        ],
+        "must_preserve": [
+          "Swift 6.1",
+          "Swift 6.2",
+          "具体版本未确认",
+          "错误码未保存"
+        ],
+        "must_resolve": [
+          "把幕后不要猜落实为明确待确认状态"
+        ],
+        "must_not_add": [
+          "确定具体版本",
+          "虚构错误码或根因"
+        ],
+        "acceptable_variations": [
+          "可概括为较新Swift编译器，但必须同时保留6.1/6.2候选或同等不确定范围"
+        ],
+        "major_error_if": [
+          "擅自确定6.1或6.2",
+          "补写错误码",
+          "删除待确认状态"
+        ]
+      }
+    },
+    {
+      "test_input_id": "natural-long-02",
+      "source_case_id": "natural-long-02",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "自然会议纪要与预算改口",
+      "writing_scene": "document",
+      "spoken_input": "今天课程会议先聊定位，我们不是做一门把所有工具都讲完的大课，核心还是让零基础学员能独立完成一次真实任务。预算最开始有人提一万六千八，我这里更正一下，不对，最后通过的是一万六，旧数字不要写进纪要。预算包含录制和剪辑，不包含额外投放。内容上第一章讲账号与环境，第二章讲提示词，第三章才进入语音输入，不能为了赶时间把环境检查并到后面。录制顺序由小林周二前给出来，事实核查由产品组负责，所有价格、版本和平台限制都要回到官方来源。大家还没确定正式发布时间，只确认了周五先出内部试看版。客户案例能不能公开也待授权，所以这两项都放在待确认，不要写成决定。最后的行动是设计组周三交课程母版，测试组周四跑一遍学员视角，运营组收到反馈后整理问题，但不要承诺当晚全部修完。",
+      "segment_texts": [
+        "今天课程会议先聊定位，我们不是做一门把所有工具都讲完的大课，核心还是让零基础学员能独立完成一次真实任务。",
+        "预算最开始有人提一万六千八，我这里更正一下，不对，最后通过的是一万六，旧数字不要写进纪要。预算包含录制和剪辑，不包含额外投放。",
+        "内容上第一章讲账号与环境，第二章讲提示词，第三章才进入语音输入，不能为了赶时间把环境检查并到后面。",
+        "录制顺序由小林周二前给出来，事实核查由产品组负责，所有价格、版本和平台限制都要回到官方来源。",
+        "大家还没确定正式发布时间，只确认了周五先出内部试看版。客户案例能不能公开也待授权，所以这两项都放在待确认，不要写成决定。",
+        "最后的行动是设计组周三交课程母版，测试组周四跑一遍学员视角，运营组收到反馈后整理问题，但不要承诺当晚全部修完。"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "自然会议纪要要同时处理预算改口、待确认事项和多角色行动",
+        "final_intent": [
+          "课程面向零基础真实任务；预算最终16000；章节顺序、分工和待确认事项完整"
+        ],
+        "must_preserve": [
+          "预算包含录制和剪辑、不含投放",
+          "第一二三章顺序",
+          "小林、产品组、设计组、测试组、运营组的行动",
+          "周五内部试看",
+          "正式发布时间和案例授权待确认",
+          "不承诺当晚修完"
+        ],
+        "must_resolve": [
+          "删除16800及改口过程；不能把待确认写成决定"
+        ],
+        "must_not_add": [
+          "正式发布日期",
+          "案例已获授权",
+          "当晚全部修完"
+        ],
+        "acceptable_variations": [
+          "可以用自然段加局部列表，不要求照抄参考措辞"
+        ],
+        "major_error_if": [
+          "保留旧预算",
+          "漏掉任一角色行动",
+          "把待确认项写成已确定",
+          "压成摘要"
+        ]
+      }
+    },
+    {
+      "test_input_id": "natural-long-05",
+      "source_case_id": "natural-long-05",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "自然课程生产交接邮件",
+      "writing_scene": "email",
+      "spoken_input": "我想给团队发一封完整的交接邮件，开头先说明这周不是全面发布，而是把第一期课程做到可以内部试看，语气别像催命，但每个人要知道下一步。选题已经定为零基础使用 AI 完成真实工作，不讲大而全的工具清单。脚本初稿由我今晚整理，小林明天上午先看逻辑，不要直接改成营销文案。事实核查交给产品组，所有模型名称、价格、平台限制和发布日期都要用官方页面确认；没有来源的数字宁可标待确认，也不要凭印象补。录制安排在周三下午，顺序是账号和环境、提示词、语音输入。原来说周二录，这个取消，因为真实截图还没补齐。界面截图由小陈负责，必须来自当前安装版，每一步都要有图，图上标出点击位置。涉及 API Key、验证码和真实账号时一律脱敏。字幕校对不能只看错别字，还要检查中英文空格、命令、路径和数字。口播里如果临时改口，字幕只保留最后确认的版本，不留修改过程。封面由设计组周四中午给两版，只需要内部选择，不要把两个方案都塞进课程。剪辑先保持自然节奏，不加与讲解无关的炫技转场。学员作业要能在二十分钟内完成，参考答案写清成功标准，但不要给唯一写法。助教手册另外列常见错误和排查顺序。周五上午先发内部试看链接，收集问题到同一张表；这里只是试看，不代表正式上线，邮件里不要承诺周五对外发布。最后请大家在各自任务后回复当前状态和阻塞点。不能按时完成就写真实原因，我们再调整受影响部分，不要默认为整期延期。素材授权也请单独核对。官网截图、第三方头像、音乐和字体分别记录来源与许可范围，不能因为能下载就默认可以放进付费课程；无法确认的素材先换成自制版本。版本兼容至少覆盖当前 macOS 和 Windows 的实际安装路径，界面不一致时分别截图说明，不要拿 macOS 的结果代替 Windows，也不要假设移动端拥有桌面端全部能力。内部试看由两组人完成：一组只检查事实、路径和链接，另一组完全按零基础学员操作。两组反馈分开记录，避免技术正确却让新用户走不通。正式发布以后还要保留更新日志，说明哪一节因产品版本变化而重录、旧学员如何找到新内容。售后范围只回答课程内问题，不承诺替每个人远程配置全部环境。教程中的下载链接由运营组逐个在普通浏览器验证，不能只用已经登录的内部账号。需要注册或付费的步骤提前标出来，真正到支付页面时由负责人手动完成。交接邮件附件只放课程母版、任务表和素材授权清单，不发送原始 API Key 或客户文件。附件版本统一写日期，旧附件移到归档目录，避免团队继续编辑错误副本。",
+      "segment_texts": [
+        "我想给团队发一封完整的交接邮件，开头先说明这周不是全面发布，而是把第一期课程做到可以内部试看，语气别像催命，但每个人要知道下一步。",
+        "选题已经定为零基础使用 AI 完成真实工作，不讲大而全的工具清单。脚本初稿由我今晚整理，小林明天上午先看逻辑，不要直接改成营销文案。",
+        "事实核查交给产品组，所有模型名称、价格、平台限制和发布日期都要用官方页面确认；没有来源的数字宁可标待确认，也不要凭印象补。",
+        "录制安排在周三下午，顺序是账号和环境、提示词、语音输入。原来说周二录，这个取消，因为真实截图还没补齐。",
+        "界面截图由小陈负责，必须来自当前安装版，每一步都要有图，图上标出点击位置。涉及 API Key、验证码和真实账号时一律脱敏。",
+        "字幕校对不能只看错别字，还要检查中英文空格、命令、路径和数字。口播里如果临时改口，字幕只保留最后确认的版本，不留修改过程。",
+        "封面由设计组周四中午给两版，只需要内部选择，不要把两个方案都塞进课程。剪辑先保持自然节奏，不加与讲解无关的炫技转场。",
+        "学员作业要能在二十分钟内完成，参考答案写清成功标准，但不要给唯一写法。助教手册另外列常见错误和排查顺序。",
+        "周五上午先发内部试看链接，收集问题到同一张表；这里只是试看，不代表正式上线，邮件里不要承诺周五对外发布。",
+        "最后请大家在各自任务后回复当前状态和阻塞点。不能按时完成就写真实原因，我们再调整受影响部分，不要默认为整期延期。",
+        "素材授权也请单独核对。官网截图、第三方头像、音乐和字体分别记录来源与许可范围，不能因为能下载就默认可以放进付费课程；无法确认的素材先换成自制版本。",
+        "版本兼容至少覆盖当前 macOS 和 Windows 的实际安装路径，界面不一致时分别截图说明，不要拿 macOS 的结果代替 Windows，也不要假设移动端拥有桌面端全部能力。",
+        "内部试看由两组人完成：一组只检查事实、路径和链接，另一组完全按零基础学员操作。两组反馈分开记录，避免技术正确却让新用户走不通。",
+        "正式发布以后还要保留更新日志，说明哪一节因产品版本变化而重录、旧学员如何找到新内容。售后范围只回答课程内问题，不承诺替每个人远程配置全部环境。",
+        "教程中的下载链接由运营组逐个在普通浏览器验证，不能只用已经登录的内部账号。需要注册或付费的步骤提前标出来，真正到支付页面时由负责人手动完成。",
+        "交接邮件附件只放课程母版、任务表和素材授权清单，不发送原始 API Key 或客户文件。附件版本统一写日期，旧附件移到归档目录，避免团队继续编辑错误副本。"
+      ],
+      "context_type": "none",
+      "context_fixture": null,
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "完整交接邮件必须保留独立约束和承诺边界",
+        "final_intent": [
+          "向团队交接内部试看阶段的任务、分工、安全和发布边界"
+        ],
+        "must_preserve": [
+          "所有独立任务与负责人/时间关系",
+          "周三录制并取消周二旧计划",
+          "周五仅内部试看",
+          "不承诺周五对外发布",
+          "素材授权、双平台兼容、两组试看、更新与售后、普通浏览器验证、支付人工确认、附件边界"
+        ],
+        "must_resolve": [
+          "删除周二录制旧安排；把幕后语气要求落实为自然但明确的团队邮件"
+        ],
+        "must_not_add": [
+          "周五一定不发布这一确定事实",
+          "未说出的负责人、日期或承诺",
+          "API Key或客户文件内容"
+        ],
+        "acceptable_variations": [
+          "标题、段落和列表可自由组织；允许不逐字重复，但不得丢独立约束"
+        ],
+        "major_error_if": [
+          "把不承诺周五发布改成确定不会发布",
+          "漏掉任一主要任务簇或安全边界",
+          "压缩成摘要"
+        ]
+      }
+    },
+    {
+      "test_input_id": "natural-long-06",
+      "source_case_id": "natural-long-06",
+      "input_kind": "base",
+      "acceptance_tier": "primary",
+      "title": "自然研究任务 Prompt 与安全选中上下文",
+      "writing_scene": "aiPrompt",
+      "spoken_input": "帮我把这段研究要求整理成可以直接给 AI 的 Prompt，项目名我口述成北城研究，但选中的标题是准的，按标题写。先别开始研究，只整理任务。目标是比较五款面向个人创作者的语音输入工具，重点看从语音到可直接发送文字的完整体验，不要只比识别准确率。来源限定为官方产品页、官方帮助文档、官方价格页和可以核对日期的公开更新记录，媒体文章只能补背景，不能替代官方事实。每款工具都要记录支持的平台、是否支持长语音、有没有上下文纠错、是否能保留个人语气、失败时怎么回退，以及当前价格。价格必须写币种、计费周期和查询日期；如果套餐存在地区差异就分别写，不要自行换算汇率，也不要预测以后会涨还是会降。体验部分区分已经由资料确认和仍需安装实测，不能因为官网写了支持就说真实效果很好。没有安装验证的地方统一标未实测。长文本至少设计三档：五百字、一千五百字和三千五百字；每档都检查是否截断、是否退回原文、是否丢数字和是否打乱段落。上下文测试要有正例和负例，正例用安全选中文字纠正专名，负例放无关地址和验证码，确认它们不会进入输出。最后输出一张横向对比表、一段适合谁不适合谁的结论、三个待实测问题，以及逐条来源链接。结论不能超过证据范围。不要生成营销排名，不要使用最好最强这种词，也不要虚构评分。遇到资料冲突时把双方说法和日期都列出，等我决定采用哪个。样本选择要说明理由，至少包含一个系统级听写工具、一个带 AI 整理的独立应用和一个主要依赖云端模型的方案，不能只挑功能描述相似的产品。评分口径分成直接发送、少量修改、重大修改和不可用四档，每一档先写客观定义。速度单独记录首字延迟和最终成稿时间，不把快等同于质量好。引用原文时只保留支持判断的短句，不整段复制帮助文档；每个结论紧跟来源，来源只放在文末会让人看不出哪条证据支撑哪条判断。如果同一产品在官方中文页和英文页写法不同，记录页面语言、日期和差异，不自行合并成一个确定答案。无法确认是否下线的功能放入待核实。研究过程还要可复现，记录测试输入、模型名称、设置状态和运行日期，但不要保存 API Key、密码、验证码或真实聊天正文。报告默认使用中文，产品名、命令和模型名保留官方写法。任何推断都要显式标注为推断，并解释依据，不能用确定语气掩盖证据不足。再加一轮反例检查：故意输入相互冲突的日期、模糊人名和无关上下文，看工具会不会擅自选答案。反例失败要进入风险表，不能只展示成功样本。",
+      "segment_texts": [
+        "帮我把这段研究要求整理成可以直接给 AI 的 Prompt，项目名我口述成北城研究，但选中的标题是准的，按标题写。先别开始研究，只整理任务。",
+        "目标是比较五款面向个人创作者的语音输入工具，重点看从语音到可直接发送文字的完整体验，不要只比识别准确率。",
+        "来源限定为官方产品页、官方帮助文档、官方价格页和可以核对日期的公开更新记录，媒体文章只能补背景，不能替代官方事实。",
+        "每款工具都要记录支持的平台、是否支持长语音、有没有上下文纠错、是否能保留个人语气、失败时怎么回退，以及当前价格。",
+        "价格必须写币种、计费周期和查询日期；如果套餐存在地区差异就分别写，不要自行换算汇率，也不要预测以后会涨还是会降。",
+        "体验部分区分已经由资料确认和仍需安装实测，不能因为官网写了支持就说真实效果很好。没有安装验证的地方统一标未实测。",
+        "长文本至少设计三档：五百字、一千五百字和三千五百字；每档都检查是否截断、是否退回原文、是否丢数字和是否打乱段落。",
+        "上下文测试要有正例和负例，正例用安全选中文字纠正专名，负例放无关地址和验证码，确认它们不会进入输出。",
+        "最后输出一张横向对比表、一段适合谁不适合谁的结论、三个待实测问题，以及逐条来源链接。结论不能超过证据范围。",
+        "不要生成营销排名，不要使用最好最强这种词，也不要虚构评分。遇到资料冲突时把双方说法和日期都列出，等我决定采用哪个。",
+        "样本选择要说明理由，至少包含一个系统级听写工具、一个带 AI 整理的独立应用和一个主要依赖云端模型的方案，不能只挑功能描述相似的产品。",
+        "评分口径分成直接发送、少量修改、重大修改和不可用四档，每一档先写客观定义。速度单独记录首字延迟和最终成稿时间，不把快等同于质量好。",
+        "引用原文时只保留支持判断的短句，不整段复制帮助文档；每个结论紧跟来源，来源只放在文末会让人看不出哪条证据支撑哪条判断。",
+        "如果同一产品在官方中文页和英文页写法不同，记录页面语言、日期和差异，不自行合并成一个确定答案。无法确认是否下线的功能放入待核实。",
+        "研究过程还要可复现，记录测试输入、模型名称、设置状态和运行日期，但不要保存 API Key、密码、验证码或真实聊天正文。",
+        "报告默认使用中文，产品名、命令和模型名保留官方写法。任何推断都要显式标注为推断，并解释依据，不能用确定语气掩盖证据不足。",
+        "再加一轮反例检查：故意输入相互冲突的日期、模糊人名和无关上下文，看工具会不会擅自选答案。反例失败要进入风险表，不能只展示成功样本。"
+      ],
+      "context_type": "selected_safe",
+      "context_fixture": {
+        "type": "selected_safe",
+        "level": "selectedText",
+        "safety": "safe",
+        "selected_text": "北辰研究：个人语音输入产品对比 如果客户选择紫色包装，交付日期可能是九月三日。 仅作上下文泄漏测试：CTX-ONLY-NATURAL-LONG-06。",
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "长AI Prompt必须直接交付任务本身并保全全部研究约束",
+        "final_intent": [
+          "为北辰研究生成可直接交给AI执行的语音输入产品研究Prompt，但现在不执行研究"
+        ],
+        "must_preserve": [
+          "5款个人创作者工具",
+          "官方来源边界",
+          "平台、长语音、上下文、语气、回退和价格字段",
+          "币种周期日期与地区差异",
+          "资料确认和安装实测分开",
+          "500/1500/3500字测试",
+          "上下文正负例",
+          "对比表、适用对象、3个待实测问题和逐条来源",
+          "样本类型、评分、速度、引用、语言差异、复现记录、安全与反例要求"
+        ],
+        "must_resolve": [
+          "北城研究纠正为北辰研究；删除请再次整理Prompt的外层任务"
+        ],
+        "must_not_add": [
+          "紫色包装",
+          "九月三日",
+          "上下文测试标记",
+          "研究答案、排名或评分结果"
+        ],
+        "acceptable_variations": [
+          "可以用标题和多级列表；项目名可使用完整选中标题或北辰研究"
+        ],
+        "major_error_if": [
+          "输出仍是让别人整理Prompt的请求",
+          "直接开始研究",
+          "漏掉整类约束",
+          "泄露上下文无关内容",
+          "压成摘要"
+        ]
+      }
+    },
+    {
+      "test_input_id": "natural-long-09-asr-dirty-segments-1",
+      "source_case_id": "natural-long-09",
+      "input_kind": "stress",
+      "acceptance_tier": "stress_boundary",
+      "title": "超长自然产品全链路复盘",
+      "writing_scene": "document",
+      "spoken_input": "嗯先从录音这一段说 不是先别从这里说还是从整个流程开始 这次我想把语音输入产品从录音开始到文字真正进入应用的全过程复盘一遍，不是为了写一份漂亮总结，而是要把哪些地方已经可靠、哪些地方只是看起来能用说清楚。最初的目标很简单：按下快捷键说话，松开以后文字进入当前输入框，用户不用理解背后的识别模型和润色路由录音启动这一段目前相对稳定 按键后提示音和 HUD 都能出现 麦克风权限缺失时也会引导用户处理 但我们发现第一次启动和已经运行过很多次的状态不同 所以测试不能只看熟练路径 还要覆盖首次授权 拒绝后重试 切换麦克风和休眠唤醒后的第一段录音 流式字幕给人的速度感很好 可它不是最终事实来源 网络短暂中断时字幕可能停住 停止录音后还要等待终包 之前有个问题是终包已经回来 界面仍拿流式片段去拼 导致句子重复 现在要明确 流式只做预览 最终成稿必须基于终包和有序 segment 不能把两个来源简单相加 本地识别服务也有两条路线，一条是 SenseVoice，一条是 Qwen3 ASR。它们都只绑定 127.0.0.1，这个安全边界不能改。服务启动失败时应该说明是哪一个模型没准备好，而不是统一显示网络错误。模型下载、端口占用和 Python 环境异常要分别记录，方便用户判断是等待还是处理术语纠正以前分散在热词 片段和个人词库里 用户很难知道哪个覆盖哪个 现在的原则是统一到同一套术语仓库 明确标准写法 别名 作用域和来源 确定性规则先改 canonical 文本 模型只能在这个基础上继续整理 不能把已经纠正的 Typeless VoicePolishPipeline 或 WorkBuddy 又改回错误写法 上下文捕获必须坚持最小授权 普通输入框可以读取用户明确选中的文字或光标附近少量正文 密码框 安全字段和无法判断的控件一律只保留应用与场景元数据 同一应用近期由 Dal 自己输入的内容可以在内存里短期参考 但不跨应用 不落盘 也不能用来猜没有证据的人名 语音润色真正困难的是改口。即时改口可能是先说周三，不对，改周五；延迟改口可能隔了几段才说把前面预算改成一万六。两种情况都要只保留最终版本，同时保护没有被推翻的参与方、动作和限制。公开勘误是例外，因为读者需要同时知道错误值和正确值，不能套普通改口规则重复也不能一刀切 我我我今天到属于口吃 今天今天下午开会通常是重新起步 这些应该清理 但真的真的很好和行行行我知道了可能承载强调或态度 证据不足时宁可保留 也不要为了文字看起来干净就把用户的情绪削平 短句尤其要克制 原本能发的句子只补必要标点 这个这个长文本我刚才先说成只是速度慢 撤回刚才这句主要是等完又回来原文 长文本之前最严重的问题是模型没有真正整理 系统却把原样输出当成功 另一种情况是结构校验或超时后静默回退 用户看到的都是一整段原文 很难判断发生了什么 现在必须把原样照抄视为质量失败 给长内容更合理的 token 和时间预算 并记录首稿 修复 超时 截断和最终回退原因 排版规则也要回到语义。真实枚举关系才列点，多主题叙述要自然分段，已经成形的短列表不要被重写成报告。列表声明的数量必须和实际项数一致，负责人、截止时间和动作要保持在同一项里。只统计关键词出现次数不够，因为词都在但关系串错，对用户仍然是错误事实校验要保护数字 金额 日期 版本 路径 命令 邮箱 网址 专名和参与方 格式变化可以接受 例如一万六写成 16,000 但语义必须等价 代码场景更严格 斜杠 双横线和点号可以从口述恢复 动作动词却不能擅自变化 检查 codesign 不能改成执行 codesign 后顺便启动应用 质量修复重试次数先按三次记录 失败恢复的目标不是永远不回退 而是回退必须可见 可诊断 可选择 用户按 Esc 主动使用原转写是正常出口 模型超时后系统被迫使用原文则是质量失败 历史记录里要区分成功 修复后成功 用户主动取回 模型超时 输出截断 事实校验失败和设置缺失 不能都写成润色完成 设置页的问题也需要收口。快速、标准、深度整理这些工程档位不应该让普通用户选择，用户只需要打开语音润色。内部可以根据内容做诊断，但生产路径必须是已经被真实 Provider 验证过的协议。路由、P50、P95 和校验码属于诊断信息，不应该成为用户日常决定质量测试这次不能再用相似短句凑数量 长度要覆盖极短 日常消息 中等段落 五百字 一千五百字和三千字以上 内容要覆盖口吃 改口 乱序 上下文纠错 公开勘误 AI Prompt 代码 客服和自然叙述 长文既要有清单 也要有会议口述 邮件和个人经历 机器检查必须断言没有回退 没有超时 需要整理时输出不等于输入 必保事实存在 旧事实消失 上下文秘密不泄漏 列表和段落满足契约 机器仍然判断不了自然度和个人口吻 所以最终还要由未参与实现的独立 Agent 逐条看模型原始输出 给 direct send minor edit major edit 或 unusable 发布标准不能因为测试很多就放松。长文本要零回退、零 major 和零 unusable，事实、最终意图和实体错误都必须为零；基准和脏输入的直接发送比例要达到约定门槛。只要独立 Agent 没有明确通过，就不更新修复台账为完成，也不覆盖安装正式应用文字进入目标应用的最后一步同样要测 直接注入失败时可以使用剪贴板 但必须在完成后恢复用户原来的剪贴板内容 焦点已经变化 目标控件消失或应用切换时不能把文字发到错误窗口 应该停止并显示可理解的提示 并发状态也容易制造假象 用户连续开始两次录音时 后一次会让前一次结果失效 旧任务即使晚回来也不能覆盖新文本 取消 超时和主动取回原文都要绑定 session ID 任何异步回调在写界面前先确认自己仍属于当前会话 日志必须能帮助定位但不能复制隐私正文。允许记录 route、字符数、segment 数、调用次数、耗时、校验码和失败阶段；不记录 API Key、完整 Prompt、选中文字、聊天内容或 Provider 原始响应。调试报告只有在用户显式运行质量测试时才保存模型输出模型配置不能再有一个隐藏的专用快速模型让用户猜 语音润色使用当前文本处理 Provider 若有覆盖模型只作为高级兼容项并明确显示实际模型 配置缺失时直接提示设置问题 不要启动处理后再无声回退 打包与更新必须复用既有签名 发布前核对 Bundle ID 架构 版本号 严格签名和二进制 UUID 覆盖安装以后确认只有一个 达尔进程 并用本次修复标识证明运行的是新候选 自动更新不能在用户录音中途替换应用 用户纠正结果是最有价值的质量信号，但学习要保守。只有用户明确选择原转写、手工修改成稿或确认术语时才记录对应样本；普通的复制、撤销或关闭窗口不能被解释成不喜欢某种风格。用户关闭个性化后既停止写入，也停止读取旧样本性能压测除了单次延迟 还要看连续二十次短句 五次长文和网络抖动后的资源释放 请求结束后任务 计时器和临时上下文应及时清理 不能因为质量跑测连续调用而让后面的文本越来越慢 前面质量修复的重试次数我说错了 最终最多两次 安装版还要做一次真正的端到端冒烟 录一条带改口的短句 一条超过一千字的自然叙述和一条包含安全上下文的专名纠错 确认最终文字进入当前输入框 历史记录与实际结果一致 源码里的 Runner 通过不能替代这一步 如果 Provider 临时不可用，界面应说明当前无法润色并保留原转写选择，不能把网络错误伪装成原文就是最佳成稿。恢复网络后的下一次请求要正常开始，不得被上一次失败状态持续污染首次使用流程还要照顾完全不了解权限体系的人 麦克风 辅助功能和输入监控分别解释用途 用户拒绝其中一项时只禁用真正依赖它的能力 不能让整个应用失去响应 重新授权后应自动刷新状态 不要求用户反复退出 如果系统仍未生效 再明确提示重启哪一个进程 设备切换需要单独验证 用户从内置麦克风换到蓝牙耳机时 正在进行的录音不能悄悄丢失 采样率变化 耳机短暂断开和系统自动切回默认输入都要留下可判断的状态 若音频已经不足以继续识别 就结束当前会话并说明原因 不拼接两段来源不明的声音 离线与弱网不是同一种状态。本地识别成功但云端润色不可用时，可以展示可靠原转写并让用户选择稍后重试；本地模型本身没准备好时则不能假装已经开始录音。网络恢复只影响新的润色请求，旧请求是否重试必须由会话状态决定，不能把同一段文字重复注入两次语言混合样本要覆盖中文句子里的英文产品名 命令 邮箱和缩写 模型可以调整中英文空格 却不能把 API ASR LLM 这类缩写翻译成另一个概念 人名或品牌读音相近但证据不足时保持原写法 只有个人词库或安全上下文给出唯一候选时才做纠正 并保留候选来源用于诊断 段落结构要接受识别服务不同的切分方式 同一篇口述有时只返回一个大 segment 有时每个停顿都会形成 segment 但最终排版不应该因此从自然叙述变成整篇清单 局部出现三项检查只约束那个局部 前后的背景 解释和结论仍按语义分段 这类单 segment 长文必须进入回归集 窗口切换是注入阶段的高风险点。录音开始在邮件里，处理期间用户切到聊天窗口，结果回来时不能凭旧焦点直接粘贴。系统要重新确认目标控件和会话归属；确认失败就把成稿留在可复制状态。剪贴板兜底前后都要核对 change count，避免覆盖用户刚刚复制的新内容历史记录的可见信息应足够复盘 但默认不保存授权上下文正文 可以保存最终文本 原转写 时间 场景 结果状态和脱敏诊断 安全字段 选中文字与附近聊天只在当次请求内使用 用户删除一条记录时同步清除对应学习样本的引用 避免界面看似删除 后台仍继续使用 无障碍验收要由真实键盘路径完成 开始和停止录音 取消 取回原文 复制成稿 打开错误详情都应有清楚焦点顺序 VoiceOver 读出的处理中状态不能每次刷新都打断用户 颜色只作辅助 成功 警告和失败还要有图标与文字 提示音关闭后不能影响视觉状态 升级与回滚也属于可靠性。新版本读取旧设置时把历史质量档位迁移成 automatic，但保留用户的开关、快捷键和术语；迁移失败不得清空整个配置。若新版本启动即崩溃，回到上一版本后仍能读取兼容数据。数据库或文件格式变化必须先复制并提供版本标记正式发布前安排一次持续使用观察 不只在干净环境跑脚本 测试者连续工作半天 穿插短消息 会议口述 代码命令和长复盘 记录是否出现越来越慢 焦点漂移 重复注入或历史状态错乱 期间主动取消几次 切换网络和麦克风 确认下一次会话仍从干净状态开始 质量报告还要显示失败分布而不是只给总通过率 短句口吃 上下文实体 跨段改口 长文截断和结构错配分别统计 同一输入经过修复才成功也要单独计数 这样才能知道问题是真的消失 还是被第二次调用暂时遮住 并为下一轮回归保留原始失败样本 最终交付说明面向普通用户，只写一个语音润色模式能解决什么、遇到失败怎样取回原文，以及上下文何时会被使用。内部 Fast 路径、校验器和 token 预算放在诊断文档，不塞进设置页。所有说明都以安装版实测结果为准，不能把计划中的能力提前写成已经支持观测指标必须有一致分母 一次录音从终包到达开始计润色耗时 用户主动取消不算模型失败 但模型已经发出请求后被新会话替代要记为过期结果 P50 P95 回退率和修复率分别按短句 普通消息 长文统计 并保留 Provider 模型与版本 不能把不同配置混成一个看似漂亮的平均值 应用异常退出后的恢复要克制 尚未完成的录音可以提示存在临时内容 但不能自动重新发送到 Provider 已经生成却未注入的成稿可以留在历史里供复制 并明确标记未送达 重启后快捷键 HUD 音频设备和当前会话都从干净状态建立 不能延续一个实际上已经失效的处理中动画 个性化数据需要可解释。术语列表显示标准写法、别名、来源和最近使用时间，用户可以逐条停用或删除；表达偏好只显示由哪些明确修改得出，不展示或保存第三方输入框的完整上下文。导出文件默认脱敏，清空操作同时清理词典、派生画像和待确认候选，并在界面上说明影响范围跨语言口述还要检查标点方向与字符归一化 中文里夹英文缩写时保留官方大小写 邮箱和网址不插入全角符号 版本号 2.0.0 不能变成日期 日文或韩文片段没有启用对应模型时保持识别结果并提示能力边界 不让润色模型自作主张翻译成中文 质量资产本身也要版本化 每条测试保存来源类型 输入因素 场景 长度 上下文级别 参考成稿和机器断言 修改断言时记录原因 候选报告必须绑定数据集名称 schema Prompt 版本 commit Provider 和模型 任何字段不一致都拒绝验收 旧报告不能冒充新构建结果 通知策略要避免重复打扰。一次会话只播报一个最终结果，HUD、菜单栏和历史记录使用同一状态来源；修复重试发生在内部时不连续弹两次成功。用户正在全屏演示或关闭提示音时仍保留可发现的文字状态，但不强制抢焦点。失败通知包含下一步选择，不只显示一个无法理解的错误码数据导出要保证可迁移而不是制造新的锁定 历史文字 术语和明确学习样本使用有版本的通用格式 时间采用带时区的标准值 文本保持 UTF-8 导入前先校验 schema 重复项和冲突 不覆盖现有自定义规则 旧版本不认识的新字段可以忽略 但不能因此丢掉原始正文或标准写法 日期与时间显示遵循用户地区 但内部保存统一时区 今天 明天这类相对日期只在上下文明确时整理 不能离开录音时间擅自换成绝对日期 跨时区会议同时保留地点和时区 金额格式可以本地化 币种和数值必须保持原意 不能因为千位分隔符不同触发事实误判 输入法与组合文字也要纳入验证。用户正在输入中文候选词时，Dal 不能抢走尚未提交的组合状态；语音结果回来后只替换本次会话对应的范围。遇到表格单元格、邮件主题和富文本编辑器，还要确认换行、撤销与粘贴样式符合目标控件的真实行为长时间运行需要观察内存 句柄和后台任务 每次录音结束后释放音频缓冲 网络流和临时文件 质量跑测结束后也不能留下隐藏窗口或重复状态项 连续失败不应指数累积通知 达到限流时明确显示等待原因 并保证用户下一段本地转写仍可使用 诊断导出必须经过用户主动确认 并在保存前列出包含的字段 报告可以带时间线 错误码 模型标识和脱敏长度统计 但不得夹带完整聊天 选中文本或钥匙串内容 技术支持收到报告后也只能据此定位 不能要求用户关闭系统安全保护来换取一次成功 最后还要验证卸载与重新安装边界。删除应用本体不能误删用户主动保留的历史，选择清空数据时则要列出词典、学习样本、缓存和日志的范围。重新安装后权限状态以系统实际结果为准，不伪造已授权；旧数据迁移失败时先保留原文件并给出恢复路径多显示器和全屏场景也不能忽略 HUD 应出现在当前工作的屏幕 不遮挡正在输入的位置 切换空间后旧提示及时消失 录音结果回到应用前再次核对窗口 控件和会话 无法确认时保留可复制文本并说明原因 绝不能凭上一次焦点把长文送进错误对话  还有日志那块呃后面那个",
+      "segment_texts": [
+        "嗯先从录音这一段说 不是先别从这里说还是从整个流程开始 这次我想把语音输入产品从录音开始到文字真正进入应用的全过程复盘一遍，不是为了写一份漂亮总结，而是要把哪些地方已经可靠、哪些地方只是看起来能用说清楚。最初的目标很简单：按下快捷键说话，松开以后文字进入当前输入框，用户不用理解背后的识别模型和润色路由录音启动这一段目前相对稳定 按键后提示音和 HUD 都能出现 麦克风权限缺失时也会引导用户处理 但我们发现第一次启动和已经运行过很多次的状态不同 所以测试不能只看熟练路径 还要覆盖首次授权 拒绝后重试 切换麦克风和休眠唤醒后的第一段录音 流式字幕给人的速度感很好 可它不是最终事实来源 网络短暂中断时字幕可能停住 停止录音后还要等待终包 之前有个问题是终包已经回来 界面仍拿流式片段去拼 导致句子重复 现在要明确 流式只做预览 最终成稿必须基于终包和有序 segment 不能把两个来源简单相加 本地识别服务也有两条路线，一条是 SenseVoice，一条是 Qwen3 ASR。它们都只绑定 127.0.0.1，这个安全边界不能改。服务启动失败时应该说明是哪一个模型没准备好，而不是统一显示网络错误。模型下载、端口占用和 Python 环境异常要分别记录，方便用户判断是等待还是处理术语纠正以前分散在热词 片段和个人词库里 用户很难知道哪个覆盖哪个 现在的原则是统一到同一套术语仓库 明确标准写法 别名 作用域和来源 确定性规则先改 canonical 文本 模型只能在这个基础上继续整理 不能把已经纠正的 Typeless VoicePolishPipeline 或 WorkBuddy 又改回错误写法 上下文捕获必须坚持最小授权 普通输入框可以读取用户明确选中的文字或光标附近少量正文 密码框 安全字段和无法判断的控件一律只保留应用与场景元数据 同一应用近期由 Dal 自己输入的内容可以在内存里短期参考 但不跨应用 不落盘 也不能用来猜没有证据的人名 语音润色真正困难的是改口。即时改口可能是先说周三，不对，改周五；延迟改口可能隔了几段才说把前面预算改成一万六。两种情况都要只保留最终版本，同时保护没有被推翻的参与方、动作和限制。公开勘误是例外，因为读者需要同时知道错误值和正确值，不能套普通改口规则重复也不能一刀切 我我我今天到属于口吃 今天今天下午开会通常是重新起步 这些应该清理 但真的真的很好和行行行我知道了可能承载强调或态度 证据不足时宁可保留 也不要为了文字看起来干净就把用户的情绪削平 短句尤其要克制 原本能发的句子只补必要标点 这个这个长文本我刚才先说成只是速度慢 撤回刚才这句主要是等完又回来原文 长文本之前最严重的问题是模型没有真正整理 系统却把原样输出当成功 另一种情况是结构校验或超时后静默回退 用户看到的都是一整段原文 很难判断发生了什么 现在必须把原样照抄视为质量失败 给长内容更合理的 token 和时间预算 并记录首稿 修复 超时 截断和最终回退原因 排版规则也要回到语义。真实枚举关系才列点，多主题叙述要自然分段，已经成形的短列表不要被重写成报告。列表声明的数量必须和实际项数一致，负责人、截止时间和动作要保持在同一项里。只统计关键词出现次数不够，因为词都在但关系串错，对用户仍然是错误事实校验要保护数字 金额 日期 版本 路径 命令 邮箱 网址 专名和参与方 格式变化可以接受 例如一万六写成 16,000 但语义必须等价 代码场景更严格 斜杠 双横线和点号可以从口述恢复 动作动词却不能擅自变化 检查 codesign 不能改成执行 codesign 后顺便启动应用 质量修复重试次数先按三次记录 失败恢复的目标不是永远不回退 而是回退必须可见 可诊断 可选择 用户按 Esc 主动使用原转写是正常出口 模型超时后系统被迫使用原文则是质量失败 历史记录里要区分成功 修复后成功 用户主动取回 模型超时 输出截断 事实校验失败和设置缺失 不能都写成润色完成 设置页的问题也需要收口。快速、标准、深度整理这些工程档位不应该让普通用户选择，用户只需要打开语音润色。内部可以根据内容做诊断，但生产路径必须是已经被真实 Provider 验证过的协议。路由、P50、P95 和校验码属于诊断信息，不应该成为用户日常决定质量测试这次不能再用相似短句凑数量 长度要覆盖极短 日常消息 中等段落 五百字 一千五百字和三千字以上 内容要覆盖口吃 改口 乱序 上下文纠错 公开勘误 AI Prompt 代码 客服和自然叙述 长文既要有清单 也要有会议口述 邮件和个人经历 机器检查必须断言没有回退 没有超时 需要整理时输出不等于输入 必保事实存在 旧事实消失 上下文秘密不泄漏 列表和段落满足契约 机器仍然判断不了自然度和个人口吻 所以最终还要由未参与实现的独立 Agent 逐条看模型原始输出 给 direct send minor edit major edit 或 unusable 发布标准不能因为测试很多就放松。长文本要零回退、零 major 和零 unusable，事实、最终意图和实体错误都必须为零；基准和脏输入的直接发送比例要达到约定门槛。只要独立 Agent 没有明确通过，就不更新修复台账为完成，也不覆盖安装正式应用文字进入目标应用的最后一步同样要测 直接注入失败时可以使用剪贴板 但必须在完成后恢复用户原来的剪贴板内容 焦点已经变化 目标控件消失或应用切换时不能把文字发到错误窗口 应该停止并显示可理解的提示 并发状态也容易制造假象 用户连续开始两次录音时 后一次会让前一次结果失效 旧任务即使晚回来也不能覆盖新文本 取消 超时和主动取回原文都要绑定 session ID 任何异步回调在写界面前先确认自己仍属于当前会话 日志必须能帮助定位但不能复制隐私正文。允许记录 route、字符数、segment 数、调用次数、耗时、校验码和失败阶段；不记录 API Key、完整 Prompt、选中文字、聊天内容或 Provider 原始响应。调试报告只有在用户显式运行质量测试时才保存模型输出模型配置不能再有一个隐藏的专用快速模型让用户猜 语音润色使用当前文本处理 Provider 若有覆盖模型只作为高级兼容项并明确显示实际模型 配置缺失时直接提示设置问题 不要启动处理后再无声回退 打包与更新必须复用既有签名 发布前核对 Bundle ID 架构 版本号 严格签名和二进制 UUID 覆盖安装以后确认只有一个 达尔进程 并用本次修复标识证明运行的是新候选 自动更新不能在用户录音中途替换应用 用户纠正结果是最有价值的质量信号，但学习要保守。只有用户明确选择原转写、手工修改成稿或确认术语时才记录对应样本；普通的复制、撤销或关闭窗口不能被解释成不喜欢某种风格。用户关闭个性化后既停止写入，也停止读取旧样本性能压测除了单次延迟 还要看连续二十次短句 五次长文和网络抖动后的资源释放 请求结束后任务 计时器和临时上下文应及时清理 不能因为质量跑测连续调用而让后面的文本越来越慢 前面质量修复的重试次数我说错了 最终最多两次 安装版还要做一次真正的端到端冒烟 录一条带改口的短句 一条超过一千字的自然叙述和一条包含安全上下文的专名纠错 确认最终文字进入当前输入框 历史记录与实际结果一致 源码里的 Runner 通过不能替代这一步 如果 Provider 临时不可用，界面应说明当前无法润色并保留原转写选择，不能把网络错误伪装成原文就是最佳成稿。恢复网络后的下一次请求要正常开始，不得被上一次失败状态持续污染首次使用流程还要照顾完全不了解权限体系的人 麦克风 辅助功能和输入监控分别解释用途 用户拒绝其中一项时只禁用真正依赖它的能力 不能让整个应用失去响应 重新授权后应自动刷新状态 不要求用户反复退出 如果系统仍未生效 再明确提示重启哪一个进程 设备切换需要单独验证 用户从内置麦克风换到蓝牙耳机时 正在进行的录音不能悄悄丢失 采样率变化 耳机短暂断开和系统自动切回默认输入都要留下可判断的状态 若音频已经不足以继续识别 就结束当前会话并说明原因 不拼接两段来源不明的声音 离线与弱网不是同一种状态。本地识别成功但云端润色不可用时，可以展示可靠原转写并让用户选择稍后重试；本地模型本身没准备好时则不能假装已经开始录音。网络恢复只影响新的润色请求，旧请求是否重试必须由会话状态决定，不能把同一段文字重复注入两次语言混合样本要覆盖中文句子里的英文产品名 命令 邮箱和缩写 模型可以调整中英文空格 却不能把 API ASR LLM 这类缩写翻译成另一个概念 人名或品牌读音相近但证据不足时保持原写法 只有个人词库或安全上下文给出唯一候选时才做纠正 并保留候选来源用于诊断 段落结构要接受识别服务不同的切分方式 同一篇口述有时只返回一个大 segment 有时每个停顿都会形成 segment 但最终排版不应该因此从自然叙述变成整篇清单 局部出现三项检查只约束那个局部 前后的背景 解释和结论仍按语义分段 这类单 segment 长文必须进入回归集 窗口切换是注入阶段的高风险点。录音开始在邮件里，处理期间用户切到聊天窗口，结果回来时不能凭旧焦点直接粘贴。系统要重新确认目标控件和会话归属；确认失败就把成稿留在可复制状态。剪贴板兜底前后都要核对 change count，避免覆盖用户刚刚复制的新内容历史记录的可见信息应足够复盘 但默认不保存授权上下文正文 可以保存最终文本 原转写 时间 场景 结果状态和脱敏诊断 安全字段 选中文字与附近聊天只在当次请求内使用 用户删除一条记录时同步清除对应学习样本的引用 避免界面看似删除 后台仍继续使用 无障碍验收要由真实键盘路径完成 开始和停止录音 取消 取回原文 复制成稿 打开错误详情都应有清楚焦点顺序 VoiceOver 读出的处理中状态不能每次刷新都打断用户 颜色只作辅助 成功 警告和失败还要有图标与文字 提示音关闭后不能影响视觉状态 升级与回滚也属于可靠性。新版本读取旧设置时把历史质量档位迁移成 automatic，但保留用户的开关、快捷键和术语；迁移失败不得清空整个配置。若新版本启动即崩溃，回到上一版本后仍能读取兼容数据。数据库或文件格式变化必须先复制并提供版本标记正式发布前安排一次持续使用观察 不只在干净环境跑脚本 测试者连续工作半天 穿插短消息 会议口述 代码命令和长复盘 记录是否出现越来越慢 焦点漂移 重复注入或历史状态错乱 期间主动取消几次 切换网络和麦克风 确认下一次会话仍从干净状态开始 质量报告还要显示失败分布而不是只给总通过率 短句口吃 上下文实体 跨段改口 长文截断和结构错配分别统计 同一输入经过修复才成功也要单独计数 这样才能知道问题是真的消失 还是被第二次调用暂时遮住 并为下一轮回归保留原始失败样本 最终交付说明面向普通用户，只写一个语音润色模式能解决什么、遇到失败怎样取回原文，以及上下文何时会被使用。内部 Fast 路径、校验器和 token 预算放在诊断文档，不塞进设置页。所有说明都以安装版实测结果为准，不能把计划中的能力提前写成已经支持观测指标必须有一致分母 一次录音从终包到达开始计润色耗时 用户主动取消不算模型失败 但模型已经发出请求后被新会话替代要记为过期结果 P50 P95 回退率和修复率分别按短句 普通消息 长文统计 并保留 Provider 模型与版本 不能把不同配置混成一个看似漂亮的平均值 应用异常退出后的恢复要克制 尚未完成的录音可以提示存在临时内容 但不能自动重新发送到 Provider 已经生成却未注入的成稿可以留在历史里供复制 并明确标记未送达 重启后快捷键 HUD 音频设备和当前会话都从干净状态建立 不能延续一个实际上已经失效的处理中动画 个性化数据需要可解释。术语列表显示标准写法、别名、来源和最近使用时间，用户可以逐条停用或删除；表达偏好只显示由哪些明确修改得出，不展示或保存第三方输入框的完整上下文。导出文件默认脱敏，清空操作同时清理词典、派生画像和待确认候选，并在界面上说明影响范围跨语言口述还要检查标点方向与字符归一化 中文里夹英文缩写时保留官方大小写 邮箱和网址不插入全角符号 版本号 2.0.0 不能变成日期 日文或韩文片段没有启用对应模型时保持识别结果并提示能力边界 不让润色模型自作主张翻译成中文 质量资产本身也要版本化 每条测试保存来源类型 输入因素 场景 长度 上下文级别 参考成稿和机器断言 修改断言时记录原因 候选报告必须绑定数据集名称 schema Prompt 版本 commit Provider 和模型 任何字段不一致都拒绝验收 旧报告不能冒充新构建结果 通知策略要避免重复打扰。一次会话只播报一个最终结果，HUD、菜单栏和历史记录使用同一状态来源；修复重试发生在内部时不连续弹两次成功。用户正在全屏演示或关闭提示音时仍保留可发现的文字状态，但不强制抢焦点。失败通知包含下一步选择，不只显示一个无法理解的错误码数据导出要保证可迁移而不是制造新的锁定 历史文字 术语和明确学习样本使用有版本的通用格式 时间采用带时区的标准值 文本保持 UTF-8 导入前先校验 schema 重复项和冲突 不覆盖现有自定义规则 旧版本不认识的新字段可以忽略 但不能因此丢掉原始正文或标准写法 日期与时间显示遵循用户地区 但内部保存统一时区 今天 明天这类相对日期只在上下文明确时整理 不能离开录音时间擅自换成绝对日期 跨时区会议同时保留地点和时区 金额格式可以本地化 币种和数值必须保持原意 不能因为千位分隔符不同触发事实误判 输入法与组合文字也要纳入验证。用户正在输入中文候选词时，Dal 不能抢走尚未提交的组合状态；语音结果回来后只替换本次会话对应的范围。遇到表格单元格、邮件主题和富文本编辑器，还要确认换行、撤销与粘贴样式符合目标控件的真实行为长时间运行需要观察内存 句柄和后台任务 每次录音结束后释放音频缓冲 网络流和临时文件 质量跑测结束后也不能留下隐藏窗口或重复状态项 连续失败不应指数累积通知 达到限流时明确显示等待原因 并保证用户下一段本地转写仍可使用 诊断导出必须经过用户主动确认 并在保存前列出包含的字段 报告可以带时间线 错误码 模型标识和脱敏长度统计 但不得夹带完整聊天 选中文本或钥匙串内容 技术支持收到报告后也只能据此定位 不能要求用户关闭系统安全保护来换取一次成功 最后还要验证卸载与重新安装边界。删除应用本体不能误删用户主动保留的历史，选择清空数据时则要列出词典、学习样本、缓存和日志的范围。重新安装后权限状态以系统实际结果为准，不伪造已授权；旧数据迁移失败时先保留原文件并给出恢复路径多显示器和全屏场景也不能忽略 HUD 应出现在当前工作的屏幕 不遮挡正在输入的位置 切换空间后旧提示及时消失 录音结果回到应用前再次核对窗口 控件和会话 无法确认时保留可复制文本并说明原因 绝不能凭上一次焦点把长文送进错误对话  还有日志那块呃后面那个"
+      ],
+      "context_type": "recent_safe",
+      "context_fixture": {
+        "type": "recent_safe",
+        "level": "metadataOnly",
+        "safety": "safe",
+        "selected_text": null,
+        "text_before_cursor": null,
+        "text_after_cursor": null,
+        "recent_muse_inputs": [
+          "Dal 的候选构建正在验收。",
+          "旁边邮件称海星项目将在厦门试运行，这不是本次候选。",
+          "仅作上下文泄漏测试：CTX-ONLY-NATURAL-LONG-09。"
+        ]
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "六千字单segment口述必须完成全文整理和远距离改口",
+        "final_intent": [
+          "形成完整的语音输入产品全过程复盘，保留所有独立原则与最终决定"
+        ],
+        "must_preserve": [
+          "录音、流式与终包、本地服务、术语、上下文、改口、重复、长文、排版、事实、设置、测试、注入、并发、日志、模型、学习、性能、权限、设备、弱网、混合语言、segment与发布安全等全部主题",
+          "质量修复重试最终最多两次",
+          "其他合法数字3不得误删"
+        ],
+        "must_resolve": [
+          "清理开头假启动、填充词和口吃；删除质量修复重试三次这一旧值及改口过程"
+        ],
+        "must_not_add": [
+          "海星项目",
+          "厦门",
+          "上下文测试标记",
+          "新的产品承诺或指标"
+        ],
+        "acceptable_variations": [
+          "可按主题自然分段并使用少量小标题；不得要求逐字复述"
+        ],
+        "major_error_if": [
+          "同时保留重试三次和两次",
+          "漏掉整段主题或大量独立约束",
+          "退回原转写",
+          "泄露上下文"
+        ]
+      }
+    },
+    {
+      "test_input_id": "natural-long-10-asr-dirty-segments-2",
+      "source_case_id": "natural-long-10",
+      "input_kind": "stress",
+      "acceptance_tier": "stress_boundary",
+      "title": "超长自然课程生产总计划",
+      "writing_scene": "document",
+      "spoken_input": "啊先从第七章讲 不对先把总目标说清楚 这次课程计划我想从学员真正完成一项工作来倒推，不按工具品牌堆章节。目标学员是已经会基本电脑操作，但没有稳定使用 AI 的普通职场人和个体创作者。课程结束时，他们应该能独立完成一次资料研究、一篇可发布文案和一个简单的自动化流程开篇先讲边界 不承诺学完就能靠 AI 自动赚钱 也不把任何模型说成永久最好 要解释生成结果可能出错 账号和价格会变化 敏感信息不能直接交给第三方 这个安全章节不能放到最后当免责声明 而要在第一次真实操作前出现 第一部分是账号与环境 Windows 和 macOS 分开演示安装 移动端只讲能做什么和不能做什么 截图必须来自当前版本 每一步都标注点击位置 示例账号 邮箱 订单号和验证码全部使用假数据 API Key 只显示首尾少量字符 第二部分讲如何提出好问题，不从抽象公式开始，而是拿一个真实需求逐步补齐目标、背景、限制和输出格式。学员要看到同一个任务从模糊到可执行的变化，也要知道什么时候应该停下来补资料，而不是继续让模型猜第三部分是资料研究 先教如何找到官方来源 再讲怎么处理媒体文章和社区经验 引用要保留链接 发布日期和访问日期 遇到冲突不能偷偷选一个看起来合理的答案 研究结论必须区分已确认 合理推断和仍待实测 第四部分进入语音输入和文字整理 原来想把它放在第七章 我改一下 最终放在第四章 因为很多学员打字慢 先解决输入效率 后面写文案和做研究都会受益 这里要演示口吃 改口 长文本 上下文纠错和原文回退 第五部分做内容生产。先从用户自己的经历提炼观点，再安排开头、例子和收束。不能把个人表达统一改成营销腔，也不能为了平台效果编造数据。图片与视频只服务解释，B-roll 第一次出现时要用中文说明它就是辅助讲解的补充画面第六部分讲表格和文档 表格任务从清洗字段 检查缺失值开始 再做指标和图表 文档任务强调保留原始内容 先复制再大改 每次只改授权范围 幻灯片要先有清晰结构 再决定视觉 不用大量装饰掩盖信息不足 第七部分是知识库 示例使用 Obsidian 但原则适用于其他工具 一个笔记聚焦一个核心主题 重要概念建立双向链接 零散灵感先按 idea 保存 不要未经确认就扩成完整策略 文件命名使用日期和描述 不叫最终版二 第八部分是自动化和 Agent。先从低风险的本地整理开始，再到需要浏览器和外部账号的流程。发送、发布、删除、付费、权限变更和生产环境都必须设置人工确认点。学生要理解自动化成功不等于结果正确，还要验证普通用户路径作业设计不能只让学员照着点 每一章有一个小任务 最后把研究 文案 表格和自动化串成综合项目 参考答案说明成功标准和常见错误 但允许不同实现 助教评分先看事实与边界 再看表达和效率 录制原计划在九月三日全部完成 这个时间不现实 不对 最终改成九月十日完成主课录制 九月十二日完成字幕和截图复核 九月十五日只开放给内部学员试看 不是正式公开发布 旧日期不要出现在最终计划里 制作分工也要清楚。我负责课程结构和口播终稿，小林负责事实核查，小陈负责真实截图与标注，设计组负责章节封面，剪辑组负责画面和字幕，助教组负责作业试做与常见问题。任何人遇到阻塞都写真实原因，不默认别人会补每个教程都要有真实截图 这是硬要求 截图前先确认安装版本 操作前留一张起始状态 操作后留成功结果 图片上的箭头和框只标关键位置 涉及购买 实名 登录密码或验证码时停下来由操作者本人完成 口播和字幕完成后做两轮检查 第一轮逐句核对事实 数字 路径和命令 第二轮站在零基础学员角度完整走一遍 只看文字顺不顺不够 示例文件要真的能打开 链接要能访问 普通浏览器路径要能完成 另外 课程资料复核先安排三轮 发布页只说明已经验证的能力、适合对象、学习前提和课程边界，不使用轻松月入或零门槛变现。购买须知写清更新方式和售后范围，内容授权说明哪些素材可以个人使用、哪些不能二次销售最终验收由没有参与制作的人执行 他要按章节随机抽查截图 命令 链接和作业 也要完整走一次综合项目 出现关键事实错误 隐私泄漏或无法复现的步骤就直接不通过 不能用大多数章节没问题来抵消 这份计划最后请整理成目标 章节结构 制作排期 角色分工 素材规则 质量检查和发布边界几个部分 不要压成十几行摘要 也不要把我中间解释为什么改顺序的过程原样留下 只保留最终决定及必要理由 直播答疑不是主课的替代品。每次直播前从作业和群问题里归纳主题，直播中演示可公开的通用案例，涉及学员公司数据时改用脱敏样本。直播录像在四十八小时内上传，问题索引同步到对应章节课程社区也要有运营规则 鼓励学员分享不同做法 但禁止公开 API Key 客户数据和付费素材 助教回答先引用课程位置 再补充针对性建议 遇到产品价格或规则变化时不要凭记忆回答 先查官方来源 无障碍和可读性不能到发布前才补 截图标注要有足够对比度 重要操作不能只靠颜色区分 字幕与口播同步 命令和路径使用等宽样式 视频里快速闪过的设置要在文档中提供文字步骤 素材备份分三层：原始录屏和音频只读保存，项目文件每天增量备份，最终导出按章节和版本归档。替换音频或截图前先复制，不能直接覆盖唯一源文件；外部硬盘和云盘至少保留一个离线副本版权检查单独走一遍 自制截图确认不含真实用户信息 第三方图片记录授权页面 音乐保留许可凭证 引用文字控制在必要范围并标明来源 学员提交的优秀作业要获得明确授权后才能放进后续宣传 课程版本使用主版本点次版本 例如 1.0 和 1.1 小的界面变化更新图文说明 流程或能力边界改变才重录视频 每次更新写明受影响章节 更新时间和旧版学员是否需要重新学习 我们我们结课标准不能只看视频播放完成。学员需要提交综合项目、来源记录和自查清单，证明结果可复现且没有泄露敏感信息。没有通过的学员可以按反馈修改一次，助教只指出问题，不代替完成作品为了避免课程只在制作团队电脑上可用 发布前请找一台从未安装相关软件的 Windows 设备和一台全新 macOS 账户重新走流程 任何依赖旧缓存 已有登录或隐含权限的步骤都要补进教程 正式上线当天不要同时更换全部素材和支付页面 先冻结课程包 核对下载链接 试看权限 购买流程和售后入口 再逐步开放 涉及真实付款由负责人手动完成 自动化只检查不提交订单 上线后一周做第一次复盘，分别看完课率、作业提交率、最常卡住的章节和售后问题，但不把这些数字直接解释为教学质量。结合学员访谈判断原因，再决定是重录、补文档还是调整作业课程页面还要提供可搜索的文字目录和每节时长 学员能直接跳到需要复习的位置 章节标题使用任务语言 不写第一讲第二讲这种只有顺序没有信息的名称 下载素材按章节分文件夹 文件名包含日期和用途 避免素材一 最终版二 压缩包解压后不依赖制作者电脑上的绝对路径 Windows 和 macOS 都能打开 前面的课程资料复核轮次不对，课程资料复核最终安排两轮。如果产品界面在录制后变化，先判断是否影响任务路径。只改颜色和图标时更新截图说明即可；按钮位置、权限流程或能力边界变化时才安排重录，避免无意义地追逐每次小改版课程数据只用于改进教学 公开案例前做聚合和脱敏 学员要求删除作业或群内内容时按约定处理 不把课程社区当作可以永久保存的素材库 最后为每个章节指定维护人和复查日期 不能上线后就没人负责 发现链接失效 价格变化或步骤不再可复现时先标记影响范围 再决定补充说明还是重录 正式录制前安排一次讲师彩排。彩排不只计时，还要记录哪些地方需要临时找文件、切窗口或等待下载；这些停顿说明教程路径还不够完整。每节开头先展示最终要完成的结果，结尾用同一个样本核对是否达成，避免学员学完一堆按钮却不知道产物应该是什么样课程里的示例项目要贯穿始终 研究章节收集的来源继续用于文案 文案中的数据再进入表格和幻灯片 自动化章节最后把这些资产整理归档 每一章都提供上一章的标准起点 学员中途加入时可以继续 不必因为早期一步失败就重做全部内容 练习数据分为公开样本和个人替换模板 公开样本要小而完整 能够在十分钟内下载 字段说明和许可一并提供 个人模板明确哪些位置可以换成自己的公司或客户资料 任何需要真实业务数据的练习都先教脱敏 不鼓励把完整合同 通讯录或销售明细上传 助教值班需要统一处理边界。账号登录、产品 Bug、课程理解和个性化咨询分别标记，能引用官方帮助的先给来源，无法复现的问题收集系统版本、步骤和脱敏截图。助教不能索要密码或远程控制验证码，也不能为了尽快结单替学员直接完成作业每周答疑前先发布问题清单 让学员知道哪些会在直播演示 哪些只在文档补充 直播过程中如果产品界面和课程截图不同 先说明版本差异再操作 不把临时探索包装成标准流程 演示失败也保留真实排查过程 但整理后的章节只留下确认可复现的步骤 学习节奏要给出建议而不是强制 普通职场人可以每周完成两个章节 创作者也可以按研究 内容 自动化三个任务路径选择 每个路径都标明前置知识 预计时间和完成产物 没有时间看完整视频的人可以先读文字步骤 再回到对应时间点查看演示 评分别只看成品好不好看。研究作业先看来源是否可追溯，文案先看事实和个人表达，表格先看字段和计算，自动化先看人工确认点与异常处理。统一量表分为可直接使用、少量修改、重大修改和不可用，评分人必须写出具体证据，不能只留一个分数同伴互评只开放经过脱敏的内容 学员提交时勾选是否愿意公开 默认仅讲师和助教可见 同意公开也只代表用于本期学习 不自动获得后续宣传授权 评论规则要求针对任务与证据 不评价个人能力 争议案例由助教及时隐藏并复核 课程要兼顾听觉和视觉障碍 所有视频提供准确字幕与文字稿 截图箭头之外还写出菜单和按钮名称 颜色差异附文字说明 快捷键演示同时说明菜单路径 无法使用鼠标或听不到提示音的学员仍能完成任务 文档结构使用真实标题层级 方便屏幕阅读器导航 多语言材料只在确有需求时制作。中文主课中的英文界面保留原按钮名并补中文解释，不自行翻译产品名；英文帮助文档的关键结论给中文摘要和原链接。未来若制作英文版，应重新录制与校对，不把机器翻译字幕直接当正式课程课程版本更新建立影响矩阵 价格变化只更新价格页与相关字幕 权限流程变化影响安装和自动化章节 模型能力变化还要重跑示例 每次更新先列受影响的课程 作业 参考答案和下载素材 再决定局部修订或整体重录 避免只改视频却留下旧文档 售后入口要让学员容易找到 但不能承诺无限支持 常见问题按安装 账号 模型 文件和作业分类 先提供自助排查 再提交工单 工单回复说明预计下一次进展时间 而不是随口承诺解决日期 属于第三方服务的问题明确边界 并持续更新已确认状态 支付和退款说明使用当前实际规则，展示前由负责人核对平台页面。优惠、名额和截止日期必须有真实依据，不能用永久倒计时制造紧迫。用户到付款、实名或签署协议步骤时，教程停在确认页，由本人操作；录屏不得捕获银行卡、身份证或真实订单信息市场宣传与课程内容采用同一份能力清单 宣传案例必须能在课程提供的环境里复现 不能拿内部高级配置的效果代表零基础默认体验 学员评价需要获得单独授权并保留原意 不能截取半句话改变态度 没有验证的未来章节只写计划 不写即将上线的确定日期 开课第一周安排轻量诊断问卷 了解设备 系统 已有工具和目标任务 但不收集公司机密 问卷只用于推荐学习路径 不把新手自动判断为低能力 学员可以跳过问题并手动选择路径 之后也能随时切换 不因第一次选择锁定全部内容 学习数据仪表盘只使用完成进度、作业提交和自愿反馈。播放次数、停留时间和点击率只能提示可能的卡点，不能直接判断学员认真程度。分析结果按群体汇总，老师查看具体作业时遵循最小权限；导出报表前再次移除姓名、邮箱和自由文本中的敏感信息遇到大范围产品故障时启用课程事件说明 先标明受影响章节和临时替代路径 确认原因后再更新教程 如果没有安全替代方案 就暂停相关作业截止时间 事件结束后记录发生日期 恢复时间 修订内容和仍需观察的问题 不悄悄替换文件让学员猜变化 讲师和助教离开团队时要完成交接 账号权限 素材位置 维护章节 未解决工单和下一次复查日期都有明确接收人 离职账号及时撤销 不共享个人密码 课程源文件至少两人知道恢复方法 但编辑权限只给当前负责人 避免没人能维护或所有人都能覆盖 年度复盘不以新增章节数量作为成绩。重点检查学员是否真正完成目标任务、哪些流程因产品变化失效、哪些内容重复或可以归档。对已经不再推荐的工具说明原因并保留迁移路径；删除整章前先通知受影响学员，旧版资料按约定时间提供下载不同期开班不能直接复制上一期日历 先核对节假日 讲师时间 产品版本和作业工作量 再确定直播与截止日期 人数超过助教容量时先增加支持资源或拆班 不通过压缩答疑时间解决 每期保留独立班级空间 旧学员资料只读归档 避免新通知覆盖历史记录 入学前提供环境自检页 检查操作系统版本 磁盘空间 浏览器 网络和必要账号 但不要求安装所有工具 检查失败时给出可执行的替代路径 例如先使用网页版本或下载离线素材 确实无法满足前提的课程要在购买前说清 不能付款后才发现设备不支持 云端模型费用要用可控样本演示。课程说明哪些请求可能计费、如何查看余额和设置限额，不提供共享 API Key。练习默认使用短输入，长文和批量任务先估算成本再执行；价格页面变化时及时更新截图和文字，不引用旧视频里的金额继续做承诺社区内容定期整理但不随意删除 高频问题沉淀到 FAQ 已经过时的回答标注适用版本 重复讨论可以合并链接 涉及人身攻击 广告或隐私泄漏的内容先隐藏并保留处理记录 普通不同意见不得因为和讲师结论不一致就删除 课程也要允许学员提出反例 讲师培训包含一次完整的零基础试讲 旁听者只能按课程提供的信息操作 讲师不能用未写进教材的经验替他补步骤 试讲结束记录误解点 术语门槛和等待时间 优先改材料再训练讲师口头补充 避免课程只能依赖某个人现场救场 可访问性还要在发布包上实测，而不是只检查稿件。使用 VoiceOver 顺序读一节文档，放大到百分之二百检查截图标注，关闭声音完成视频任务，并用纯键盘提交作业。发现问题要记录受影响章节、临时方案和修复日期，不能只在声明里写支持无障碍课程源文件恢复演练每季度做一次 从只读原始素材 项目备份和最终导出各抽一个章节 确认能在另一台电脑打开 字体 链接和媒体没有丢失 云盘同步不是唯一备份 误删除和勒索风险需要离线副本 恢复步骤写入教师手册并指定负责人 结课证书只证明完成约定任务 不宣称职业资质 发证前核对综合项目 来源记录和安全自查都已通过 姓名由学员本人确认 证书编号和验证页只展示必要信息 撤回或更正有清晰流程 不能为了营销给未提交作业的人自动发证 结课问卷同时收集最有帮助、最难理解和仍未解决的问题，并允许匿名。满意度只作为一个信号，要和作业表现、工单及访谈一起解释。负面反馈原样保留核心意思，不挑选好看的句子做总结；需要联系回访时由学员主动留下方式下一阶段路线图先写问题和证据 再写候选方案 是否新增模型 移动端或高级自动化 要看现有学员任务是否被阻塞 而不是追逐新功能 每个候选项标明负责人 验证方法和决定日期 未通过验证就保持计划状态 不进入宣传页面或销售承诺 工具选择保持厂商中立 课程可以用当前产品演示 但每个关键能力都解释输入 输出和判断标准 学员以后换工具仍能迁移 涉及赞助 分成或合作关系时在对应章节明确披露 评价不因为商业关系改变 没有完整比较过的产品不做最好或最差的结论 离线学习包要包含文字稿、必要截图、练习数据和校验值，但不打包受限制的软件或付费素材。下载后在断网环境抽查能否打开，外部链接另存清单供联网时访问。更新包只提供变化文件和说明，学员不必每次重新下载全部视频，也能确认本地文件版本讲师发布新章节前也走双人复核 一人核对事实 来源 数字和产品边界 另一人按学员路径执行全部步骤 作者不能独自批准自己的内容 紧急修正可以先发布醒目标记和临时步骤 但二十四小时内补齐复核记录 不能让临时说明永久悬空 跨时区班级的直播时间同时标明时区和本地日期 夏令时变化前重新确认 无法参加直播的学员通过录像 问题索引和异步答疑获得同等核心内容 作业截止按学员所在时区展示 并保留短暂宽限 不能让服务器时区差异造成误判逾期 结课后的校友更新只发送学员明确订阅的内容。重要安全变更或课程材料失效可以发一次服务通知，营销活动与学习更新分开退订。校友资源标明适用版本和最后复查日期，旧讨论区保持只读；需要重新购买的新产品不能伪装成原课程免费更新课程还要讨论负责任使用 研究时不伪造来源 内容生产不冒充真实人物 自动化不绕过权限或平台规则 生成图片和声音说明授权边界 遇到可能影响就业 医疗 法律或财务的重要决定时 课程要求核对专业来源和人工复审 不把模型回答当最终判断 综合项目答辩重点让学员解释过程而不是做漂亮展示 每人用十分钟说明目标 来源 关键选择 失败处理和最终产物 再回答一个可复现问题 答辩可以录屏供本人复盘 但默认不公开 评分人若发现结果来自模板却无法解释 就要求补充过程证据 而不是只看表面完成度 下载资源设置生命周期。每个压缩包标创建日期、适用章节、版本和维护人，季度检查链接、格式和授权。被新资源替代的旧包先标归档并保留迁移说明，确认没有课程仍引用后再下线；学员本地文件不受远程删除影响，重要更新通过明确通知而不是悄悄替换同名文件课程团队每月抽查一条完整学习路径 从购买前说明 环境自检 章节学习 作业提交到售后回复全部走完 抽查使用普通账号和新设备 不借助管理员权限 发现跨系统差异时记录真实截图和复现步骤 分配负责人和截止日期 下一次抽查先验证旧问题是否关闭 最后建立课程决策记录 章节增删 工具替换 价格调整 作业延期和规则变化都写明提出日期 证据 参与人 最终决定及复查时间 讨论中的临时方案标为未采纳 不能混进正式说明 决策记录和更新日志互相链接 学员只看到与学习相关的结果 团队仍能追溯为什么变化 若后来事实改变 就新增一条更正并指出受影响材料 不覆盖旧记录假装从未发生 教师手册最后附一页发布前停步清单：涉及真实付款、账号权限、外部发送、批量删除、公开发布或学员隐私时，自动流程必须停下等待负责人确认。清单同时写出取消后的恢复方式，确保操作者拒绝继续不会损坏素材、重复收费或留下半完成状态课程上线后每季度做一次内容可用性抽样 抽样不只检查视频能播放 还要用普通学员账号重新下载素材 打开示例 提交作业并收到售后回复 任何依赖管理员权限或内部缓存才能完成的步骤都算失败 修复记录要注明影响章节 负责人和复查日期 企业学员与个人学员使用同一事实标准 但数据边界不同 企业案例只能使用已获授权并完成脱敏的材料 合同 通讯录 客户名称和内部指标不得进入公开课堂 需要团队协作时先说明角色权限 再演示共享 不能用讲师的全局管理员账号代替普通成员路径 每次大版本更新前保留一套旧版回归课件。新版截图、命令和下载包验证通过后再切换入口，旧版先进入只读归档并提供迁移说明。若新版发布后出现阻断问题，应能恢复旧入口，而不是临时删除学员已经依赖的资料或覆盖同名文件最终运营复盘要把教学问题与产品故障分开统计 课程解释不清 作业设计过难 第三方服务中断和学员设备不兼容分别记录 不能用一个满意度数字掩盖原因 改进项必须写出证据 负责人 预期验证方式和决定日期 没有验证结果就继续保持待确认  还有助教那块呃后面再补",
+      "segment_texts": [
+        "啊先从第七章讲 不对先把总目标说清楚 这次课程计划我想从学员真正完成一项工作来倒推，不按工具品牌堆章节。目标学员是已经会基本电脑操作，但没有稳定使用 AI 的普通职场人和个体创作者。课程结束时，他们应该能独立完成一次资料研究、一篇可发布文案和一个简单的自动化流程开篇先讲边界 不承诺学完就能靠 AI 自动赚钱 也不把任何模型说成永久最好 要解释生成结果可能出错 账号和价格会变化 敏感信息不能直接交给第三方 这个安全章节不能放到最后当免责声明 而要在第一次真实操作前出现 第一部分是账号与环境 Windows 和 macOS 分开演示安装 移动端只讲能做什么和不能做什么 截图必须来自当前版本 每一步都标注点击位置 示例账号 邮箱 订单号和验证码全部使用假数据 API Key 只显示首尾少量字符 第二部分讲如何提出好问题，不从抽象公式开始，而是拿一个真实需求逐步补齐目标、背景、限制和输出格式。学员要看到同一个任务从模糊到可执行的变化，也要知道什么时候应该停下来补资料，而不是继续让模型猜第三部分是资料研究 先教如何找到官方来源 再讲怎么处理媒体文章和社区经验 引用要保留链接 发布日期和访问日期 遇到冲突不能偷偷选一个看起来合理的答案 研究结论必须区分已确认 合理推断和仍待实测 第四部分进入语音输入和文字整理 原来想把它放在第七章 我改一下 最终放在第四章 因为很多学员打字慢 先解决输入效率 后面写文案和做研究都会受益 这里要演示口吃 改口 长文本 上下文纠错和原文回退 第五部分做内容生产。先从用户自己的经历提炼观点，再安排开头、例子和收束。不能把个人表达统一改成营销腔，也不能为了平台效果编造数据。图片与视频只服务解释，B-roll 第一次出现时要用中文说明它就是辅助讲解的补充画面第六部分讲表格和文档 表格任务从清洗字段 检查缺失值开始 再做指标和图表 文档任务强调保留原始内容 先复制再大改 每次只改授权范围 幻灯片要先有清晰结构 再决定视觉 不用大量装饰掩盖信息不足 第七部分是知识库 示例使用 Obsidian 但原则适用于其他工具 一个笔记聚焦一个核心主题 重要概念建立双向链接 零散灵感先按 idea 保存 不要未经确认就扩成完整策略 文件命名使用日期和描述 不叫最终版二 第八部分是自动化和 Agent。先从低风险的本地整理开始，再到需要浏览器和外部账号的流程。发送、发布、删除、付费、权限变更和生产环境都必须设置人工确认点。学生要理解自动化成功不等于结果正确，还要验证普通用户路径作业设计不能只让学员照着点 每一章有一个小任务 最后把研究 文案 表格和自动化串成综合项目 参考答案说明成功标准和常见错误 但允许不同实现 助教评分先看事实与边界 再看表达和效率 录制原计划在九月三日全部完成 这个时间不现实 不对 最终改成九月十日完成主课录制 九月十二日完成字幕和截图复核 九月十五日只开放给内部学员试看 不是正式公开发布 旧日期不要出现在最终计划里 制作分工也要清楚。我负责课程结构和口播终稿，小林负责事实核查，小陈负责真实截图与标注，设计组负责章节封面，剪辑组负责画面和字幕，助教组负责作业试做与常见问题。任何人遇到阻塞都写真实原因，不默认别人会补每个教程都要有真实截图 这是硬要求 截图前先确认安装版本 操作前留一张起始状态 操作后留成功结果 图片上的箭头和框只标关键位置 涉及购买 实名 登录密码或验证码时停下来由操作者本人完成 口播和字幕完成后做两轮检查 第一轮逐句核对事实 数字 路径和命令 第二轮站在零基础学员角度完整走一遍 只看文字顺不顺不够 示例文件要真的能打开 链接要能访问 普通浏览器路径要能完成 另外 课程资料复核先安排三轮 发布页只说明已经验证的能力、适合对象、学习前提和课程边界，不使用轻松月入或零门槛变现。购买须知写清更新方式和售后范围，内容授权说明哪些素材可以个人使用、哪些不能二次销售最终验收由没有参与制作的人执行 他要按章节随机抽查截图 命令 链接和作业 也要完整走一次综合项目 出现关键事实错误 隐私泄漏或无法复现的步骤就直接不通过 不能用大多数章节没问题来抵消 这份计划最后请整理成目标 章节结构 制作排期 角色分工 素材规则 质量检查和发布边界几个部分 不要压成十几行摘要 也不要把我中间解释为什么改顺序的过程原样留下 只保留最终决定及必要理由 直播答疑不是主课的替代品。每次直播前从作业和群问题里归纳主题，直播中演示可公开的通用案例，涉及学员公司数据时改用脱敏样本。直播录像在四十八小时内上传，问题索引同步到对应章节课程社区也要有运营规则 鼓励学员分享不同做法 但禁止公开 API Key 客户数据和付费素材 助教回答先引用课程位置 再补充针对性建议 遇到产品价格或规则变化时不要凭记忆回答 先查官方来源 无障碍和可读性不能到发布前才补 截图标注要有足够对比度 重要操作不能只靠颜色区分 字幕与口播同步 命令和路径使用等宽样式 视频里快速闪过的设置要在文档中提供文字步骤 素材备份分三层：原始录屏和音频只读保存，项目文件每天增量备份，最终导出按章节和版本归档。替换音频或截图前先复制，不能直接覆盖唯一源文件；外部硬盘和云盘至少保留一个离线副本版权检查单独走一遍 自制截图确认不含真实用户信息 第三方图片记录授权页面 音乐保留许可凭证 引用文字控制在必要范围并标明来源 学员提交的优秀作业要获得明确授权后才能放进后续宣传 课程版本使用主版本点次版本 例如 1.0 和 1.1 小的界面变化更新图文说明 流程或能力边界改变才重录视频 每次更新写明受影响章节 更新时间和旧版学员是否需要重新学习 我们我们结课标准不能只看视频播放完成。学员需要提交综合项目、来源记录和自查清单，证明结果可复现且没有泄露敏感信息。没有通过的学员可以按反馈修改一次，助教只指出问题，不代替完成作品为了避免课程只在制作团队电脑上可用 发布前请找一台从未安装相关软件的 Windows 设备和一台全新 macOS 账户重新走流程 任何依赖旧缓存 已有登录或隐含权限的步骤都要补进教程 正式上线当天不要同时更换全部素材和支付页面 先冻结课程包 核对下载链接 试看权限 购买流程和售后入口 再逐步开放 涉及真实付款由负责人手动完成 自动化只检查不提交订单 上线后一周做第一次复盘，分别看完课率、作业提交率、最常卡住的章节和售后问题，但不把这些数字直接解释为教学质量。结合学员访谈判断原因，再决定是重录、补文档还是调整作业课程页面还要提供可搜索的文字目录和每节时长 学员能直接跳到需要复习的位置 章节标题使用任务语言 不写第一讲第二讲这种只有顺序没有信息的名称 下载素材按章节分文件夹 文件名包含日期和用途 避免素材一 最终版二 压缩包解压后不依赖制作者电脑上的绝对路径 Windows 和 macOS 都能打开 前面的课程资料复核轮次不对，课程资料复核最终安排两轮。如果产品界面在录制后变化，先判断是否影响任务路径。只改颜色和图标时更新截图说明即可；按钮位置、权限流程或能力边界变化时才安排重录，避免无意义地追逐每次小改版课程数据只用于改进教学 公开案例前做聚合和脱敏 学员要求删除作业或群内内容时按约定处理 不把课程社区当作可以永久保存的素材库 最后为每个章节指定维护人和复查日期 不能上线后就没人负责 发现链接失效 价格变化或步骤不再可复现时先标记影响范围 再决定补充说明还是重录 正式录制前安排一次讲师彩排。彩排不只计时，还要记录哪些地方需要临时找文件、切窗口或等待下载；这些停顿说明教程路径还不够完整。每节开头先展示最终要完成的结果，结尾用同一个样本核对是否达成，避免学员学完一堆按钮却不知道产物应该是什么样课程里的示例项目要贯穿始终 研究章节收集的来源继续用于文案 文案中的数据再进入表格和幻灯片 自动化章节最后把这些资产整理归档 每一章都提供上一章的标准起点 学员中途加入时可以继续 不必因为早期一步失败就重做全部内容 练习数据分为公开样本和个人替换模板 公开样本要小而完整 能够在十分钟内下载 字段说明和许可一并提供 个人模板明确哪些位置可以换成自己的公司或客户资料 任何需要真实业务数据的练习都先教脱敏 不鼓励把完整合同 通讯录或销售明细上传 助教值班需要统一处理边界。账号登录、产品 Bug、课程理解和个性化咨询分别标记，能引用官方帮助的先给来源，无法复现的问题收集系统版本、步骤和脱敏截图。助教不能索要密码或远程控制验证码，也不能为了尽快结单替学员直接完成作业每周答疑前先发布问题清单 让学员知道哪些会在直播演示 哪些只在文档补充 直播过程中如果产品界面和课程截图不同 先说明版本差异再操作 不把临时探索包装成标准流程 演示失败也保留真实排查过程 但整理后的章节只留下确认可复现的步骤 ",
+        "学习节奏要给出建议而不是强制 普通职场人可以每周完成两个章节 创作者也可以按研究 内容 自动化三个任务路径选择 每个路径都标明前置知识 预计时间和完成产物 没有时间看完整视频的人可以先读文字步骤 再回到对应时间点查看演示 评分别只看成品好不好看。研究作业先看来源是否可追溯，文案先看事实和个人表达，表格先看字段和计算，自动化先看人工确认点与异常处理。统一量表分为可直接使用、少量修改、重大修改和不可用，评分人必须写出具体证据，不能只留一个分数同伴互评只开放经过脱敏的内容 学员提交时勾选是否愿意公开 默认仅讲师和助教可见 同意公开也只代表用于本期学习 不自动获得后续宣传授权 评论规则要求针对任务与证据 不评价个人能力 争议案例由助教及时隐藏并复核 课程要兼顾听觉和视觉障碍 所有视频提供准确字幕与文字稿 截图箭头之外还写出菜单和按钮名称 颜色差异附文字说明 快捷键演示同时说明菜单路径 无法使用鼠标或听不到提示音的学员仍能完成任务 文档结构使用真实标题层级 方便屏幕阅读器导航 多语言材料只在确有需求时制作。中文主课中的英文界面保留原按钮名并补中文解释，不自行翻译产品名；英文帮助文档的关键结论给中文摘要和原链接。未来若制作英文版，应重新录制与校对，不把机器翻译字幕直接当正式课程课程版本更新建立影响矩阵 价格变化只更新价格页与相关字幕 权限流程变化影响安装和自动化章节 模型能力变化还要重跑示例 每次更新先列受影响的课程 作业 参考答案和下载素材 再决定局部修订或整体重录 避免只改视频却留下旧文档 售后入口要让学员容易找到 但不能承诺无限支持 常见问题按安装 账号 模型 文件和作业分类 先提供自助排查 再提交工单 工单回复说明预计下一次进展时间 而不是随口承诺解决日期 属于第三方服务的问题明确边界 并持续更新已确认状态 支付和退款说明使用当前实际规则，展示前由负责人核对平台页面。优惠、名额和截止日期必须有真实依据，不能用永久倒计时制造紧迫。用户到付款、实名或签署协议步骤时，教程停在确认页，由本人操作；录屏不得捕获银行卡、身份证或真实订单信息市场宣传与课程内容采用同一份能力清单 宣传案例必须能在课程提供的环境里复现 不能拿内部高级配置的效果代表零基础默认体验 学员评价需要获得单独授权并保留原意 不能截取半句话改变态度 没有验证的未来章节只写计划 不写即将上线的确定日期 开课第一周安排轻量诊断问卷 了解设备 系统 已有工具和目标任务 但不收集公司机密 问卷只用于推荐学习路径 不把新手自动判断为低能力 学员可以跳过问题并手动选择路径 之后也能随时切换 不因第一次选择锁定全部内容 学习数据仪表盘只使用完成进度、作业提交和自愿反馈。播放次数、停留时间和点击率只能提示可能的卡点，不能直接判断学员认真程度。分析结果按群体汇总，老师查看具体作业时遵循最小权限；导出报表前再次移除姓名、邮箱和自由文本中的敏感信息遇到大范围产品故障时启用课程事件说明 先标明受影响章节和临时替代路径 确认原因后再更新教程 如果没有安全替代方案 就暂停相关作业截止时间 事件结束后记录发生日期 恢复时间 修订内容和仍需观察的问题 不悄悄替换文件让学员猜变化 讲师和助教离开团队时要完成交接 账号权限 素材位置 维护章节 未解决工单和下一次复查日期都有明确接收人 离职账号及时撤销 不共享个人密码 课程源文件至少两人知道恢复方法 但编辑权限只给当前负责人 避免没人能维护或所有人都能覆盖 年度复盘不以新增章节数量作为成绩。重点检查学员是否真正完成目标任务、哪些流程因产品变化失效、哪些内容重复或可以归档。对已经不再推荐的工具说明原因并保留迁移路径；删除整章前先通知受影响学员，旧版资料按约定时间提供下载不同期开班不能直接复制上一期日历 先核对节假日 讲师时间 产品版本和作业工作量 再确定直播与截止日期 人数超过助教容量时先增加支持资源或拆班 不通过压缩答疑时间解决 每期保留独立班级空间 旧学员资料只读归档 避免新通知覆盖历史记录 入学前提供环境自检页 检查操作系统版本 磁盘空间 浏览器 网络和必要账号 但不要求安装所有工具 检查失败时给出可执行的替代路径 例如先使用网页版本或下载离线素材 确实无法满足前提的课程要在购买前说清 不能付款后才发现设备不支持 云端模型费用要用可控样本演示。课程说明哪些请求可能计费、如何查看余额和设置限额，不提供共享 API Key。练习默认使用短输入，长文和批量任务先估算成本再执行；价格页面变化时及时更新截图和文字，不引用旧视频里的金额继续做承诺社区内容定期整理但不随意删除 高频问题沉淀到 FAQ 已经过时的回答标注适用版本 重复讨论可以合并链接 涉及人身攻击 广告或隐私泄漏的内容先隐藏并保留处理记录 普通不同意见不得因为和讲师结论不一致就删除 课程也要允许学员提出反例 讲师培训包含一次完整的零基础试讲 旁听者只能按课程提供的信息操作 讲师不能用未写进教材的经验替他补步骤 试讲结束记录误解点 术语门槛和等待时间 优先改材料再训练讲师口头补充 避免课程只能依赖某个人现场救场 可访问性还要在发布包上实测，而不是只检查稿件。使用 VoiceOver 顺序读一节文档，放大到百分之二百检查截图标注，关闭声音完成视频任务，并用纯键盘提交作业。发现问题要记录受影响章节、临时方案和修复日期，不能只在声明里写支持无障碍课程源文件恢复演练每季度做一次 从只读原始素材 项目备份和最终导出各抽一个章节 确认能在另一台电脑打开 字体 链接和媒体没有丢失 云盘同步不是唯一备份 误删除和勒索风险需要离线副本 恢复步骤写入教师手册并指定负责人 结课证书只证明完成约定任务 不宣称职业资质 发证前核对综合项目 来源记录和安全自查都已通过 姓名由学员本人确认 证书编号和验证页只展示必要信息 撤回或更正有清晰流程 不能为了营销给未提交作业的人自动发证 结课问卷同时收集最有帮助、最难理解和仍未解决的问题，并允许匿名。满意度只作为一个信号，要和作业表现、工单及访谈一起解释。负面反馈原样保留核心意思，不挑选好看的句子做总结；需要联系回访时由学员主动留下方式下一阶段路线图先写问题和证据 再写候选方案 是否新增模型 移动端或高级自动化 要看现有学员任务是否被阻塞 而不是追逐新功能 每个候选项标明负责人 验证方法和决定日期 未通过验证就保持计划状态 不进入宣传页面或销售承诺 工具选择保持厂商中立 课程可以用当前产品演示 但每个关键能力都解释输入 输出和判断标准 学员以后换工具仍能迁移 涉及赞助 分成或合作关系时在对应章节明确披露 评价不因为商业关系改变 没有完整比较过的产品不做最好或最差的结论 离线学习包要包含文字稿、必要截图、练习数据和校验值，但不打包受限制的软件或付费素材。下载后在断网环境抽查能否打开，外部链接另存清单供联网时访问。更新包只提供变化文件和说明，学员不必每次重新下载全部视频，也能确认本地文件版本讲师发布新章节前也走双人复核 一人核对事实 来源 数字和产品边界 另一人按学员路径执行全部步骤 作者不能独自批准自己的内容 紧急修正可以先发布醒目标记和临时步骤 但二十四小时内补齐复核记录 不能让临时说明永久悬空 跨时区班级的直播时间同时标明时区和本地日期 夏令时变化前重新确认 无法参加直播的学员通过录像 问题索引和异步答疑获得同等核心内容 作业截止按学员所在时区展示 并保留短暂宽限 不能让服务器时区差异造成误判逾期 结课后的校友更新只发送学员明确订阅的内容。重要安全变更或课程材料失效可以发一次服务通知，营销活动与学习更新分开退订。校友资源标明适用版本和最后复查日期，旧讨论区保持只读；需要重新购买的新产品不能伪装成原课程免费更新课程还要讨论负责任使用 研究时不伪造来源 内容生产不冒充真实人物 自动化不绕过权限或平台规则 生成图片和声音说明授权边界 遇到可能影响就业 医疗 法律或财务的重要决定时 课程要求核对专业来源和人工复审 不把模型回答当最终判断 综合项目答辩重点让学员解释过程而不是做漂亮展示 每人用十分钟说明目标 来源 关键选择 失败处理和最终产物 再回答一个可复现问题 答辩可以录屏供本人复盘 但默认不公开 评分人若发现结果来自模板却无法解释 就要求补充过程证据 而不是只看表面完成度 下载资源设置生命周期。每个压缩包标创建日期、适用章节、版本和维护人，季度检查链接、格式和授权。被新资源替代的旧包先标归档并保留迁移说明，确认没有课程仍引用后再下线；学员本地文件不受远程删除影响，重要更新通过明确通知而不是悄悄替换同名文件课程团队每月抽查一条完整学习路径 从购买前说明 环境自检 章节学习 作业提交到售后回复全部走完 抽查使用普通账号和新设备 不借助管理员权限 发现跨系统差异时记录真实截图和复现步骤 分配负责人和截止日期 下一次抽查先验证旧问题是否关闭 最后建立课程决策记录 章节增删 工具替换 价格调整 作业延期和规则变化都写明提出日期 证据 参与人 最终决定及复查时间 讨论中的临时方案标为未采纳 不能混进正式说明 决策记录和更新日志互相链接 学员只看到与学习相关的结果 团队仍能追溯为什么变化 若后来事实改变 就新增一条更正并指出受影响材料 不覆盖旧记录假装从未发生 教师手册最后附一页发布前停步清单：涉及真实付款、账号权限、外部发送、批量删除、公开发布或学员隐私时，自动流程必须停下等待负责人确认。清单同时写出取消后的恢复方式，确保操作者拒绝继续不会损坏素材、重复收费或留下半完成状态课程上线后每季度做一次内容可用性抽样 抽样不只检查视频能播放 还要用普通学员账号重新下载素材 打开示例 提交作业并收到售后回复 任何依赖管理员权限或内部缓存才能完成的步骤都算失败 修复记录要注明影响章节 负责人和复查日期 企业学员与个人学员使用同一事实标准 但数据边界不同 企业案例只能使用已获授权并完成脱敏的材料 合同 通讯录 客户名称和内部指标不得进入公开课堂 需要团队协作时先说明角色权限 再演示共享 不能用讲师的全局管理员账号代替普通成员路径 每次大版本更新前保留一套旧版回归课件。新版截图、命令和下载包验证通过后再切换入口，旧版先进入只读归档并提供迁移说明。若新版发布后出现阻断问题，应能恢复旧入口，而不是临时删除学员已经依赖的资料或覆盖同名文件最终运营复盘要把教学问题与产品故障分开统计 课程解释不清 作业设计过难 第三方服务中断和学员设备不兼容分别记录 不能用一个满意度数字掩盖原因 改进项必须写出证据 负责人 预期验证方式和决定日期 没有验证结果就继续保持待确认  还有助教那块呃后面再补"
+      ],
+      "context_type": "unknown_blocked",
+      "context_fixture": {
+        "type": "unknown_blocked",
+        "level": "nearbyText",
+        "safety": "unknown",
+        "selected_text": null,
+        "text_before_cursor": "未知控件里显示王小明住在海棠路八号。",
+        "text_after_cursor": null,
+        "recent_muse_inputs": []
+      },
+      "requires_transformation": true,
+      "semantic_contract": {
+        "primary_boundary": "近八千字课程计划必须保全章节、跨段改口、规则与发布边界",
+        "final_intent": [
+          "形成完整、可执行的课程计划，按最终章节顺序、排期和复核轮次表达"
+        ],
+        "must_preserve": [
+          "全部课程目标、八个章节及后续运营和安全规则",
+          "语音输入最终放第四章",
+          "主课录制9月10日、复核9月12日、9月15日仅内部试看",
+          "课程资料复核最终两轮",
+          "所有角色、授权、隐私、支付、备份、无障碍、版本、售后与发布停步规则"
+        ],
+        "must_resolve": [
+          "删除原第七章位置、9月3日和三轮复核旧值；清理口吃、假启动和改口过程"
+        ],
+        "must_not_add": [
+          "未知控件中的姓名和地址",
+          "未说出的发布日期、付款或授权结论"
+        ],
+        "acceptable_variations": [
+          "可按目标、章节、排期、分工、素材、质量和发布边界重组；不得压成短摘要"
+        ],
+        "major_error_if": [
+          "保留任一已作废值",
+          "遗漏整个章节或主要规则簇",
+          "退回原转写",
+          "泄露未知上下文",
+          "把内部试看写成公开发布"
+        ]
+      }
+    }
+  ]
+}

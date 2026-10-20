@@ -35,29 +35,29 @@ RUNNER_TEMP="${RUNNER_TEMP:-}"
 [ -n "$RUNNER_TEMP" ] && [ -d "$RUNNER_TEMP" ] && [ ! -L "$RUNNER_TEMP" ] \
     || fail "RUNNER_TEMP must be an existing non-symbolic-link directory"
 RUNNER_TEMP="$(cd "$RUNNER_TEMP" && /bin/pwd -P)"
-MUSE_PACKAGE_PREBUILT_BINARY="${MUSE_PACKAGE_PREBUILT_BINARY:-}"
-MUSE_PACKAGE_PREBUILT_SHA256="${MUSE_PACKAGE_PREBUILT_SHA256:-}"
-case "$MUSE_PACKAGE_PREBUILT_BINARY" in
-    "$RUNNER_TEMP"/*/Muse) ;;
-    *) fail "MUSE_PACKAGE_PREBUILT_BINARY must be a Muse path below RUNNER_TEMP" ;;
+DAL_PACKAGE_PREBUILT_BINARY="${DAL_PACKAGE_PREBUILT_BINARY:-}"
+DAL_PACKAGE_PREBUILT_SHA256="${DAL_PACKAGE_PREBUILT_SHA256:-}"
+case "$DAL_PACKAGE_PREBUILT_BINARY" in
+    "$RUNNER_TEMP"/*/Dal) ;;
+    *) fail "DAL_PACKAGE_PREBUILT_BINARY must be a Dal path below RUNNER_TEMP" ;;
 esac
-PREBUILT_DIR="$(dirname "$MUSE_PACKAGE_PREBUILT_BINARY")"
+PREBUILT_DIR="$(dirname "$DAL_PACKAGE_PREBUILT_BINARY")"
 [ -d "$PREBUILT_DIR" ] && [ ! -L "$PREBUILT_DIR" ] \
     || fail "prebuilt binary directory is missing or unsafe"
-[ "$(cd "$PREBUILT_DIR" && /bin/pwd -P)/Muse" = "$MUSE_PACKAGE_PREBUILT_BINARY" ] \
+[ "$(cd "$PREBUILT_DIR" && /bin/pwd -P)/Dal" = "$DAL_PACKAGE_PREBUILT_BINARY" ] \
     || fail "prebuilt binary path is not canonical"
-[ -f "$MUSE_PACKAGE_PREBUILT_BINARY" ] && [ ! -L "$MUSE_PACKAGE_PREBUILT_BINARY" ] \
-    && [ -x "$MUSE_PACKAGE_PREBUILT_BINARY" ] \
+[ -f "$DAL_PACKAGE_PREBUILT_BINARY" ] && [ ! -L "$DAL_PACKAGE_PREBUILT_BINARY" ] \
+    && [ -x "$DAL_PACKAGE_PREBUILT_BINARY" ] \
     || fail "prebuilt binary is missing or unsafe"
-[[ "$MUSE_PACKAGE_PREBUILT_SHA256" =~ ^[0-9a-f]{64}$ ]] \
-    || fail "MUSE_PACKAGE_PREBUILT_SHA256 must be 64 lowercase hexadecimal characters"
-ACTUAL_PREBUILT_SHA256="$(/usr/bin/shasum -a 256 "$MUSE_PACKAGE_PREBUILT_BINARY" | /usr/bin/awk '{print $1}')"
-[ "$ACTUAL_PREBUILT_SHA256" = "$MUSE_PACKAGE_PREBUILT_SHA256" ] \
+[[ "$DAL_PACKAGE_PREBUILT_SHA256" =~ ^[0-9a-f]{64}$ ]] \
+    || fail "DAL_PACKAGE_PREBUILT_SHA256 must be 64 lowercase hexadecimal characters"
+ACTUAL_PREBUILT_SHA256="$(/usr/bin/shasum -a 256 "$DAL_PACKAGE_PREBUILT_BINARY" | /usr/bin/awk '{print $1}')"
+[ "$ACTUAL_PREBUILT_SHA256" = "$DAL_PACKAGE_PREBUILT_SHA256" ] \
     || fail "prebuilt binary SHA256 mismatch before opening the signing keychain"
-export MUSE_PACKAGE_PREBUILT_BINARY MUSE_PACKAGE_PREBUILT_SHA256
-export MUSE_PACKAGE_REQUIRE_PREBUILT=1
-CERTIFICATE_PATH="$RUNNER_TEMP/muse-release-certificate.p12"
-KEYCHAIN_PATH="$RUNNER_TEMP/muse-release-signing.keychain-db"
+export DAL_PACKAGE_PREBUILT_BINARY DAL_PACKAGE_PREBUILT_SHA256
+export DAL_PACKAGE_REQUIRE_PREBUILT=1
+CERTIFICATE_PATH="$RUNNER_TEMP/dal-release-certificate.p12"
+KEYCHAIN_PATH="$RUNNER_TEMP/dal-release-signing.keychain-db"
 NOTARY_KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_NOTARY_KEY_ID}.p8"
 [ ! -e "$CERTIFICATE_PATH" ] && [ ! -L "$CERTIFICATE_PATH" ] \
     || fail "temporary certificate path already exists"
