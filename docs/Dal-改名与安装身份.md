@@ -12,6 +12,8 @@ Bundle ID `pro.daliang.muse`、原 `Muse Local` 签名证书、`~/Library/Applic
 - 先构建 Dal 候选，验证 Bundle ID、名称、可执行文件、严格签名及维护者证书指纹，再停止自己的精确路径进程。构建失败时原应用继续工作。
 - 目标缺少身份、属于其他应用、签名错误或路径含非系统符号链接时一律停止。不得通过覆盖 `APP_BUNDLE_ID` 绕过。
 - 旧名迁移仅检查 `/Applications/Muse.app` 与 `/Applications/Muse 输入法.app`；只有标识为 `pro.daliang.muse` 且符合原签名的包才迁移。Meta Muse（包括 `com.meta.endo`、`com.facebook.hatch`）及任何其他身份均跳过，不退出、不移动、不注销。
+.app 默认构建输出位于 `dist/package.noindex/Dal.app`；DMG 构建结束后也会禁用临时候选。
+
 - 旧包归档为 `.app.disabled`，避免启动台再次收录。安装失败会尝试恢复旧包；记录与候选留在隔离目录供排障。
 - 下载更新必须匹配 Dal 制品名、应用身份、签名团队、版本与摘要；拒绝把产品名改回旧名。现有自动更新仍关闭，不因改名擅自开启。
 - 公共手动分发仍使用原本机签名。改用 Developer ID 证书时须显式更新受信任身份并测试，不能仅接受任意有效签名。

@@ -41,7 +41,7 @@ if [ "${DAL_PACKAGE_TEST_MODE:-0}" != "1" ]; then
     PACKAGING_SOURCE_COMMIT="$(git -C "$PROJECT_DIR" rev-parse HEAD)"
     PACKAGING_SOURCE_TREE="$(git -C "$PROJECT_DIR" rev-parse 'HEAD^{tree}')"
 fi
-APP_PATH="${APP_PATH:-$PROJECT_DIR/dist/Dal.app}"
+APP_PATH="${APP_PATH:-$PROJECT_DIR/dist/package.noindex/Dal.app}"
 # 在构建、签名、写清单或回收任何文件之前检查目标身份。
 python3 "$SCRIPT_DIR/app_identity.py" "$APP_PATH" --bundle-id "${APP_BUNDLE_ID:-pro.daliang.muse}"
 case "${APP_NAME:-Dal}" in

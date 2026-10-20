@@ -101,6 +101,12 @@ cleanup() {
     local status="$?"
     trap - EXIT
     set +e
+    # 只禁用本次隔离目录中、已确认属于自己的候选包，避免废纸篓重复收录。
+    local staged_app="$STAGING_DIR/Dal.app"
+    if [ -d "$staged_app" ] && [ ! -L "$staged_app" ] \
+        && [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$staged_app/Contents/Info.plist" 2>/dev/null)" = pro.daliang.muse ]; then
+        "$MV_BIN" "$staged_app" "$staged_app.disabled"
+    fi
     trash_path "$STAGING_DIR"
     trash_path "$PARTIAL_DMG"
     if [ -e "$PREVIOUS_DMG" ] || [ -L "$PREVIOUS_DMG" ]; then
